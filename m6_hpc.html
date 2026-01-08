@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>M6: HPC System Administration - 200 Q Bank</title>
+    <style>
+        :root { 
+            --apt-primary: #e67e22; 
+            --apt-secondary: #2c3e50; 
+            --apt-bg: #f4f7f6; 
+            --white: #ffffff;
+        }
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background: var(--apt-bg); 
+            margin: 0; 
+            padding: 20px; 
+        }
+        .quiz-container { 
+            max-width: 1100px; 
+            margin: auto; 
+            background: var(--white); 
+            padding: 30px; 
+            border-radius: 12px; 
+            box-shadow: 0 5px 25px rgba(0,0,0,0.1); 
+        }
+        
+        .header { 
+            border-bottom: 4px solid var(--apt-primary); 
+            padding-bottom: 15px; 
+            margin-bottom: 25px; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+        }
+        .header h1 { margin: 0; color: var(--apt-secondary); font-size: 24px; }
+        .back-btn { 
+            text-decoration: none; 
+            color: white; 
+            background: var(--apt-secondary); 
+            padding: 8px 25px; 
+            border-radius: 4px; 
+            font-weight: bold; 
+            transition: 0.3s;
+        }
+        .back-btn:hover { background: #34495e; }
+
+        .set-nav { margin-bottom: 25px; display: flex; gap: 8px; flex-wrap: wrap; }
+        .set-btn { 
+            padding: 10px 15px; 
+            background: #fff; 
+            border: 2px solid var(--apt-primary); 
+            border-radius: 6px; 
+            cursor: pointer; 
+            text-decoration: none; 
+            color: var(--apt-primary); 
+            font-weight: bold; 
+            font-size: 13px;
+            transition: 0.3s;
+        }
+        .set-btn.active { background: var(--apt-primary); color: white; }
+        .set-btn:hover:not(.active) { background: #fdf2e9; }
+
+        .question-card { 
+            margin-bottom: 25px; 
+            padding: 20px; 
+            border: 1px solid #dfe6e9; 
+            border-radius: 8px; 
+            background: #fff;
+        }
+        .q-text { font-weight: 600; font-size: 1.1rem; color: var(--apt-secondary); display: block; margin-bottom: 15px; }
+        .option { 
+            display: block; 
+            padding: 12px; 
+            border: 1px solid #dcdde1; 
+            margin: 8px 0; 
+            border-radius: 5px; 
+            cursor: pointer; 
+            transition: 0.2s;
+        }
+        .option:hover { background: #f8f9fa; border-color: var(--apt-primary); }
+        .opt-correct { background: #d4edda !important; border-color: #28a745 !important; color: #155724; font-weight: bold; }
+        .opt-wrong { background: #f8d7da !important; border-color: #dc3545 !important; color: #721c24; }
+
+        .submit-btn { 
+            background: var(--apt-primary); 
+            color: white; 
+            border: none; 
+            padding: 18px; 
+            width: 100%; 
+            border-radius: 6px; 
+            font-size: 1.2rem; 
+            cursor: pointer; 
+            font-weight: bold; 
+            box-shadow: 0 4px 15px rgba(230, 126, 34, 0.3);
+        }
+
+        #result-modal { 
+            display: none; 
+            position: fixed; 
+            top:0; left:0; width:100%; height:100%; 
+            background: rgba(0,0,0,0.7); 
+            z-index: 1000; 
+            justify-content: center; 
+            align-items: center; 
+        }
+        .modal-content { background: white; padding: 40px; border-radius: 12px; text-align: center; max-width: 450px; width: 90%; }
+        .score-val { font-size: 4rem; color: var(--apt-primary); font-weight: 800; margin: 10px 0; }
+    </style>
+</head>
+<body>
+
+<div class="quiz-container">
+    <div class="header">
+        <div>
+            <h1>M6: HPC System Admin & Management</h1>
+            <p style="margin:5px 0 0; color:#7f8c8d;">Based on PG-DHPCSA August 2025 Teaching Guidelines</p>
+        </div>
+        <a href="index.html" class="back-btn">← Home</a>
+    </div>
+
+    <div class="set-nav">
+        <a href="?set=1" class="set-btn" id="btn-1">Set 1: Data Center Design</a>
+        <a href="?set=2" class="set-btn" id="btn-2">Set 2: Cluster Ecosystem</a>
+        <a href="?set=3" class="set-btn" id="btn-3">Set 3: Architecture & Accelerators</a>
+        <a href="?set=4" class="set-btn" id="btn-4">Set 4: Monitoring & Management</a>
+        <a href="?set=5" class="set-btn" id="btn-5">Set 5: Benchmarking & Trends</a>
+    </div>
+
+    <form id="quiz-form">
+        <div id="questions-area"></div>
+        <button type="button" class="submit-btn" onclick="processScore()">SUBMIT EVALUATION</button>
+    </form>
+</div>
+
+<div id="result-modal">
+    <div class="modal-content">
+        <h2>Assessment Result</h2>
+        <div class="score-val" id="score-display">0%</div>
+        <p id="stats-summary"></p>
+        <button onclick="location.reload()" style="padding:12px 25px; background:var(--apt-primary); color:white; border:none; border-radius:6px; cursor:pointer;">Try Again</button>
+        <button onclick="document.getElementById('result-modal').style.display='none'" style="padding:12px 25px; margin-left:10px; cursor:pointer; background: #ecf0f1; border: none; border-radius: 6px;">Review</button>
+    </div>
+</div>
+
+<script>
+// Comprehensive question bank based on the provided PDF Syllabus
+const quizData = {
+    "1": [ // Data Center Design & Management (Sessions 1-7)
+        { q: "What is a primary design issue in Data Center overview?", o: ["Office lighting", "Power sizing and HVAC", "Wallpaper choice", "Desk orientation"], a: 1 },
+        { q: "HVAC systems primarily handle which Data Center requirement?", o: ["Software updates", "Heat rejection and cooling", "User LDAP", "Network routing"], a: 1 },
+        { q: "Which metric is critical for evaluating Data Center efficiency?", o: ["PUE (Power Usage Effectiveness)", "Number of monitors", "Cable color", "Room height"], a: 0 },
+        { q: "Liquid cooling on data centers is used to manage:", o: ["Floor cleaning", "High-density heat loads", "User hydration", "External humidity"], a: 1 },
+        { q: "Safety & Security in a DC includes:", o: ["Fire suppression", "Visitor logs", "Biometric access", "All of the above"], a: 3 },
+        { q: "Power sizing calculations must account for:", o: ["Total server wattage", "UPS capacity", "Cooling overhead", "All of the above"], a: 3 },
+        { q: "Energy use systems aim for:", o: ["Maximum waste", "Heat reuse and collection", "Lowest possible RAM", "High brightness"], a: 1 },
+        { q: "Cabinet management focuses on:", o: ["Shelf color", "Airflow and cable management", "Wood quality", "Door locks only"], a: 1 },
+        { q: "Design issues often include:", o: ["Seismic protection", "Floor loading", "Power redundancy", "All of the above"], a: 3 },
+        { q: "What is a common Data Center matrix?", o: ["Total height", "Cooling capacity per rack", "Mouse sensitivity", "Monitor count"], a: 1 },
+        { q: "Rejection and reuse of heat is a feature of:", o: ["Green Data Centers", "Standard offices", "Gaming rooms", "Libraries"], a: 0 },
+        { q: "Data center safety specifically targets:", o: ["Data breaches", "Physical hazards and fire", "Slow internet", "Software bugs"], a: 1 },
+        { q: "Data Center best practices recommend:", o: ["Loose cabling", "Hot/Cold aisle containment", "Mixing AC units", "Open windows"], a: 1 },
+        { q: "PUE of 1.0 represents:", o: ["Total inefficiency", "Perfect efficiency", "Average performance", "Network failure"], a: 1 },
+        { q: "HVAC redundancy usually follows:", o: ["N+1 configuration", "Single unit", "Manual fans", "Window units"], a: 0 },
+        { q: "Power sizing must prioritize:", o: ["Battery backup (UPS)", "Wall sockets", "Extension cords", "Solar panels only"], a: 0 },
+        { q: "Security audits in DC focus on:", o: ["User passwords", "Physical access control", "Browser history", "Wallpaper"], a: 1 },
+        { q: "Heat collection systems are used for:", o: ["Heating nearby buildings", "Cooling servers", "Powering CPUs", "None"], a: 0 },
+        { q: "Data center visit provides insight into:", o: ["Code syntax", "Physical infrastructure and layout", "Social media", "Typing"], a: 1 },
+        { q: "Cable management prevents:", o: ["Airflow blockage", "Cable tangles", "Accidental disconnects", "All of the above"], a: 3 },
+        { q: "Standard DC rack height is measured in:", o: ["Inches", "Rack Units (U)", "Centimeters", "Feet"], a: 1 },
+        { q: "Tier IV Data Center offers:", o: ["99.995% availability", "90% availability", "No redundancy", "Basic cooling"], a: 0 },
+        { q: "CRAC units stand for:", o: ["Computer Room Air Conditioning", "Cable Rack and Cooling", "Core Resource Access Control", "None"], a: 0 },
+        { q: "Power distribution units (PDUs) are placed:", o: ["Outside the building", "Within the racks", "In the lobby", "On the roof"], a: 1 },
+        { q: "Data Center flooring often uses:", o: ["Carpet", "Raised access floor", "Grass", "Marble"], a: 1 },
+        { q: "Raised floors help with:", o: ["Cool air distribution", "Hiding cables", "Static dissipation", "All of the above"], a: 3 },
+        { q: "UPS systems provide:", o: ["Permanent power", "Clean power during outages", "Cooling", "Internet"], a: 1 },
+        { q: "DC matrices measure performance in:", o: ["Watts per sq ft", "Users per day", "Pixels", "Books per shelf"], a: 0 },
+        { q: "Safety exit signs must be:", o: ["Blue", "Visible and illuminated", "Hidden", "Optional"], a: 1 },
+        { q: "Emergency Power Off (EPO) buttons:", o: ["Start servers", "Instantly cut DC power", "Mute alarms", "Reset BIOS"], a: 1 },
+        { q: "Data Center energy use is highest for:", o: ["Lighting", "Cooling and compute", "Coffee machines", "Printers"], a: 1 },
+        { q: "Hot aisle containment:", o: ["Mixes air", "Isolates exhaust air", "Cools the lobby", "Reduces security"], a: 1 },
+        { q: "Cold aisle containment:", o: ["Targets intake air", "Heats the room", "Isolates users", "None"], a: 0 },
+        { q: "Best practice for DC security:", o: ["Open doors", "Mantrap/interlocking doors", "No cameras", "Free entry"], a: 1 },
+        { q: "Fire suppression in DC uses:", o: ["Water sprinklers", "Inert gas/Clean agents", "Dirt", "Fans"], a: 1 },
+        { q: "HVAC capacity planning is based on:", o: ["Max heat load", "Outdoor temp", "User count", "OS version"], a: 0 },
+        { q: "Data center lifecycle includes:", o: ["Planning and Design", "Construction", "Operation", "All of the above"], a: 3 },
+        { q: "Sustainable DC design involves:", o: ["Renewable energy", "Free cooling", "Heat recovery", "All of the above"], a: 3 },
+        { q: "DC management software is called:", o: ["DCIM", "ERP", "Photoshop", "Notepad"], a: 0 },
+        { q: "The objective of HPC DC management is:", o: ["Efficiency and Uptime", "Low cost only", "Game hosting", "Socializing"], a: 0 }
+    ],
+    "2": [ // Ecosystem: Architecture of HPC Cluster (Sessions 8-15)
+        { q: "What is the primary goal of Requirement Analysis in HPC?", o: ["Buying the cheapest hardware", "Identifying workload needs", "Designing a website", "Staffing"], a: 1 },
+        { q: "The 'Building blocks of HPC' include:", o: ["Compute, Storage, Interconnect", "Mice and Keyboards", "Paper and Pens", "Furniture"], a: 0 },
+        { q: "Cluster Planning must consider:", o: ["Power density", "Network topology", "Storage IOPS", "All of the above"], a: 3 },
+        { q: "Adapting Standard Linux for HPC involves:", o: ["Installing games", "Tuning kernel and feature selection", "Using default settings", "None"], a: 1 },
+        { q: "Hardware selection process targets:", o: ["Processor type", "Accelerator cards", "Memory bandwidth", "All of the above"], a: 3 },
+        { q: "Software selection for HPC includes:", o: ["HPC Stack", "Compilers", "Libraries", "All of the above"], a: 3 },
+        { q: "Requirement analysis focuses on:", o: ["Wall color", "Application scalability", "Physical size only", "Browser speed"], a: 1 },
+        { q: "HPC Cluster design session includes:", o: ["Interior design", "System architecture and cluster software", "Marketing", "None"], a: 1 },
+        { q: "What defines an HPC cluster?", o: ["Single PC", "Network of interconnected nodes", "A mainframe", "A laptop"], a: 1 },
+        { q: "Compute nodes in a cluster are for:", o: ["Storage only", "Running calculations", "User login only", "Managing power"], a: 1 },
+        { q: "Head node in a cluster handles:", o: ["Job scheduling and management", "Heavy computing", "Air conditioning", "Physical security"], a: 0 },
+        { q: "Storage nodes provide:", o: ["CPU cycles", "Shared filesystem access", "Network switching", "User LDAP"], a: 1 },
+        { q: "Interconnect selection affects:", o: ["Latency and bandwidth", "Screen resolution", "Keyboard typing", "Power consumption"], a: 0 },
+        { q: "Common HPC interconnect is:", o: ["Bluetooth", "InfiniBand", "Dial-up", "SATA"], a: 1 },
+        { q: "HPC software stack usually includes:", o: ["MPI libraries", "Resource managers", "Cluster monitoring", "All of the above"], a: 3 },
+        { q: "Linux feature selection for HPC aims for:", o: ["Bloatware", "Minimal overhead and performance", "Visual effects", "Audio support"], a: 1 },
+        { q: "Architecture selection depends on:", o: ["Workload profile", "Budget", "Scalability goals", "All of the above"], a: 3 },
+        { q: "Building block integration involves:", o: ["Hardware racking", "Network cabling", "OS deployment", "All of the above"], a: 3 },
+        { q: "Standard Linux needs tuning for:", o: ["Hugepages and I/O scheduler", "Wallpaper", "Browsing", "Social media"], a: 0 },
+        { q: "Cluster scalability refers to:", o: ["Height of racks", "Adding more nodes easily", "Screen size", "Number of mice"], a: 1 },
+        { q: "HPC cluster nodes are connected via:", o: ["High-speed network", "USB cables", "Power lines", "HDMI"], a: 0 },
+        { q: "The software selection process evaluates:", o: ["Open-source vs Commercial tools", "Game compatibility", "Color of UI", "None"], a: 0 },
+        { q: "Requirement analysis results in:", o: ["Bill of Materials", "System Specs", "Performance targets", "All of the above"], a: 3 },
+        { q: "A 'Thin' node has:", o: ["High RAM", "Standard memory", "Many GPUs", "Multiple disks"], a: 1 },
+        { q: "A 'Fat' node has:", o: ["High RAM capacity", "No CPU", "Small disk", "Single core"], a: 0 },
+        { q: "The cluster ecosystem includes:", o: ["Hardware", "Software", "People/Admins", "All of the above"], a: 3 },
+        { q: "Storage architecture for HPC uses:", o: ["Parallel Filesystems", "Single USB drives", "Floppy disks", "None"], a: 0 },
+        { q: "Parallel filesystems include:", o: ["Lustre/GPFS", "FAT32", "NTFS", "Ext4"], a: 0 },
+        { q: "Login nodes are used by:", o: ["Computers only", "Users to submit jobs", "Storage", "Network switches"], a: 1 },
+        { q: "Compute nodes usually run:", o: ["Full Desktop GUI", "Lightweight CLI OS", "Games", "Android"], a: 1 },
+        { q: "The selection process for hardware must avoid:", o: ["Bottlenecks", "Fast CPUs", "Good RAM", "High speed network"], a: 0 },
+        { q: "Cluster configuration management uses:", o: ["Ansible/Puppet", "Manual typing", "Notepad", "None"], a: 0 },
+        { q: "Building blocks should be:", o: ["Homogeneous or Heterogeneous", "Round", "Wooden", "Fragile"], a: 0 },
+        { q: "Hardware requirement analysis includes:", o: ["FLOPS required", "Storage capacity", "Network bandwidth", "All of the above"], a: 3 },
+        { q: "Cluster software selection involves:", o: ["Scheduler (SLURM/PBS)", "OS (CentOS/Ubuntu)", "Compilers (GCC/Intel)", "All of the above"], a: 3 },
+        { q: "Planning for growth is called:", o: ["Future-proofing", "Retirement", "Recycling", "None"], a: 0 },
+        { q: "The 'Ecosystem' concept implies:", o: ["Interdependent components", "Solo hardware", "Only software", "A literal forest"], a: 0 },
+        { q: "Design of HPC clusters must prioritize:", o: ["Performance/Watt", "Gaming speed", "Video editing", "None"], a: 0 },
+        { q: "Software selection process is:", o: ["One-time", "Iterative", "Random", "Fast"], a: 1 },
+        { q: "Cluster planning concludes with:", o: ["Deployment plan", "Shopping list", "Design doc", "All of the above"], a: 3 }
+    ],
+    "3": [ // Multicore & Accelerators (Sessions 16-22)
+        { q: "Multicore architecture puts multiple cores on:", o: ["Separate boards", "Single chip/die", "Separate rooms", "Cloud"], a: 1 },
+        { q: "Pascal is an architecture by:", o: ["Intel", "NVIDIA", "AMD", "ARM"], a: 1 },
+        { q: "Accelerator cards environment setup needs:", o: ["CUDA Library", "Python default", "Java JRE", "Flash player"], a: 0 },
+        { q: "Which tool is for building clusters?", o: ["Warewulf/Rocks", "Photoshop", "VLC", "Winamp"], a: 0 },
+        { q: "Latest trends in HPC include:", o: ["AI/ML integration", "Quantum computing", "Exascale", "All of the above"], a: 3 },
+        { q: "CUDA stands for:", o: ["Compute Unified Device Architecture", "Core Unit Data Access", "Cluster User Data Analysis", "None"], a: 0 },
+        { q: "Accelerator cards (GPUs) are used for:", o: ["Display only", "Parallel compute offloading", "Storage", "Networking"], a: 1 },
+        { q: "Multicore-architecture targets:", o: ["Instruction Level Parallelism", "Thread Level Parallelism", "Both", "None"], a: 2 },
+        { q: "Accelerator card configuration involves:", o: ["Driver installation", "Library setup", "Runtime environment", "All of the above"], a: 3 },
+        { q: "Trends in HPC suggest moving towards:", o: ["Lower power consumption", "Heterogeneous computing", "Cloud HPC", "All of the above"], a: 3 },
+        { q: "The 'Param Shavak' is a:", o: ["Laptop", "HPC solution (Supercomputer in a box)", "Router", "Keyboard"], a: 1 },
+        { q: "GPU accelerators use which type of memory?", o: ["HBM/GDDR", "DDR3", "SD Card", "Hard Drive"], a: 0 },
+        { q: "CUDA is primarily used with:", o: ["C/C++", "HTML", "CSS", "SQL"], a: 0 },
+        { q: "Shared memory in multicore refers to:", o: ["Cores sharing RAM", "Sharing disks", "Sharing monitors", "None"], a: 0 },
+        { q: "Accelerators cards are connected via:", o: ["PCIe slot", "USB port", "SATA", "VGA"], a: 0 },
+        { q: "Cluster building tools automate:", o: ["OS installation", "Network setup", "Package distribution", "All of the above"], a: 3 },
+        { q: "Pascal GPUs introduced:", o: ["NVLink", "Floppy support", "VGA port", "None"], a: 0 },
+        { q: "Heterogeneous computing uses:", o: ["CPUs only", "Mix of CPUs and GPUs/FPGAs", "GPUs only", "Printers"], a: 1 },
+        { q: "Multicore performance is limited by:", o: ["Amdahl's Law", "Newton's Law", "Memory bandwidth", "Both 0 & 2"], a: 3 },
+        { q: "Accelerator cards offload:", o: ["Simple tasks", "Compute-intensive parallel tasks", "Background tasks", "Login tasks"], a: 1 },
+        { q: "Latest trends include Exascale computing, which is:", o: ["10^18 FLOPS", "10^12 FLOPS", "10^15 FLOPS", "None"], a: 0 },
+        { q: "CUDA Library includes:", o: ["cuBLAS", "cuFFT", "cuDNN", "All of the above"], a: 3 },
+        { q: "Multicore processors reduce:", o: ["Power per core", "Latency", "Cost", "All of the above"], a: 3 },
+        { q: "Architecture and Cluster software must:", o: ["Be compatible", "Be unrelated", "Be expensive", "None"], a: 0 },
+        { q: "Cluster building tools like Rocks use:", o: ["Rolls", "Folders", "Disks", "Tapes"], a: 0 },
+        { q: "Pascal architecture improved:", o: ["Energy efficiency", "Gaming only", "Typing", "None"], a: 0 },
+        { q: "Accelerator cards (FPGAs) are:", o: ["Fixed hardware", "Reconfigurable hardware", "Storage", "Memory"], a: 1 },
+        { q: "Trends like 'Edge HPC' focus on:", o: ["Data center only", "Processing near data source", "Cloud only", "None"], a: 1 },
+        { q: "Multicore-architecture challenges include:", o: ["Cache coherence", "Power density", "Programming complexity", "All of the above"], a: 3 },
+        { q: "Accelerator cards help achieve:", o: ["Higher TFLOPS", "Better energy efficiency", "Faster execution", "All of the above"], a: 3 },
+        { q: "Param Shavak is designed for:", o: ["Researchers/Academia", "Gaming enthusiasts", "Web browsing", "Mobile users"], a: 0 },
+        { q: "NVIDIA's NVLink is for:", o: ["High-speed GPU communication", "Connecting mouse", "Sound output", "None"], a: 0 },
+        { q: "Multi-threading in multicore enables:", o: ["Parallel execution", "Serial execution", "Slower speed", "None"], a: 0 },
+        { q: "Accelerator environment setup is:", o: ["Critical for performance", "Optional", "One-click always", "None"], a: 0 },
+        { q: "Survey paper on multicore involves:", o: ["Literature review", "Latest advancements", "Comparison", "All of the above"], a: 3 },
+        { q: "Pascal architecture utilized:", o: ["16nm FinFET", "90nm", "Vacuum tubes", "None"], a: 0 },
+        { q: "Building tools help in:", o: ["Consistency", "Speed of deployment", "Ease of management", "All of the above"], a: 3 },
+        { q: "The 'Manycore' concept implies:", o: ["Hundreds of simple cores", "2 fast cores", "No cores", "External cores"], a: 0 },
+        { q: "Software stack for accelerators includes:", o: ["Compiler, Debugger, Profiler", "Browser, Email, Chat", "Media player", "None"], a: 0 },
+        { q: "Future of HPC is moving toward:", o: ["Convergence with AI", "Standalone CPUs", "Slower speeds", "None"], a: 0 }
+    ],
+    "4": [ // HPC System Management and Monitoring (Sessions 23-26)
+        { q: "IPMI stands for:", o: ["Intelligent Platform Management Interface", "Internet Power Monitoring Index", "Integrated Processor Management Info", "None"], a: 0 },
+        { q: "LDAP is used for:", o: ["User management and authentication", "Cooling", "Storage", "Network switching"], a: 0 },
+        { q: "Monitoring tools like Nagios focus on:", o: ["Web design", "Health and status of nodes/services", "Typing", "Movies"], a: 1 },
+        { q: "Ganglia is a monitoring system for:", o: ["Single PCs", "Clusters and Grids", "Smartphones", "Printers"], a: 1 },
+        { q: "Processor usage monitoring helps in:", o: ["Identifying idle nodes", "Bottleneck analysis", "Workload balancing", "All of the above"], a: 3 },
+        { q: "User management using NIS/LDAP ensures:", o: ["Single sign-on across cluster", "Better graphics", "Faster internet", "None"], a: 0 },
+        { q: "Network monitoring involves tracking:", o: ["Bandwidth usage", "Latency", "Packet loss", "All of the above"], a: 3 },
+        { q: "IPMI allows management:", o: ["Only when OS is running", "Even when OS is down (Out-of-band)", "Via Bluetooth", "None"], a: 1 },
+        { q: "Nagios alerts can be sent via:", o: ["Email", "SMS", "Dashboard", "All of the above"], a: 3 },
+        { q: "Memory usage monitoring identifies:", o: ["Memory leaks", "Swap usage", "Insufficient RAM", "All of the above"], a: 3 },
+        { q: "NIS stands for:", o: ["Network Information Service", "Node Integration System", "Network Interface Serial", "None"], a: 0 },
+        { q: "LDAP directory stores:", o: ["User info, Groups, Permissions", "Movies", "Large datasets", "None"], a: 0 },
+        { q: "System management includes:", o: ["Updates/Patching", "Monitoring", "Maintenance", "All of the above"], a: 3 },
+        { q: "Processor usage is measured in:", o: ["Percentage", "Kilograms", "Liters", "Miles"], a: 0 },
+        { q: "HMC (Hardware Management Console) is for:", o: ["IBM Power systems", "Standard Laptops", "Smartphones", "Printers"], a: 0 },
+        { q: "IPMI features include:", o: ["Remote power on/off", "Sensor monitoring (Temp/Voltage)", "Serial-over-LAN", "All of the above"], a: 3 },
+        { q: "Nagios configuration uses:", o: ["Host and Service definitions", "HTML tables", "SQL queries only", "None"], a: 0 },
+        { q: "Ganglia uses which architecture?", o: ["Hierarchical", "Flat", "Round", "None"], a: 0 },
+        { q: "Node resources being monitored include:", o: ["CPU, RAM, Disk, Network", "Office temperature", "Furniture age", "None"], a: 0 },
+        { q: "IPMI configuration requires:", o: ["Dedicated management network", "Public internet", "No network", "None"], a: 0 },
+        { q: "User management challenges in HPC:", o: ["Scale (thousands of users)", "Consistent UID/GIDs", "Security", "All of the above"], a: 3 },
+        { q: "Nagios plugins allow:", o: ["Extending monitoring capabilities", "Better UI only", "Faster OS", "None"], a: 0 },
+        { q: "Processor usage monitoring tools:", o: ["top/htop", "sar", "Ganglia", "All of the above"], a: 3 },
+        { q: "Network usage is monitored on:", o: ["Switch ports", "Node interfaces", "Both", "None"], a: 2 },
+        { q: "LDAP is a ___ protocol:", o: ["Lightweight", "Heavy", "Medium", "None"], a: 0 },
+        { q: "NIS is considered ___ compared to LDAP:", o: ["Less secure", "More secure", "Faster", "None"], a: 0 },
+        { q: "IPMI is accessible via:", o: ["Web interface", "CLI (ipmitool)", "IPMI View", "All of the above"], a: 3 },
+        { q: "Ganglia's metric gathering uses:", o: ["gmond", "gmetad", "Both", "None"], a: 2 },
+        { q: "Monitoring tools installation is covered in:", o: ["Session 1", "Session 26-Lab", "Session 5", "None"], a: 1 },
+        { q: "System management aims for:", o: ["High availability", "Efficiency", "Security", "All of the above"], a: 3 },
+        { q: "Processor usage spikes might indicate:", o: ["Busy job", "Stuck process", "Both", "None"], a: 2 },
+        { q: "Network monitoring tools include:", o: ["Nagios", "Zabbix", "Cacti", "All of the above"], a: 3 },
+        { q: "IPMI sensors monitor:", o: ["Fan speed", "CPU temperature", "Chassis intrusion", "All of the above"], a: 3 },
+        { q: "User management involves:", o: ["Password policies", "SSH key management", "Quotas", "All of the above"], a: 3 },
+        { q: "LDAP over SSL is called:", o: ["LDAPS", "LDAPX", "LDAPZ", "None"], a: 0 },
+        { q: "Monitoring dashboards provide:", o: ["Real-time visualization", "Old news", "Games", "None"], a: 0 },
+        { q: "Node resource monitoring prevents:", o: ["Node failure", "System overload", "Both", "None"], a: 2 },
+        { q: "Ganglia visualization uses:", o: ["RRDtool", "Paint", "Photoshop", "None"], a: 0 },
+        { q: "System management tools like Spack are for:", o: ["Package management", "Cleaning floors", "Power", "None"], a: 0 },
+        { q: "Network usage monitoring is critical for:", o: ["Finding bottlenecks", "Checking cables", "Both", "None"], a: 2 }
+    ],
+    "5": [ // Benchmarking & Trends (Sessions 27-30)
+        { q: "HPL stands for:", o: ["High Performance LINPACK", "High Power Linux", "Hardware Processing Layer", "None"], a: 0 },
+        { q: "Which metric is the result of HPL?", o: ["Rmax (GFLOPS/TFLOPS)", "Latency", "Disk space", "RAM size"], a: 0 },
+        { q: "Theoretical peak performance (Rpeak) is calculated by:", o: ["Clock speed x Cores x Ops/cycle", "Guessing", "Measuring heat", "None"], a: 0 },
+        { q: "Problem size (N) in HPL affects:", o: ["Memory usage", "Accuracy", "Both", "None"], a: 2 },
+        { q: "Block size (NB) in HPL tuning is used for:", o: ["Optimization of cache/performance", "Naming nodes", "Storage", "None"], a: 0 },
+        { q: "System Benchmarking objective is:", o: ["Comparing performance", "Testing stability", "Acceptance testing", "All of the above"], a: 3 },
+        { q: "Tuning HPL involves which parameters?", o: ["N, NB, P, Q", "A, B, C, D", "X, Y, Z", "None"], a: 0 },
+        { q: "Process grid (PxQ) defines:", o: ["Parallel distribution of HPL processes", "The monitor grid", "The floor tiles", "None"], a: 0 },
+        { q: "Theoretical peak performance is always ___ than Rmax:", o: ["Higher", "Lower", "Equal", "None"], a: 0 },
+        { q: "Efficiency of a system is:", o: ["Rmax / Rpeak", "Rpeak / Rmax", "Rmax + Rpeak", "None"], a: 0 },
+        { q: "HPL benchmark is used for which list?", o: ["TOP500", "Fortune 500", "Top 10 Cities", "None"], a: 0 },
+        { q: "Problem size N should ideally use ___ of memory:", o: ["80-90%", "10%", "100%", "5%"], a: 0 },
+        { q: "Block size NB is usually around:", o: ["32 to 256", "1 to 2", "1000+", "None"], a: 0 },
+        { q: "PxQ should be:", o: ["Close to a square", "A single line", "Random", "None"], a: 0 },
+        { q: "Theoretical peak performance unit is:", o: ["FLOPS", "Bytes", "Hertz", "None"], a: 0 },
+        { q: "System benchmarking helps in:", o: ["Tuning", "Procurement decisions", "Bottleneck identification", "All of the above"], a: 3 },
+        { q: "HPL tuning requires knowledge of:", o: ["BLAS libraries", "MPI", "System architecture", "All of the above"], a: 3 },
+        { q: "Process grid P and Q should satisfy:", o: ["P x Q = Number of MPI processes", "P + Q = 10", "P = Q always", "None"], a: 0 },
+        { q: "Which factor affects HPL performance?", o: ["Interconnect speed", "Memory speed", "CPU speed", "All of the above"], a: 3 },
+        { q: "Theoretical peak is also called:", o: ["Rpeak", "Rmax", "Rmin", "None"], a: 0 },
+        { q: "Param Shavak case study demonstrates:", o: ["HPC solution integration", "Web hosting", "Typing", "None"], a: 0 },
+        { q: "Latest trends include Green HPC, focusing on:", o: ["Performance per Watt", "Planting trees", "Green color servers", "None"], a: 0 },
+        { q: "Exascale systems target ___ performance:", o: ["1 ExaFLOPS", "1 PetaFLOPS", "1 GigaFLOPS", "None"], a: 0 },
+        { q: "HPL Benchmarking is:", o: ["Compute-intensive", "I/O intensive", "Memory-latency intensive", "None"], a: 0 },
+        { q: "Problem size calculation: N^2 * 8 bytes should be:", o: ["<= Memory size", ">> Memory size", "Zero", "None"], a: 0 },
+        { q: "A good HPL efficiency is usually above:", o: ["60-70%", "10%", "1%", "99.9%"], a: 0 },
+        { q: "System Benchmarking tools besides HPL:", o: ["HPCG", "Graph500", "STREAM", "All of the above"], a: 3 },
+        { q: "STREAM benchmark measures:", o: ["Memory bandwidth", "CPU speed", "Network latency", "None"], a: 0 },
+        { q: "HPCG stands for:", o: ["High Performance Conjugate Gradient", "High Power Computer Graphics", "None", "None"], a: 0 },
+        { q: "HPCG is intended to complement ___:", o: ["HPL", "MS Word", "Photoshop", "None"], a: 0 },
+        { q: "Tuning HPL process is:", o: ["Iterative", "One-time", "Automatic always", "None"], a: 0 },
+        { q: "Theoretical peak performance formula includes:", o: ["Ops per cycle", "Cores", "Clock freq", "All of the above"], a: 3 },
+        { q: "Peak performance of a cluster is the:", o: ["Sum of peak of all nodes", "Average of all nodes", "Highest single node", "None"], a: 0 },
+        { q: "System management in session 30 includes:", o: ["Upgrading resources", "Maintaining HW/SW", "Integration", "All of the above"], a: 3 },
+        { q: "Benchmarking helps evaluate ___ of upgrades:", o: ["ROI", "Color", "Weight", "None"], a: 0 },
+        { q: "The TOP500 list is updated ___ a year:", o: ["Twice", "Once", "Every month", "None"], a: 0 },
+        { q: "HPL solves a dense system of ___:", o: ["Linear equations", "Quadratic equations", "Integrals", "None"], a: 0 },
+        { q: "HPL tuning requires a ___ library:", o: ["BLAS (MKL/OpenBLAS)", "Image library", "Sound library", "None"], a: 0 },
+        { q: "Theoretical peak for GPUs is often ___ than CPUs:", o: ["Higher", "Lower", "The same", "None"], a: 0 },
+        { q: "Final evaluation method for the module is:", o: ["CCEE Theory and Lab Exam", "Attendance only", "Project only", "None"], a: 0 }
+    ]
+};
+
+// URL Navigation logic
+const urlParams = new URLSearchParams(window.location.search);
+const currentSet = urlParams.get('set') || "1";
+document.getElementById(`btn-${currentSet}`).classList.add('active');
+
+const area = document.getElementById('questions-area');
+const questions = quizData[currentSet] || [];
+
+// Render Questions
+questions.forEach((item, index) => {
+    const div = document.createElement('div');
+    div.className = 'question-card';
+    div.innerHTML = `
+        <span class="q-text">${index + 1}. ${item.q}</span>
+        ${item.o.map((opt, i) => `
+            <label class="option" id="q${index}o${i}">
+                <input type="radio" name="q${index}" value="${i}"> ${opt}
+            </label>
+        `).join('')}
+    `;
+    area.appendChild(div);
+});
+
+// Scoring logic
+function processScore() {
+    let score = 0;
+    questions.forEach((item, index) => {
+        const selected = document.querySelector(`input[name="q${index}"]:checked`);
+        const correctOpt = document.getElementById(`q${index}o${item.a}`);
+        
+        // Highlight correct answer
+        correctOpt.classList.add('opt-correct');
+        
+        if (selected) {
+            if (parseInt(selected.value) === item.a) {
+                score++;
+            } else {
+                // Highlight wrong answer
+                document.getElementById(`q${index}o${selected.value}`).classList.add('opt-wrong');
+            }
+        }
+    });
+
+    const percent = Math.round((score / questions.length) * 100);
+    document.getElementById('score-display').innerText = percent + "%";
+    document.getElementById('stats-summary').innerText = `You correctly answered ${score} out of ${questions.length} questions.`;
+    document.getElementById('result-modal').style.display = 'flex';
+}
+</script>
+</body>
+</html>
