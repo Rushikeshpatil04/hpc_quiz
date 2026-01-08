@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>M2: Linux OS - 200 Question Bank</title>
+    <style>
+        :root { --linux-green: #2ecc71; --linux-dark: #2c3e50; --bg: #f5f6fa; --success: #27ae60; --wrong: #e74c3c; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 20px; }
+        .quiz-container { max-width: 1000px; margin: auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 5px 20px rgba(0,0,0,0.1); }
+        .header { border-bottom: 4px solid var(--linux-green); padding-bottom: 15px; margin-bottom: 25px; display: flex; justify-content: space-between; align-items: center; }
+        .back-link { text-decoration: none; color: var(--linux-dark); font-weight: bold; border: 2px solid var(--linux-dark); padding: 8px 15px; border-radius: 6px; }
+        
+        .set-nav { margin-bottom: 25px; display: flex; gap: 8px; flex-wrap: wrap; }
+        .set-btn { padding: 10px 18px; background: #eee; border: none; border-radius: 5px; cursor: pointer; text-decoration: none; color: #333; font-weight: bold; transition: 0.3s; }
+        .set-btn.active { background: var(--linux-green); color: white; }
+        .set-btn:hover:not(.active) { background: #ddd; }
+
+        .question { margin-bottom: 20px; padding: 15px; border: 1px solid #ddd; border-radius: 8px; background: #fff; }
+        .q-text { font-weight: bold; font-size: 1.1rem; display: block; margin-bottom: 12px; color: var(--linux-dark); }
+        .option { display: block; padding: 12px; background: #f9f9f9; border: 1px solid #eee; margin: 5px 0; border-radius: 6px; cursor: pointer; transition: 0.2s; }
+        .option:hover { background: #f1f2f6; }
+        
+        .opt-correct { background: #c6f6d5 !important; border-color: #27ae60 !important; color: #1c4532; font-weight: bold; }
+        .opt-wrong { background: #fed7d7 !important; border-color: #e74c3c !important; color: #822727; }
+        
+        .submit-btn { background: var(--linux-dark); color: white; border: none; padding: 18px; width: 100%; border-radius: 8px; font-size: 1.2rem; cursor: pointer; font-weight: bold; margin-top: 20px; }
+
+        #result-modal { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:999; justify-content:center; align-items:center; }
+        .modal-box { background:white; padding:40px; border-radius:15px; text-align:center; max-width:450px; width: 90%; }
+        .score-val { font-size: 4rem; color: var(--linux-green); font-weight: bold; margin: 15px 0; }
+    </style>
+</head>
+<body>
+
+<div class="quiz-container">
+    <div class="header">
+        <div>
+            <h1 style="margin:0;">M2: Linux Operating System</h1>
+            <p style="margin:5px 0 0; color: #636e72;">DHPCSA - Complete 200 Question Bank</p>
+        </div>
+        <a href="index.html" class="back-link">← Home</a>
+    </div>
+
+    <div class="set-nav" id="set-tabs">
+        <a href="?set=1" class="set-btn" id="btn-1">Set 1: Architecture</a>
+        <a href="?set=2" class="set-btn" id="btn-2">Set 2: File System</a>
+        <a href="?set=3" class="set-btn" id="btn-3">Set 3: Text & Editors</a>
+        <a href="?set=4" class="set-btn" id="btn-4">Set 4: Administration</a>
+        <a href="?set=5" class="set-btn" id="btn-5">Set 5: Scripting</a>
+    </div>
+
+    <form id="quiz-form">
+        <div id="questions-area"></div>
+        <button type="button" class="submit-btn" id="main-submit" onclick="validateQuiz()">Submit Set</button>
+    </form>
+</div>
+
+<div id="result-modal">
+    <div class="modal-box">
+        <h2>Set Results</h2>
+        <div class="score-val" id="score-display">0%</div>
+        <div id="stats-summary" style="margin-bottom:20px; font-size: 1.2rem;"></div>
+        <button onclick="location.reload()" style="padding:10px 20px; background:var(--linux-dark); color:white; border:none; border-radius:5px; cursor:pointer;">Retake</button>
+        <button onclick="closeModal()" style="padding:10px 20px; margin-left:10px; cursor:pointer; background: #eee; border: none; border-radius: 5px;">Review Answers</button>
+    </div>
+</div>
+
+<script>
+const quizData = {
+    "1": [
+        { q: "Which part of the OS architecture interacts directly with hardware?", o: ["Shell", "User-space", "Kernel", "GUI"], a: 2 },
+        { q: "What is the primary function of the Linux Kernel?", o: ["Providing a UI", "Managing hardware resources and processes", "Running browsers", "Compiling code"], a: 1 },
+        { q: "Which scheduling algorithm gives each process a fixed time slice?", o: ["FCFS", "Priority", "Round Robin", "SJF"], a: 2 },
+        { q: "What is 'Kernel-space'?", o: ["Area for user apps", "Restricted area with full hardware access", "Disk space for logs", "None"], a: 1 },
+        { q: "Which memory management uses fixed-size blocks called pages?", o: ["Segmentation", "Paging", "Swapping", "Fragmentation"], a: 1 },
+        { q: "A 'Page Fault' occurs when:", o: ["A disk error", "Data requested is not in RAM", "Kernel crash", "Memory leak"], a: 1 },
+        { q: "In FCFS scheduling, the first process in queue is:", o: ["Executed last", "Executed first", "Deleted", "Preempted"], a: 1 },
+        { q: "A 'Preemptive' scheduler can:", o: ["Run process to completion", "Interrupt a running process", "Manual selection", "None"], a: 1 },
+        { q: "Function of the 'Process Table':", o: ["Storing file names", "Maintaining info about active processes", "Scheduling interrupts", "None"], a: 1 },
+        { q: "Virtual memory is primarily located on:", o: ["Registers", "L1 Cache", "Hard Disk (Swap)", "Main Memory"], a: 2 },
+        { q: "Which of these is a Non-kernel component?", o: ["Memory Manager", "Device Drivers", "Bash Shell", "Scheduler"], a: 2 },
+        { q: "What is the 'init' process's PID in Linux?", o: ["0", "1", "100", "-1"], a: 1 },
+        { q: "Segmentation divides memory into:", o: ["Fixed blocks", "Variable-sized logical units", "Bytes", "Sectors"], a: 1 },
+        { q: "Command to show current kernel version:", o: ["version", "kernel", "uname -r", "sysinfo"], a: 2 },
+        { q: "A zombie process is one that is:", o: ["Running fast", "Terminated but still in table", "Waiting for I/O", "Consuming 100% CPU"], a: 1 },
+        { q: "What is 'Thrashing'?", o: ["Fast disk I/O", "High paging leading to low CPU utility", "Deleting large files", "None"], a: 1 },
+        { q: "Context Switch is performed by:", o: ["Compiler", "Shell", "Kernel", "User"], a: 2 },
+        { q: "Which algorithm may cause 'Starvation'?", o: ["Round Robin", "Priority Scheduling", "FCFS", "None"], a: 1 },
+        { q: "The 'root' of Linux directory structure is:", o: ["/home", "/root", "/", "/bin"], a: 2 },
+        { q: "Which interrupt is generated by a timer or disk?", o: ["Trap", "Exception", "Hardware Interrupt", "System Call"], a: 2 },
+        { q: "The 'Shell' acts as an interface between:", o: ["Hardware and Kernel", "Kernel and User", "User and GUI", "None"], a: 1 },
+        { q: "Which component handles memory protection?", o: ["ALU", "MMU", "DMA", "Bus"], a: 1 },
+        { q: "Linux is based on which OS philosophy?", o: ["Windows", "Unix", "Mac", "DOS"], a: 1 },
+        { q: "What is a 'Monolithic Kernel'?", o: ["Kernel with one process", "All OS services run in kernel space", "A tiny kernel", "None"], a: 1 },
+        { q: "The 'PID' stands for:", o: ["Personal ID", "Process Identification", "Primary ID", "Program ID"], a: 1 },
+        { q: "The 'Critical Section' is:", o: ["Part of memory", "Code segment accessing shared resources", "An error code", "None"], a: 1 },
+        { q: "Command to show system uptime:", o: ["time", "top", "uptime", "date"], a: 2 },
+        { q: "The 'Fork' system call is used to:", o: ["Delete a process", "Create a child process", "Join processes", "None"], a: 1 },
+        { q: "What is 'demand paging'?", o: ["Paging when full", "Loading pages only when accessed", "Buying RAM", "None"], a: 1 },
+        { q: "The 'nice' value is used for:", o: ["Process naming", "Process priority", "Process security", "None"], a: 1 },
+        { q: "Directory containing configuration files:", o: ["/bin", "/etc", "/var", "/dev"], a: 1 },
+        { q: "What does '/dev' contain?", o: ["User files", "Device files", "Binary files", "Logs"], a: 1 },
+        { q: "What is 'swapping'?", o: ["Changing variables", "Moving a process from RAM to Disk", "Replacing CPU", "None"], a: 1 },
+        { q: "In Multi-user OS, 'Time Sharing' means:", o: ["Users sharing a watch", "Multiple users sharing CPU time", "Sharing files", "None"], a: 1 },
+        { q: "Command showing memory usage:", o: ["ram", "free", "mem", "df"], a: 1 },
+        { q: "A 'Daemon' is a:", o: ["Virus", "Background process", "Root user", "Shell"], a: 1 },
+        { q: "What is a 'System Call'?", o: ["Tech support", "Programmatic request for kernel service", "Phone call", "None"], a: 1 },
+        { q: "The 'SJF' algorithm focuses on:", o: ["First job", "Shortest execution time", "Largest job", "None"], a: 1 },
+        { q: "Command displaying current login name:", o: ["whoami", "id", "logname", "All of the above"], a: 3 },
+        { q: "Default shell in most Linux distros:", o: ["sh", "csh", "bash", "zsh"], a: 2 }
+    ],
+    "2": [
+        { q: "List directory including hidden files:", o: ["ls -h", "ls -a", "ls -l", "ls -x"], a: 1 },
+        { q: "Directory for sys-admin binaries:", o: ["/bin", "/sbin", "/usr/bin", "/home"], a: 1 },
+        { q: "Command 'mkdir -p a/b' does:", o: ["Creates b in a (if a exists)", "Creates parent dirs if needed", "Errors", "Deletes a"], a: 1 },
+        { q: "Move 'a.txt' to 'backup/':", o: ["mv a.txt backup/", "cp a.txt backup/", "ln a.txt backup/", "move a.txt backup/"], a: 0 },
+        { q: "The 'rm -r' command is for:", o: ["Read file", "Remove dir and contents recursively", "Rename", "None"], a: 1 },
+        { q: "Display first 10 lines of a file:", o: ["first", "top", "head", "cat"], a: 2 },
+        { q: "What does 'cd ..' do?", o: ["Home", "Root", "Up one level", "Reload"], a: 2 },
+        { q: "Create an empty file:", o: ["create", "touch", "new", "cat >"], a: 1 },
+        { q: "Count words, lines, chars in a file:", o: ["count", "wc", "lc", "stat"], a: 1 },
+        { q: "Absolute path always starts with:", o: ["~", ".", "..", "/"], a: 3 },
+        { q: "Directory for temporary files:", o: ["/temp", "/var/tmp", "/tmp", "both /tmp and /var/tmp"], a: 3 },
+        { q: "File size in human-readable format:", o: ["ls -h", "ls -s", "ls -l", "du -h"], a: 3 },
+        { q: "What does 'cp -i' do?", o: ["Copy inclusive", "Prompt before overwrite", "Copy info", "Ignore errors"], a: 1 },
+        { q: "Command to compare two files:", o: ["diff", "cmp", "comm", "All of the above"], a: 3 },
+        { q: "Find current working directory:", o: ["dir", "cwd", "pwd", "path"], a: 2 },
+        { q: "The 'man' command is for:", o: ["Managing users", "Reading manual pages", "Manual mode", "None"], a: 1 },
+        { q: "Show last few lines of a file:", o: ["bottom", "last", "tail", "end"], a: 2 },
+        { q: "What does 'ls -l' show?", o: ["Links", "Long listing (perms, size, owner)", "Last files", "None"], a: 1 },
+        { q: "Rename 'old' to 'new':", o: ["rename old new", "mv old new", "cp old new", "set old new"], a: 1 },
+        { q: "Directory for user home dirs:", o: ["/root", "/user", "/home", "/usr"], a: 2 },
+        { q: "A 'hard link' is:", o: ["A shortcut", "Pointer to same inode", "A copy", "None"], a: 1 },
+        { q: "Symbol for current user home:", o: ["/", ".", "~", ".."], a: 2 },
+        { q: "Delete an empty directory:", o: ["rm", "rmdir", "del", "erase"], a: 1 },
+        { q: "List disk space usage of systems:", o: ["du", "df", "ds", "diskinfo"], a: 1 },
+        { q: "The '/bin' directory contains:", o: ["Essential binaries", "Boot files", "Devices", "Logs"], a: 0 },
+        { q: "What is an 'Inode'?", o: ["File name", "Metadata data structure", "Hidden file", "None"], a: 1 },
+        { q: "Command 'ln -s' creates:", o: ["Hard link", "Symbolic link", "System link", "None"], a: 1 },
+        { q: "Clear terminal screen:", o: ["cls", "clean", "clear", "reset"], a: 2 },
+        { q: "Find files based on criteria:", o: ["search", "find", "locate", "grep"], a: 1 },
+        { q: "The '/var' directory is for:", o: ["Variables", "Variable data (logs, mail)", "Kernel modules", "None"], a: 1 },
+        { q: "What does 'ls -R' do?", o: ["List Root", "Reverse list", "Recursive list", "None"], a: 2 },
+        { q: "View large file page by page:", o: ["cat", "less", "vi", "head"], a: 1 },
+        { q: "Show type of file (text/binary):", o: ["type", "whatis", "file", "ls -t"], a: 2 },
+        { q: "The '/boot' directory contains:", o: ["Docs", "Boot loader files", "Binaries", "None"], a: 1 },
+        { q: "Output of 'echo Hi > f.txt':", o: ["Appends Hi", "Overwrites with Hi", "Errors", "Prints Hi"], a: 1 },
+        { q: "Combine multiple files into one:", o: ["merge", "join", "cat", "paste"], a: 2 },
+        { q: "What does '.' represent in listing?", o: ["Parent", "Root", "Current", "Hidden"], a: 2 },
+        { q: "Check your own user ID:", o: ["who", "id", "me", "ps"], a: 1 },
+        { q: "The 'stat' command provides:", o: ["System status", "Detailed file/inode info", "Static values", "None"], a: 1 },
+        { q: "Directory with kernel modules:", o: ["/kernel", "/etc", "/lib/modules", "/bin"], a: 2 }
+    ],
+    "3": [
+        { q: "Search for a pattern in a file:", o: ["find", "grep", "search", "locate"], a: 1 },
+        { q: "Pipe symbol '|' does:", o: ["Adds files", "Sends output as input", "Deletes", "None"], a: 1 },
+        { q: "Vi mode to type text:", o: ["Command", "Insert", "Ex", "Visual"], a: 1 },
+        { q: "Exit Vi without saving:", o: [":wq", ":q", ":q!", ":x"], a: 2 },
+        { q: "What does 'grep -v' do?", o: ["Vertical", "Inverts match", "Verbose", "None"], a: 1 },
+        { q: "The 'sed' command is for:", o: ["Deleting users", "Stream editing", "Setting dates", "None"], a: 1 },
+        { q: "Vi command to save and exit:", o: [":w", ":q", ":wq", ":exit"], a: 2 },
+        { q: "Standard Output (stdout) ID:", o: ["0", "1", "2", "&"], a: 1 },
+        { q: "Append output to a file:", o: [">", ">>", "|", "<"], a: 1 },
+        { q: "The 'awk' utility is for:", o: ["Drawing", "Pattern scanning/processing", "Network", "None"], a: 1 },
+        { q: "Vi key to go to Command mode:", o: ["Enter", "Esc", "Space", "Ctrl+C"], a: 1 },
+        { q: "What is '2>' in redirection?", o: ["stdout", "stdin", "stderr", "Append stderr"], a: 2 },
+        { q: "Grep option for case-insensitive:", o: ["-c", "-i", "-l", "-n"], a: 1 },
+        { q: "Purpose of 'tr' command:", o: ["Translate/delete chars", "Trace", "Transform", "None"], a: 0 },
+        { q: "Search 'apple' at start of line:", o: ["grep 'apple$'", "grep '^apple'", "grep '*apple'", "None"], a: 1 },
+        { q: "Extract specific columns:", o: ["column", "cut", "split", "extract"], a: 1 },
+        { q: "In Vi, 'dd' does:", o: ["Delete char", "Delete current line", "Duplicate", "None"], a: 1 },
+        { q: "What does 'sort -n' do?", o: ["Sort names", "Sort numerically", "Reverse", "None"], a: 1 },
+        { q: "The 'uniq' input should be:", o: ["Mixed", "Sorted", "Empty", "Large"], a: 1 },
+        { q: "Purpose of '/dev/null':", o: ["Store data", "Discard output/errors", "Printer", "None"], a: 1 },
+        { q: "Regex match any single char:", o: ["*", "?", ".", "+"], a: 2 },
+        { q: "In Vi, 'u' is for:", o: ["Up", "Undo", "Update", "Upload"], a: 1 },
+        { q: "Count lines with 'error':", o: ["grep -l", "grep -c", "grep -n", "None"], a: 1 },
+        { q: "The 'tee' command allows:", o: ["Draw T", "Output to file and stdout", "Translate", "None"], a: 1 },
+        { q: "In Vi, jump to end of file:", o: ["G", "gg", "$", "E"], a: 0 },
+        { q: "Show lines unique to file1:", o: ["diff", "comm", "uniq", "cmp"], a: 1 },
+        { q: "What does 'grep -l' do?", o: ["List lines", "List filenames only", "Long list", "None"], a: 1 },
+        { q: "The 'paste' command is to:", o: ["Copy", "Merge lines side-by-side", "Insert", "None"], a: 1 },
+        { q: "In Vi, 'yy' is used to:", o: ["Yell", "Copy/Yank line", "Delete", "None"], a: 1 },
+        { q: "Tool for complex report generation:", o: ["grep", "sed", "awk", "tr"], a: 2 },
+        { q: "What does '>>' do?", o: ["Overwrite", "Append", "Compare", "None"], a: 1 },
+        { q: "Find line number in grep:", o: ["-l", "-n", "-c", "-v"], a: 1 },
+        { q: "Vi ':' starts which mode?", o: ["Insert", "Command", "Last Line/Ex", "Visual"], a: 2 },
+        { q: "Change case in a pipe:", o: ["upper", "case", "tr 'a-z' 'A-Z'", "set -u"], a: 2 },
+        { q: "What does '$' match in regex?", o: ["Start", "End of line", "Currency", "Any"], a: 1 },
+        { q: "Search 'error' recursively:", o: ["grep 'error' *", "grep -r 'error' .", "grep -f", "None"], a: 1 },
+        { q: "In Vi, 'p' is for:", o: ["Print", "Paste", "Put", "Both Paste and Put"], a: 3 },
+        { q: "The 'xargs' command is to:", o: ["Exit X", "Build/execute commands from input", "Arguments", "None"], a: 1 },
+        { q: "In Vi, '/pattern' does:", o: ["Deletes", "Searches forward", "Replaces", "None"], a: 1 },
+        { q: "Redirection for Standard Input:", o: [">", "<", "|", "2>"], a: 1 }
+    ],
+    "4": [
+        { q: "Change file permissions:", o: ["chown", "chmod", "chperm", "set"], a: 1 },
+        { q: "Numeric value for 'rwxr-xr--':", o: ["755", "754", "644", "777"], a: 1 },
+        { q: "Who can 'chown' a file?", o: ["Owner", "Any user", "Only Root", "Group"], a: 2 },
+        { q: "Add a new user:", o: ["newuser", "useradd", "adduser", "Both useradd/adduser"], a: 3 },
+        { q: "What does 'top' show?", o: ["Header", "Real-time process info", "Top 10 files", "None"], a: 1 },
+        { q: "Kill PID 1234 immediately:", o: ["kill 1234", "kill -9 1234", "stop", "end"], a: 1 },
+        { q: "Show all running processes:", o: ["ps -ef", "ps -aux", "top", "All of the above"], a: 3 },
+        { q: "Root user UID:", o: ["1", "0", "100", "500"], a: 1 },
+        { q: "/etc/passwd stores:", o: ["Passwords", "Account info", "Group info", "Login logs"], a: 1 },
+        { q: "'sudo' allows a user to:", o: ["Delete account", "Run as root/other user", "Shutdown", "None"], a: 1 },
+        { q: "Permission to enter a directory:", o: ["Read", "Write", "Execute (x)", "None"], a: 2 },
+        { q: "Change group of a file:", o: ["chown", "chgrp", "chmod", "groupmod"], a: 1 },
+        { q: "'chmod +x' does:", o: ["Deletes", "Makes executable", "Hides", "None"], a: 1 },
+        { q: "File with encrypted passwords:", o: ["/etc/passwd", "/etc/shadow", "/etc/group", "/etc/secure"], a: 1 },
+        { q: "Change own password:", o: ["password", "passwd", "chpass", "setpass"], a: 1 },
+        { q: "'crontab' is for:", o: ["Backups", "Scheduling recurring jobs", "Monitoring", "None"], a: 1 },
+        { q: "Modify an existing user:", o: ["usermod", "moduser", "userchange", "setuser"], a: 0 },
+        { q: "What does 'umask' do?", o: ["Masks IP", "Sets default perms for new files", "Hides", "None"], a: 1 },
+        { q: "The 'df' command shows:", o: ["Directory files", "Disk usage on systems", "Data flow", "None"], a: 1 },
+        { q: "Display current user groups:", o: ["id", "groups", "who", "Both id and groups"], a: 3 },
+        { q: "Purpose of 'killall':", o: ["Shutdown", "Kill processes by name", "Kill all users", "None"], a: 1 },
+        { q: "Display processes by user 'acts':", o: ["ps -u acts", "show acts", "top acts", "ps -me"], a: 0 },
+        { q: "File storing group info:", o: ["/etc/passwd", "/etc/group", "/etc/users", "/etc/shadow"], a: 1 },
+        { q: "'chmod 600 file' means:", o: ["Everyone read", "Only owner read/write", "World writable", "None"], a: 1 },
+        { q: "The 'last' command shows:", o: ["Last line", "Login history", "Last process", "None"], a: 1 },
+        { q: "Function of 'nice/renice':", o: ["Clean", "Adjust priority", "Security", "None"], a: 1 },
+        { q: "Manual for 'crontab':", o: ["crontab -h", "man crontab", "help", "info"], a: 1 },
+        { q: "Switch user account:", o: ["su", "switch", "user", "go"], a: 0 },
+        { q: "Running 'kill 1' usually:", o: ["Reboots", "Is ignored by init/systemd", "Explodes", "None"], a: 1 },
+        { q: "Command 'du -sh *' does:", o: ["Shutdown", "Human-readable summary of sizes", "Search", "None"], a: 1 },
+        { q: "Permission to delete inside a dir:", o: ["Write on file", "Write/Execute on dir", "Read on file", "None"], a: 1 },
+        { q: "A 'Sticky Bit' is:", o: ["Speed up", "Restricts deletion to owner", "Virus", "None"], a: 1 },
+        { q: "The 'at' command is for:", o: ["Schedule task once", "Check time", "Recurring", "None"], a: 0 },
+        { q: "Remove user and home dir:", o: ["userdel", "userdel -r", "rmuser", "deluser"], a: 1 },
+        { q: "The 'uptime' provides:", o: ["Load averages", "Time since boot", "User count", "All of the above"], a: 3 },
+        { q: "What does 'ps -L' show?", o: ["Local", "Threads", "Long listing", "None"], a: 1 },
+        { q: "In '755', '7' is for:", o: ["Owner", "Group", "Others", "Everyone"], a: 0 },
+        { q: "Command history list:", o: ["history", "last", "cmd", "past"], a: 0 },
+        { q: "/etc/sudoers edited via:", o: ["vi", "visudo", "nano", "sudoedit"], a: 1 },
+        { q: "Default signal of 'kill':", o: ["SIGKILL", "SIGTERM", "SIGSTOP", "SIGHUP"], a: 1 }
+    ],
+    "5": [
+        { q: "How to start a Bash script?", o: ["#!/bin/bash", "#/bin/bash", "!bash", "None"], a: 0 },
+        { q: "Variable for first argument:", o: ["$0", "$1", "$#", "$*"], a: 1 },
+        { q: "Define variable in Bash:", o: ["var x = 10", "x := 10", "x=10", "int x=10"], a: 2 },
+        { q: "What does '$?' represent?", o: ["PID", "Exit status of last command", "Arg count", "Random"], a: 1 },
+        { q: "The 'read' command is for:", o: ["Read file", "Get user input", "Read RAM", "None"], a: 1 },
+        { q: "Check if file exists in Bash:", o: ["[ -f f ]", "[ -d f ]", "[ -e f ]", "Both -f and -e"], a: 3 },
+        { q: "Syntax for 'for' loop in Bash:", o: ["for i in {1..5}; do ... done", "for(i=0;i<5;i++)", "foreach", "None"], a: 0 },
+        { q: "Denoting scalar in Perl:", o: ["@", "$", "%", "&"], a: 1 },
+        { q: "What is '@array' in Perl?", o: ["Hash", "Array", "Function", "Pointer"], a: 1 },
+        { q: "Print text in Perl:", o: ["echo", "printf", "print", "Both print/printf"], a: 3 },
+        { q: "Purpose of 'shift' in Bash:", o: ["Moves text", "Shifts positional parameters left", "Deletes", "None"], a: 1 },
+        { q: "In Perl, '%hash' is for:", o: ["Arrays", "Key-value pairs", "Numbers", "Regex"], a: 1 },
+        { q: "End a statement in Perl:", o: ["Period", "Semicolon", "New line", "Colon"], a: 1 },
+        { q: "What does '$#' represent in Bash?", o: ["All args", "Number of args", "Last arg", "Script name"], a: 1 },
+        { q: "Perl operator for concatenation:", o: ["+", ".", "&", "concat"], a: 1 },
+        { q: "Shebang for Perl script:", o: ["#!/bin/bash", "#!/usr/bin/perl", "#!perl", "None"], a: 1 },
+        { q: "Integer arithmetic in Bash:", o: ["$((exp))", "expr exp", "let exp", "All of the above"], a: 3 },
+        { q: "What does 'eq' do in Perl?", o: ["Numeric equality", "String equality", "Assignment", "None"], a: 1 },
+        { q: "Define function in Bash:", o: ["func name()", "name() { ... }", "def name:", "None"], a: 1 },
+        { q: "Perl 'chomp' function:", o: ["Deletes", "Removes trailing newline", "Capitalizes", "None"], a: 1 },
+        { q: "What does 'case' do in Bash?", o: ["Upper case", "Multi-way branching", "Looping", "None"], a: 1 },
+        { q: "Access first element of '@arr':", o: ["$arr[0]", "@arr[0]", "$arr{0}", "arr(0)"], a: 0 },
+        { q: "The 'exit 0' indicates:", o: ["Error", "Success", "Wait", "EOF"], a: 1 },
+        { q: "In Perl, '$!' contains:", o: ["Script name", "Current OS error", "PID", "None"], a: 1 },
+        { q: "Start 'while' loop in Bash:", o: ["while [ cond ]; do", "while(cond)", "loop while", "None"], a: 0 },
+        { q: "Perl 's/old/new/' does:", o: ["Splits", "Substitute (Regex)", "Sorts", "None"], a: 1 },
+        { q: "Use of 'export' in Bash:", o: ["USB data", "Make variable available to child", "Delete", "None"], a: 1 },
+        { q: "Perl 'push(@arr, $v)' does:", o: ["Removes last", "Adds $v to end", "Sorts", "None"], a: 1 },
+        { q: "Debug Bash script:", o: ["bash -d", "bash -x", "bash -v", "Both -x and -v"], a: 3 },
+        { q: "Default variable in Perl:", o: ["$0", "$_", "$&", "$@"], a: 1 },
+        { q: "Comment in Bash script:", o: ["//", "/* */", "#", "--"], a: 2 },
+        { q: "Perl 'my $var' defines:", o: ["Global", "Lexically scoped private", "Constant", "None"], a: 1 },
+        { q: "What does 'set -e' do?", o: ["Echoes", "Exit if command fails", "Encrypts", "None"], a: 1 },
+        { q: "Number of elements in '@arr':", o: ["scalar(@arr)", "count", "arr.length", "None"], a: 0 },
+        { q: "The 'sleep' command:", o: ["Shutdown", "Pauses execution", "Clears RAM", "None"], a: 1 },
+        { q: "In Perl, 'split' is to:", o: ["Combine", "Break string into array", "Split file", "None"], a: 1 },
+        { q: "What is 'Cron'?", o: ["Distro", "Time-based job scheduler", "Editor", "None"], a: 1 },
+        { q: "Perl 'foreach my $i (@arr)':", o: ["Iterates over array", "Condition", "Function", "None"], a: 0 },
+        { q: "Exits current loop in Bash:", o: ["exit", "break", "stop", "continue"], a: 1 },
+        { q: "Perl operator '=~' does:", o: ["Assignment", "Binds scalar to Regex match", "Arithmetic", "None"], a: 1 }
+    ]
+};
+
+// --- RENDER & LOGIC ---
+const urlParams = new URLSearchParams(window.location.search);
+const setId = urlParams.get('set') || "1";
+const activeQs = quizData[setId] || quizData["1"];
+
+document.getElementById(`btn-${setId}`).classList.add('active');
+
+const area = document.getElementById('questions-area');
+activeQs.forEach((item, idx) => {
+    let html = `
+        <div class="question" id="q-block-${idx}">
+            <span class="q-text">${idx+1}. ${item.q}</span>
+            <div class="options-group">`;
+    item.o.forEach((opt, i) => {
+        html += `
+            <label class="option" id="opt-${idx}-${i}">
+                <input type="radio" name="q${idx}" value="${i}"> ${opt}
+            </label>`;
+    });
+    html += `</div></div>`;
+    area.innerHTML += html;
+});
+
+function validateQuiz() {
+    let unans = 0;
+    activeQs.forEach((_, i) => {
+        if(!document.querySelector(`input[name="q${i}"]:checked`)) unans++;
+    });
+    if(unans > 0) alert(`Please answer all questions! ${unans} remaining.`);
+    else calculate();
+}
+
+function calculate() {
+    let correct = 0;
+    activeQs.forEach((item, idx) => {
+        const selected = document.querySelector(`input[name="q${idx}"]:checked`).value;
+        const correctIdx = item.a;
+        const allOpts = document.querySelectorAll(`[id^="opt-${idx}-"]`);
+        allOpts.forEach(o => o.classList.remove('opt-correct', 'opt-wrong'));
+
+        if(parseInt(selected) === correctIdx) {
+            correct++;
+            document.getElementById(`opt-${idx}-${selected}`).classList.add('opt-correct');
+        } else {
+            document.getElementById(`opt-${idx}-${selected}`).classList.add('opt-wrong');
+            document.getElementById(`opt-${idx}-${correctIdx}`).classList.add('opt-correct');
+        }
+    });
+
+    const score = Math.round((correct / activeQs.length) * 100);
+    document.getElementById('score-display').innerText = score + "%";
+    document.getElementById('stats-summary').innerText = `You got ${correct} out of ${activeQs.length} correct.`;
+    document.getElementById('result-modal').style.display = 'flex';
+}
+
+function closeModal() {
+    document.getElementById('result-modal').style.display = 'none';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+</script>
+
+</body>
+</html>

@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>M10: Security & Traffic Management - 200 Q Bank</title>
+    <style>
+        :root { --sec-primary: #2980b9; --sec-secondary: #2c3e50; --sec-bg: #f4f7f9; --success: #2ecc71; --wrong: #e74c3c; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--sec-bg); margin: 0; padding: 20px; }
+        .quiz-container { max-width: 1100px; margin: auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 5px 25px rgba(0,0,0,0.1); }
+        .header { border-bottom: 4px solid var(--sec-primary); padding-bottom: 15px; margin-bottom: 25px; display: flex; justify-content: space-between; align-items: center; }
+        .set-nav { margin-bottom: 25px; display: flex; gap: 8px; flex-wrap: wrap; }
+        .set-btn { padding: 10px 15px; background: #fff; border: 2px solid var(--sec-primary); border-radius: 6px; cursor: pointer; text-decoration: none; color: var(--sec-primary); font-weight: bold; transition: 0.3s; font-size: 0.85rem; }
+        .set-btn.active { background: var(--sec-primary); color: white; }
+        .set-btn:hover:not(.active) { background: #e1f0fa; }
+        .question { margin-bottom: 25px; padding: 20px; border: 1px solid #dfe6e9; border-radius: 8px; background: #fff; }
+        .q-text { font-weight: 600; font-size: 1.1rem; display: block; margin-bottom: 15px; color: var(--sec-secondary); }
+        .option { display: block; padding: 12px; background: #fff; border: 1px solid #dcdde1; margin: 8px 0; border-radius: 5px; cursor: pointer; transition: 0.2s; }
+        .option:hover { background: #f8f9fa; border-color: var(--sec-primary); }
+        .opt-correct { background: #d4edda !important; border-color: #28a745 !important; color: #155724; font-weight: bold; }
+        .opt-wrong { background: #f8d7da !important; border-color: #dc3545 !important; color: #721c24; }
+        .submit-btn { background: var(--sec-primary); color: white; border: none; padding: 18px; width: 100%; border-radius: 6px; font-size: 1.2rem; cursor: pointer; font-weight: bold; box-shadow: 0 4px 15px rgba(41, 128, 185, 0.3); }
+        #result-modal { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:999; justify-content:center; align-items:center; }
+        .modal-box { background:white; padding:40px; border-radius:12px; text-align:center; max-width:450px; width: 90%; }
+        .score-val { font-size: 4rem; color: var(--sec-primary); font-weight: 800; margin: 10px 0; }
+    </style>
+</head>
+<body>
+
+<div class="quiz-container">
+    <div class="header">
+        <div>
+            <h1 style="margin:0;">M10: Security & Traffic Management</h1>
+            <p style="margin:5px 0 0; color: #7f8c8d;">CIA Triad • IPTables • VPN • Load Balancing • Monitoring</p>
+        </div>
+        <a href="index.html" style="text-decoration:none; color:var(--sec-secondary); font-weight:bold; border:2px solid var(--sec-secondary); padding:8px 15px; border-radius:6px;">← Home</a>
+    </div>
+
+    <div class="set-nav">
+        <a href="?set=1" class="set-btn" id="btn-1">Set 1: Security Foundations</a>
+        <a href="?set=2" class="set-btn" id="btn-2">Set 2: Firewalls & IPTables</a>
+        <a href="?set=3" class="set-btn" id="btn-3">Set 3: VPN & Encryption</a>
+        <a href="?set=4" class="set-btn" id="btn-4">Set 4: Load Balancing & HA</a>
+        <a href="?set=5" class="set-btn" id="btn-5">Set 5: Traffic & Monitoring</a>
+    </div>
+
+    <form id="quiz-form">
+        <div id="questions-area"></div>
+        <button type="button" class="submit-btn" onclick="validateAndScore()">Submit Assessment</button>
+    </form>
+</div>
+
+<div id="result-modal">
+    <div class="modal-box">
+        <h2 id="result-title">Security Result</h2>
+        <div class="score-val" id="score-display">0%</div>
+        <p id="stats-summary"></p>
+        <button onclick="location.reload()" style="padding:12px 25px; background:var(--sec-primary); color:white; border:none; border-radius:6px; cursor:pointer;">Retake</button>
+        <button onclick="closeModal()" style="padding:12px 25px; margin-left:10px; cursor:pointer; background: #ecf0f1; border: none; border-radius: 6px;">Review</button>
+    </div>
+</div>
+
+<script>
+const quizData = {
+    "1": [
+        { q: "What does the 'I' in CIA stand for?", o: ["Identity", "Integrity", "Infrastructure", "Isolation"], a: 1 },
+        { q: "Which attack targets Availability?", o: ["Phishing", "DDoS", "Sniffing", "Spoofing"], a: 1 },
+        { q: "What is an example of 'What you have' authentication?", o: ["Password", "Fingerprint", "Hardware Token", "PIN"], a: 2 },
+        { q: "What is 'Non-repudiation'?", o: ["Blocking users", "Proof that a sender sent a message", "Hiding data", "Deleting logs"], a: 1 },
+        { q: "Which threat is internal to an organization?", o: ["Script Kiddie", "Insured Threat", "Malicious Insider", "State Actor"], a: 2 },
+        { q: "What is the 'Principle of Least Privilege'?", o: ["Give all users admin", "Give users only what they need", "Block all traffic", "No passwords"], a: 1 },
+        { q: "What is 'Defense in Depth'?", o: ["One strong firewall", "Layered security", "Physical guards only", "Encryption only"], a: 1 },
+        { q: "What is Social Engineering?", o: ["Hacking a database", "Manipulating people", "Network routing", "None"], a: 1 },
+        { q: "Which is a 'What you are' factor?", o: ["Smart Card", "OTP", "Retina Scan", "Password"], a: 2 },
+        { q: "What is the goal of Confidentiality?", o: ["Uptime", "Preventing unauthorized access", "Data accuracy", "None"], a: 1 },
+        { q: "What is a 'Zero Day'?", o: ["A new exploit", "Old virus", "Holiday", "Testing phase"], a: 0 },
+        { q: "What is a 'Rootkit'?", o: ["Admin tool", "Malware hiding in OS", "Browser plugin", "None"], a: 1 },
+        { q: "Encryption protects ____.", o: ["Availability", "Confidentiality", "Hardware", "None"], a: 1 },
+        { q: "What is 'Plaintext'?", o: ["Encrypted data", "Unencrypted data", "Binary code", "Metadata"], a: 1 },
+        { q: "A 'Brute Force' attack is ____.", o: ["Social engineering", "Trying all combinations", "Phishing", "Physical theft"], a: 1 },
+        { q: "What is 'Phishing'?", o: ["Stealing hardware", "Deceptive emails", "Router config", "None"], a: 1 },
+        { q: "What is an 'Asset'?", o: ["A threat", "Valuable resource", "A vulnerability", "A risk"], a: 1 },
+        { q: "A 'Vulnerability' is a ____.", o: ["Weakness", "Strength", "Tool", "Process"], a: 0 },
+        { q: "What is 'Risk'? ", o: ["Threat x Vulnerability", "Only Threat", "Only Vulnerability", "None"], a: 0 },
+        { q: "Which factor is 'What you know'?", o: ["USB Key", "Password", "Face ID", "Location"], a: 1 },
+        { q: "What is 'Shoulder Surfing'?", o: ["Network sniffing", "Watching someone type a PIN", "Phishing", "None"], a: 1 },
+        { q: "What is 'Ransomware'?", o: ["Free software", "Malware demanding payment", "A browser", "None"], a: 1 },
+        { q: "A 'Botnet' is a ____.", o: ["Single server", "Network of infected computers", "Security tool", "None"], a: 1 },
+        { q: "What is 'Tailgating'?", o: ["Following someone into a secure area", "Fast driving", "Email spam", "None"], a: 0 },
+        { q: "What is a 'Honeypot'?", o: ["Database", "Decoy system", "Encryption key", "None"], a: 1 },
+        { q: "Which is a physical control?", o: ["Antivirus", "Fence", "Encryption", "ACL"], a: 1 },
+        { q: "What is 'Whaling'?", o: ["Targeting high-level execs", "Fishing", "Mass emails", "None"], a: 0 },
+        { q: "What is 'Vishing'?", o: ["Video phishing", "Voice phishing", "Virus scan", "None"], a: 1 },
+        { q: "A 'Trojan' ____.", o: ["Replicates", "Disguises as useful software", "Is a hardware bug", "None"], a: 1 },
+        { q: "What is a 'Worm'?", o: ["Disguised app", "Self-replicating malware", "Macro virus", "None"], a: 1 },
+        { q: "A 'Logic Bomb' triggers on ____.", o: ["A specific event", "Network boot", "Always", "None"], a: 0 },
+        { q: "What is 'Data Remanence'?", o: ["Backup", "Residual data on disk", "Encryption", "None"], a: 1 },
+        { q: "The 'C' in CIA is for ____.", o: ["Consistency", "Confidentiality", "Control", "None"], a: 1 },
+        { q: "What is an 'Evil Twin'?", o: ["Fake WiFi access point", "Virus", "Phishing site", "None"], a: 0 },
+        { q: "What is 'Dumping' (Security context)?", o: ["Deleting files", "Searching trash for info", "Disk cleanup", "None"], a: 1 },
+        { q: "MFA requires ____.", o: ["1 factor", "At least 2 factors", "3 factors", "None"], a: 1 },
+        { q: "What is 'Authentication'?", o: ["Granting access", "Verifying identity", "Logging", "None"], a: 1 },
+        { q: "What is 'Authorization'?", o: ["Verifying identity", "Determining permissions", "Recording actions", "None"], a: 1 },
+        { q: "What is 'Accounting' (Security)?", o: ["Tracking usage/logs", "Money", "Encryption", "None"], a: 0 },
+        { q: "A 'Script Kiddie' uses ____.", o: ["Own tools", "Existing tools", "Hardware bypass", "None"], a: 1 }
+    ],
+    "2": [
+        { q: "At which layer does a standard packet filter operate?", o: ["Layer 2", "Layer 3", "Layer 7", "Layer 4"], a: 1 },
+        { q: "What is the primary IPTables table for security?", o: ["nat", "mangle", "filter", "raw"], a: 2 },
+        { q: "Which chain handles packets entering the server?", o: ["FORWARD", "OUTPUT", "INPUT", "PREROUTING"], a: 2 },
+        { q: "Which chain handles packets passing THROUGH the server?", o: ["INPUT", "OUTPUT", "FORWARD", "PREROUTING"], a: 2 },
+        { q: "Which command lists all IPTables rules?", o: ["iptables -L", "iptables -X", "iptables -F", "iptables -A"], a: 0 },
+        { q: "What does 'iptables -F' do?", o: ["Flush/Clear rules", "File rules", "Forward rules", "None"], a: 0 },
+        { q: "Which target stops processing and rejects the packet?", o: ["DROP", "REJECT", "ACCEPT", "LOG"], a: 1 },
+        { q: "Which target silently discards the packet?", o: ["REJECT", "DROP", "RETURN", "STOP"], a: 1 },
+        { q: "A 'Stateful' firewall tracks ____.", o: ["Users", "Connection states", "File names", "Hard drive health"], a: 1 },
+        { q: "Which chain handles packets created locally?", o: ["INPUT", "FORWARD", "OUTPUT", "POSTROUTING"], a: 2 },
+        { q: "What is 'DMZ'?", o: ["Data Management Zone", "Demilitarized Zone", "Dead Monitor Zone", "None"], a: 1 },
+        { q: "What is 'Port Forwarding'?", o: ["Redirecting external traffic to internal host", "Blocking ports", "Scanning ports", "None"], a: 0 },
+        { q: "Which table is used for Port Forwarding?", o: ["filter", "mangle", "nat", "raw"], a: 2 },
+        { q: "Which chain is used for Source NAT?", o: ["PREROUTING", "POSTROUTING", "INPUT", "OUTPUT"], a: 1 },
+        { q: "Which chain is used for Destination NAT?", o: ["PREROUTING", "POSTROUTING", "FORWARD", "INPUT"], a: 0 },
+        { q: "What is the default policy if no rules match?", o: ["Always DROP", "Depends on Default Policy", "Always ACCEPT", "None"], a: 1 },
+        { q: "The '-p' flag in IPTables stands for ____.", o: ["Port", "Policy", "Protocol", "Path"], a: 2 },
+        { q: "The '--dport' flag specifies ____.", o: ["Destination Port", "Data Port", "Dual Port", "None"], a: 0 },
+        { q: "The '-s' flag specifies ____.", o: ["Service", "Source IP", "State", "Segment"], a: 1 },
+        { q: "The '-i' flag specifies ____.", o: ["Input Interface", "IP address", "Install", "Info"], a: 0 },
+        { q: "The '-o' flag specifies ____.", o: ["Output Interface", "Option", "Original IP", "None"], a: 0 },
+        { q: "What is a 'Proxy Server'?", o: ["Hardware router", "Intermediary for requests", "Firewall only", "None"], a: 1 },
+        { q: "UFW stands for ____.", o: ["Universal Firewall", "Uncomplicated Firewall", "Unix Firewall", "None"], a: 1 },
+        { q: "How do you allow port 80 in UFW?", o: ["ufw allow 80", "ufw port 80", "iptables allow 80", "none"], a: 0 },
+        { q: "Which IPTables table is processed first?", o: ["filter", "nat", "mangle", "raw"], a: 3 },
+        { q: "What is the loopback interface?", o: ["eth0", "lo", "wlan0", "tun0"], a: 1 },
+        { q: "How do you block an IP 1.2.3.4 in IPTables?", o: ["iptables -A INPUT -s 1.2.3.4 -j DROP", "iptables block 1.2.3.4", "none", "none"], a: 0 },
+        { q: "Which target records packet info to syslog?", o: ["REJECT", "LOG", "SAVE", "RECORD"], a: 1 },
+        { q: "IPTables is for which OS?", o: ["Windows", "Linux", "macOS", "Cisco IOS"], a: 1 },
+        { q: "What is a 'Next-Gen Firewall' (NGFW)?", o: ["L3 only", "Includes L7 and Deep Packet Inspection", "Physical only", "None"], a: 1 },
+        { q: "Standard firewalls are ____.", o: ["L1", "L3/L4", "L7", "None"], a: 1 },
+        { q: "What is 'Egress' filtering?", o: ["Inbound filtering", "Outbound filtering", "Internal filtering", "None"], a: 1 },
+        { q: "What is 'Ingress' filtering?", o: ["Inbound filtering", "Outbound filtering", "Internal filtering", "None"], a: 0 },
+        { q: "A 'WAF' is a ____.", o: ["Web Application Firewall", "Wide Area Firewall", "None", "None"], a: 0 },
+        { q: "WAF operates at which layer?", o: ["Layer 2", "Layer 7", "Layer 3", "Layer 4"], a: 1 },
+        { q: "Which command saves IPTables rules (Debian)?", o: ["iptables-save", "save rules", "iptables -s", "none"], a: 0 },
+        { q: "Which chain allows NAT to rewrite IPs before routing?", o: ["POSTROUTING", "PREROUTING", "INPUT", "FORWARD"], a: 1 },
+        { q: "The 'mangle' table is for ____.", o: ["Security", "Packet modification (TTL, etc.)", "NAT", "None"], a: 1 },
+        { q: "How do you delete rule #2 in INPUT chain?", o: ["iptables -D INPUT 2", "iptables -F 2", "none", "none"], a: 0 },
+        { q: "Which option appends a rule to the end of a chain?", o: ["-I", "-A", "-D", "-P"], a: 1 }
+    ],
+    "3": [
+        { q: "What does VPN stand for?", o: ["Virtual Private Network", "Variable Path Node", "Verified Public Net", "None"], a: 0 },
+        { q: "Which VPN protocol is considered the modern, high-speed Linux standard?", o: ["PPTP", "L2TP", "WireGuard", "IPSec"], a: 2 },
+        { q: "What is the primary goal of a VPN?", o: ["Faster speed", "Privacy and Secure Tunnelling", "Blocking ads", "None"], a: 1 },
+        { q: "Which port does OpenVPN use by default?", o: ["443", "1194", "22", "80"], a: 1 },
+        { q: "What is 'Split Tunneling'?", o: ["Encryption of half the data", "Only specific traffic goes through VPN", "Using two VPNs at once", "None"], a: 1 },
+        { q: "What is 'SSL Termination'?", o: ["Ending an SSL session", "Decrypting traffic at the load balancer", "Blocking SSL", "None"], a: 1 },
+        { q: "Which layer does IPSec operate at?", o: ["Layer 2", "Layer 3", "Layer 4", "Layer 7"], a: 1 },
+        { q: "In SSL/TLS, which part handles key exchange?", o: ["Handshake", "Record Protocol", "Alert Protocol", "None"], a: 0 },
+        { q: "What is a 'Symmetric' key?", o: ["Two different keys", "Same key for encryption/decryption", "No key", "Public key only"], a: 1 },
+        { q: "What is an 'Asymmetric' key?", o: ["Public and Private key pair", "Same key", "Password only", "None"], a: 0 },
+        { q: "Which is a hashing algorithm?", o: ["AES", "RSA", "SHA-256", "DES"], a: 2 },
+        { q: "Hashing is a ____ process.", o: ["Reversible", "One-way", "Two-way", "Random"], a: 1 },
+        { q: "What is 'Salting' in hashing?", o: ["Adding random data to password", "Encrypting the hash", "Speeding up hash", "None"], a: 0 },
+        { q: "What is a 'Certificate Authority' (CA)?", o: ["A hacker", "Trusted entity issuing digital certs", "A router", "None"], a: 1 },
+        { q: "What is 'PFS' (Perfect Forward Secrecy)?", o: ["Fastest encryption", "Compromised keys don't affect past sessions", "No keys used", "None"], a: 1 },
+        { q: "Which protocol provides security for web traffic?", o: ["HTTP", "FTP", "HTTPS", "SMTP"], a: 2 },
+        { q: "HTTPS uses which port by default?", o: ["80", "443", "21", "25"], a: 1 },
+        { q: "What is a 'Man-in-the-Middle' (MITM) attack?", o: ["Attacker sits between two communicating parties", "Physical theft", "DDoS", "None"], a: 0 },
+        { q: "What is the 'Tunnel Mode' in IPSec?", o: ["Encrypts only payload", "Encrypts entire packet", "No encryption", "None"], a: 1 },
+        { q: "What is 'Transport Mode' in IPSec?", o: ["Encrypts only payload", "Encrypts entire packet", "Used for VPNs", "None"], a: 0 },
+        { q: "What is a 'TAP' interface in VPN?", o: ["Layer 3 (IP)", "Layer 2 (Ethernet)", "Layer 7", "None"], a: 1 },
+        { q: "What is a 'TUN' interface in VPN?", o: ["Layer 3 (IP)", "Layer 2 (Ethernet)", "Layer 4", "None"], a: 0 },
+        { q: "Which encryption is stronger?", o: ["AES-128", "AES-256", "DES", "None"], a: 1 },
+        { q: "What is 'End-to-End Encryption'?", o: ["Encrypted at ISP only", "Encrypted from sender to receiver", "No encryption", "None"], a: 1 },
+        { q: "What is 'SSL Stripping'?", o: ["Forcing a downgrade from HTTPS to HTTP", "Adding SSL", "Speeding up SSL", "None"], a: 0 },
+        { q: "What is a 'Digital Signature'?", o: ["Handwritten sign", "Encrypted hash used for integrity/auth", "A photo", "None"], a: 1 },
+        { q: "Which protocol is the successor to SSL?", o: ["SSH", "TLS", "HTTPS", "SFTP"], a: 1 },
+        { q: "What is 'IKE' in IPSec?", o: ["Internet Key Exchange", "Internal Key Encryption", "None", "None"], a: 0 },
+        { q: "What is 'ESP' in IPSec?", o: ["Encapsulating Security Payload", "Error Security Process", "None", "None"], a: 0 },
+        { q: "What is 'AH' in IPSec?", o: ["Authentication Header", "Access Host", "None", "None"], a: 0 },
+        { q: "What is 'Quantum Cryptography'?", o: ["Encryption for old PCs", "Encryption using quantum mechanics", "None", "None"], a: 1 },
+        { q: "What is a 'CSR'?", o: ["Certificate Signing Request", "Customer Service Rep", "None", "None"], a: 0 },
+        { q: "What is 'CRL'?", o: ["Certificate Revocation List", "Control Rule List", "None", "None"], a: 0 },
+        { q: "What is 'OCSP'?", o: ["Online Certificate Status Protocol", "Open Control System", "None", "None"], a: 0 },
+        { q: "RSA is ____ encryption.", o: ["Symmetric", "Asymmetric", "Hashing", "None"], a: 1 },
+        { q: "AES is ____ encryption.", o: ["Symmetric", "Asymmetric", "Hashing", "None"], a: 0 },
+        { q: "What is 'Key Stretching'?", o: ["Making keys longer", "Slowing down brute force by repeating hash", "None", "None"], a: 1 },
+        { q: "What is 'Entropy' in crypto?", o: ["Randomness", "Order", "Speed", "None"], a: 0 },
+        { q: "What is 'Diffie-Hellman'?", o: ["Encryption algorithm", "Key exchange protocol", "Hashing method", "None"], a: 1 },
+        { q: "What is a 'Site-to-Site' VPN?", o: ["One user to office", "Two offices connecting over net", "Home to Google", "None"], a: 1 }
+    ],
+    "4": [
+        { q: "What is the main goal of Load Balancing?", o: ["Security", "High Availability and Performance", "Cost reduction", "None"], a: 1 },
+        { q: "Which software is a popular L4/L7 load balancer?", o: ["VLC", "HAProxy", "GIMP", "Firefox"], a: 1 },
+        { q: "What is 'Round Robin'?", o: ["Randomly picking servers", "Cycling through servers in order", "Picking fastest server", "None"], a: 1 },
+        { q: "What is 'Weighted Round Robin'?", o: ["Giving some servers more traffic based on capacity", "Random order", "None", "None"], a: 0 },
+        { q: "What is 'Least Connections' algorithm?", o: ["Sends traffic to server with fewest active users", "Random", "None", "None"], a: 0 },
+        { q: "What is 'Health Checking'?", o: ["Checking user health", "Verifying if a backend server is up", "Cleaning servers", "None"], a: 1 },
+        { q: "What is 'High Availability' (HA)?", o: ["Fast network", "System remains reachable despite failures", "High cost", "None"], a: 1 },
+        { q: "What is a 'Failover'?", o: ["System crashing", "Automatic switch to a backup system", "None", "None"], a: 1 },
+        { q: "What is 'Active-Passive' setup?", o: ["All servers work", "One works, one waits", "None", "None"], a: 1 },
+        { q: "What is 'Active-Active' setup?", o: ["All servers handle traffic", "One works, one waits", "None", "None"], a: 0 },
+        { q: "What is a 'VIP'?", o: ["Very Important Person", "Virtual IP address", "None", "None"], a: 1 },
+        { q: "What is 'Session Persistence' (Stickiness)?", o: ["Frozen screen", "User stays on the same backend server", "None", "None"], a: 1 },
+        { q: "Which layer is Layer 4?", o: ["Network", "Transport", "Application", "Data Link"], a: 1 },
+        { q: "Which layer is Layer 7?", o: ["Network", "Transport", "Application", "Data Link"], a: 2 },
+        { q: "Layer 4 balancing uses ____.", o: ["URL paths", "IP and Port", "Cookies", "HTTP headers"], a: 1 },
+        { q: "Layer 7 balancing can use ____.", o: ["URL paths", "HTTP headers", "Cookies", "All of the above"], a: 3 },
+        { q: "What is 'Nginx' often used for?", o: ["Web server", "Load balancer", "Reverse proxy", "All of the above"], a: 3 },
+        { q: "What is a 'Reverse Proxy'?", o: ["User's local proxy", "Server-side proxy handling client requests", "None", "None"], a: 1 },
+        { q: "What is 'Upstream' in Nginx?", o: ["Users", "Backend servers", "The cloud", "None"], a: 1 },
+        { q: "What is 'Quorum' in clustering?", o: ["Number of nodes needed to make decisions", "A meeting", "None", "None"], a: 0 },
+        { q: "What is 'Split Brain' in HA?", o: ["A fast CPU", "Two nodes think they are both 'Master'", "No network", "None"], a: 1 },
+        { q: "What tool provides VIP failover in Linux?", o: ["Docker", "Keepalived", "Systemd", "Cron"], a: 1 },
+        { q: "Keepalived uses which protocol?", o: ["VRRP", "HTTP", "FTP", "SSH"], a: 0 },
+        { q: "What is 'GSLB'?", o: ["Global Server Load Balancing", "General Server List", "None", "None"], a: 0 },
+        { q: "DNS Load Balancing uses ____.", o: ["IP addresses", "Multiple A-records for one name", "None", "None"], a: 1 },
+        { q: "What is 'Throughput'?", o: ["Latency", "Amount of data processed per second", "None", "None"], a: 1 },
+        { q: "What is 'Latency'?", o: ["Data speed", "Time delay in communication", "None", "None"], a: 1 },
+        { q: "A 'Node' in load balancing is a ____.", o: ["Cable", "Server", "User", "None"], a: 1 },
+        { q: "What is 'SSL Pass-through'?", o: ["Decrypting at balancer", "Encrypted traffic goes straight to server", "None", "None"], a: 1 },
+        { q: "What is 'Compression' (Gzip)?", o: ["Making servers small", "Reducing data size for faster transfer", "None", "None"], a: 1 },
+        { q: "What is 'Caching'?", o: ["Deleting files", "Storing data temporarily for faster access", "None", "None"], a: 1 },
+        { q: "What is 'Autoscaling'?", o: ["Manual server boot", "Automatically adding/removing servers based on load", "None", "None"], a: 1 },
+        { q: "What is a 'Heartbeat'?", o: ["CPU speed", "Signal sent between servers to check status", "None", "None"], a: 1 },
+        { q: "What is 'Request Rate'?", o: ["Data size", "Number of requests per second", "None", "None"], a: 1 },
+        { q: "What is 'Backlog' in HAProxy?", o: ["Server log", "Queue of pending connections", "None", "None"], a: 1 },
+        { q: "What is 'Keep-alive'?", o: ["Persistent connection", "Rebooting", "None", "None"], a: 0 },
+        { q: "What is 'Circuit Breaker' pattern?", o: ["Fuse box", "Stopping requests to a failing server to allow recovery", "None", "None"], a: 1 },
+        { q: "What is 'Blue-Green' deployment?", o: ["Coloring servers", "Running two identical environments for zero-downtime updates", "None", "None"], a: 1 },
+        { q: "What is 'Canary' deployment?", o: ["Using a bird", "Releasing to a small group first", "None", "None"], a: 1 },
+        { q: "What is 'Horizontal Scaling'?", o: ["Adding more RAM", "Adding more servers", "None", "None"], a: 1 }
+    ],
+    "5": [
+        { q: "What does 'SNMP' stand for?", o: ["Simple Network Management Protocol", "Secure Net Monitoring", "None", "None"], a: 0 },
+        { q: "Which tool is used for packet capture and analysis?", o: ["Excel", "Wireshark", "PowerPoint", "None"], a: 1 },
+        { q: "What is 'NetFlow'?", o: ["Cisco protocol for traffic data", "Water cooling", "None", "None"], a: 0 },
+        { q: "What is an 'IDS'?", o: ["Intrusion Detection System", "Internal Data Storage", "None", "None"], a: 0 },
+        { q: "What is an 'IPS'?", o: ["Intrusion Prevention System", "Internal Power", "None", "None"], a: 0 },
+        { q: "What is 'Port Mirroring' (SPAN)?", o: ["Copying traffic to another port for monitoring", "Blocking ports", "None", "None"], a: 0 },
+        { q: "What is 'Bandwidth'?", o: ["Speed limit", "Max data transfer rate", "Latency", "None"], a: 1 },
+        { q: "What is 'Jitter'?", o: ["Variation in packet delay", "Fast speed", "No signal", "None"], a: 0 },
+        { q: "What is 'Packet Loss'?", o: ["Deleting files", "Failure of packets to reach destination", "None", "None"], a: 1 },
+        { q: "What is 'ICMP' used for?", o: ["Email", "Ping/Traceroute (diagnostics)", "Web traffic", "None"], a: 1 },
+        { q: "What is 'Traceroute'?", o: ["Finding a path", "Showing the path packets take to a host", "None", "None"], a: 1 },
+        { q: "What is 'Nagios' or 'Zabbix'?", o: ["Web browsers", "Monitoring tools", "Game engines", "None"], a: 1 },
+        { q: "What is a 'Dashboard'?", o: ["Car part", "Visual display of monitoring data", "None", "None"], a: 1 },
+        { q: "What is 'Log Rotation'?", o: ["Turning servers", "Deleting/Archiving old logs to save space", "None", "None"], a: 1 },
+        { q: "What is 'Syslog'?", o: ["System log protocol", "Browser", "None", "None"], a: 0 },
+        { q: "What is 'SIEM'?", o: ["Security Information and Event Management", "Software Engine", "None", "None"], a: 0 },
+        { q: "What is 'Flow-based' monitoring?", o: ["Looking at full packets", "Looking at traffic patterns/headers", "None", "None"], a: 1 },
+        { q: "What is 'Deep Packet Inspection' (DPI)?", o: ["Looking at packet headers only", "Examining packet data content", "None", "None"], a: 1 },
+        { q: "What is 'Threshold' in monitoring?", o: ["A door", "A value that triggers an alert", "None", "None"], a: 1 },
+        { q: "What is 'False Positive'?", o: ["Correct alert", "Incorrectly flagging normal traffic as an attack", "None", "None"], a: 1 },
+        { q: "What is 'False Negative'?", o: ["Correct alert", "Failing to flag an actual attack", "None", "None"], a: 1 },
+        { q: "What is 'Uptime'?", o: ["System height", "Time a system is operational", "None", "None"], a: 1 },
+        { q: "What is 'MTBF'?", o: ["Mean Time Between Failures", "Max Time Before Fast", "None", "None"], a: 0 },
+        { q: "What is 'MTTR'?", o: ["Mean Time To Repair", "Max Time To Reboot", "None", "None"], a: 0 },
+        { q: "What is 'Nmap' used for?", o: ["Browsing", "Network discovery and security auditing", "None", "None"], a: 1 },
+        { q: "What is 'Prometheus'?", o: ["A greek god", "Monitoring and alerting toolkit", "None", "None"], a: 1 },
+        { q: "What is 'Grafana'?", o: ["Drawing app", "Visualization platform for analytics", "None", "None"], a: 1 },
+        { q: "What is 'Agent-based' monitoring?", o: ["No software", "Software installed on host to collect data", "None", "None"], a: 1 },
+        { q: "What is 'Agentless' monitoring?", o: ["Monitoring without installing local software", "No monitoring", "None", "None"], a: 0 },
+        { q: "What is 'Traffic Shaping'?", o: ["Managing bandwidth to prioritize traffic", "Adding more cables", "None", "None"], a: 0 },
+        { q: "What is 'QoS'?", o: ["Quality of Service", "Quick Operating System", "None", "None"], a: 0 },
+        { q: "What is 'Overhead'?", o: ["Extra data needed to transmit payload", "System weight", "None", "None"], a: 0 },
+        { q: "What is 'Promiscuous Mode'?", o: ["NIC ignores all traffic", "NIC captures all traffic it sees", "None", "None"], a: 1 },
+        { q: "What is 'Top' or 'Htop' in Linux?", o: ["Browsers", "Process monitoring tools", "Games", "None"], a: 1 },
+        { q: "What is 'Iostat'?", o: ["CPU monitor", "I/O statistics monitor", "None", "None"], a: 1 },
+        { q: "What is 'Netstat' or 'SS'?", o: ["Network statistics/socket info", "File explorer", "None", "None"], a: 0 },
+        { q: "What is 'TCPDump'?", o: ["CLI packet sniffer", "GUI app", "None", "None"], a: 0 },
+        { q: "What is 'Mirroring'?", o: ["Looking in a glass", "Creating a copy of data/traffic", "None", "None"], a: 1 },
+        { q: "What is 'Full Duplex'?", o: ["One way", "Simultaneous two-way communication", "None", "None"], a: 1 },
+        { q: "What is 'Half Duplex'?", o: ["One way at a time", "Simultaneous two-way", "None", "None"], a: 0 }
+    ]
+};
+
+// Selection and Rendering logic
+const urlParams = new URLSearchParams(window.location.search);
+const currentSet = urlParams.get('set') || "1";
+document.getElementById(`btn-${currentSet}`).classList.add('active');
+
+const area = document.getElementById('questions-area');
+const questions = quizData[currentSet] || [];
+
+questions.forEach((item, index) => {
+    const div = document.createElement('div');
+    div.className = 'question';
+    div.innerHTML = `<span class="q-text">${index + 1}. ${item.q}</span>
+        ${item.o.map((opt, i) => `
+            <label class="option" id="q${index}o${i}">
+                <input type="radio" name="q${index}" value="${i}"> ${opt}
+            </label>`).join('')}`;
+    area.appendChild(div);
+});
+
+function validateAndScore() {
+    let score = 0;
+    questions.forEach((item, index) => {
+        const sel = document.querySelector(`input[name="q${index}"]:checked`);
+        document.getElementById(`q${index}o${item.a}`).classList.add('opt-correct');
+        if(sel && parseInt(sel.value) === item.a) score++;
+        else if(sel) document.getElementById(`q${index}o${sel.value}`).classList.add('opt-wrong');
+    });
+    document.getElementById('score-display').innerText = Math.round((score/questions.length)*100) + "%";
+    document.getElementById('stats-summary').innerText = `You scored ${score} / ${questions.length}`;
+    document.getElementById('result-modal').style.display = 'flex';
+}
+function closeModal() { document.getElementById('result-modal').style.display = 'none'; }
+</script>
+</body>
+</html>

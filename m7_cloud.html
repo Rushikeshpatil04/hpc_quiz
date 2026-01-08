@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>M6: HPC System Administration - 200 Q Bank</title>
+    <style>
+        :root { --hpc-red: #d9534f; --hpc-blue: #0275d8; --hpc-dark: #1a1a1a; --bg: #f4f7f6; --success: #28a745; --wrong: #dc3545; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); margin: 0; padding: 20px; }
+        .quiz-container { max-width: 1100px; margin: auto; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        .header { border-bottom: 5px solid var(--hpc-red); padding-bottom: 15px; margin-bottom: 25px; display: flex; justify-content: space-between; align-items: center; }
+        
+        .set-nav { margin-bottom: 25px; display: flex; gap: 10px; flex-wrap: wrap; }
+        .set-btn { padding: 12px 20px; background: #e9ecef; border: none; border-radius: 6px; cursor: pointer; text-decoration: none; color: #495057; font-weight: bold; transition: 0.3s; }
+        .set-btn.active { background: var(--hpc-red); color: white; }
+        .set-btn:hover:not(.active) { background: #dee2e6; }
+
+        .question { margin-bottom: 25px; padding: 20px; border: 1px solid #dee2e6; border-radius: 10px; background: #fff; }
+        .q-text { font-weight: bold; font-size: 1.15rem; display: block; margin-bottom: 15px; color: var(--hpc-dark); }
+        
+        .option { display: block; padding: 14px; background: #f8f9fa; border: 2px solid #f1f2f6; margin: 8px 0; border-radius: 8px; cursor: pointer; transition: 0.2s; }
+        .option:hover { background: #e9ecef; border-color: #dee2e6; }
+        
+        input[type="radio"] { margin-right: 10px; transform: scale(1.2); }
+
+        .opt-correct { background: #d4edda !important; border-color: #28a745 !important; color: #155724; font-weight: bold; }
+        .opt-wrong { background: #f8d7da !important; border-color: #dc3545 !important; color: #721c24; }
+        
+        .submit-btn { background: var(--hpc-dark); color: white; border: none; padding: 20px; width: 100%; border-radius: 10px; font-size: 1.25rem; cursor: pointer; font-weight: bold; text-transform: uppercase; }
+        
+        #result-modal { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:999; justify-content:center; align-items:center; }
+        .modal-box { background:white; padding:40px; border-radius:20px; text-align:center; max-width:500px; width: 90%; }
+        .score-val { font-size: 4.5rem; color: var(--hpc-red); font-weight: 900; margin: 10px 0; }
+    </style>
+</head>
+<body>
+
+<div class="quiz-container">
+    <div class="header">
+        <div>
+            <h1 style="margin:0;">M6: HPC System Administration</h1>
+            <p style="margin:5px 0 0; color: #6c757d;">Data Centers & Supercomputing • 40 Questions Per Set</p>
+        </div>
+        <a href="index.html" style="text-decoration:none; color:var(--hpc-dark); font-weight:bold; border:2px solid var(--hpc-dark); padding:8px 15px; border-radius:5px;">← Home</a>
+    </div>
+
+    <div class="set-nav">
+        <a href="?set=1" class="set-btn" id="btn-1">Set 1: Data Center Design</a>
+        <a href="?set=2" class="set-btn" id="btn-2">Set 2: Power & Cooling</a>
+        <a href="?set=3" class="set-btn" id="btn-3">Set 3: Cluster Architecture</a>
+        <a href="?set=4" class="set-btn" id="btn-4">Set 4: System Management</a>
+        <a href="?set=5" class="set-btn" id="btn-5">Set 5: Benchmarking & Trends</a>
+    </div>
+
+    <form id="quiz-form">
+        <div id="questions-area"></div>
+        <button type="button" class="submit-btn" id="main-submit" onclick="validateAndScore()">Submit Set Results</button>
+    </form>
+</div>
+
+<div id="result-modal">
+    <div class="modal-box">
+        <h2 id="result-title">Set Complete!</h2>
+        <div class="score-val" id="score-display">0%</div>
+        <p id="stats-summary" style="font-size: 1.3rem; margin-bottom:25px;"></p>
+        <button onclick="location.reload()" style="padding:12px 25px; background:var(--hpc-red); color:white; border:none; border-radius:8px; cursor:pointer; font-weight:bold;">Retake Test</button>
+        <button onclick="closeModal()" style="padding:12px 25px; margin-left:10px; cursor:pointer; background: #eee; border: none; border-radius: 8px;">Review Answers</button>
+    </div>
+</div>
+
+<script>
+const quizData = {
+    "1": [
+        { q: "What is the primary objective of Data Center design?", o: ["Visual appeal", "High availability and reliability", "Using the cheapest hardware", "Minimal floor space"], a: 1 },
+        { q: "What does 'Tier IV' signify in Data Center classification?", o: ["99.6% uptime", "99.9% uptime", "99.99% uptime (Fault Tolerant)", "No redundancy"], a: 2 },
+        { q: "Which standard provides guidelines for Data Center infrastructure?", o: ["TIA-942", "IEEE 802.11", "ISO 9001", "RFC 1918"], a: 0 },
+        { q: "What is the purpose of a 'Raised Floor' in a Data Center?", o: ["Aesthetic look", "Cable management and cold air distribution", "Seismic protection only", "Storage space"], a: 1 },
+        { q: "In Data Center design, what does 'N+1' redundancy mean?", o: ["No backup", "One extra component for every one in use", "One extra component to support the system if one fails", "Twice the required capacity"], a: 2 },
+        { q: "What is the typical PUE (Power Usage Effectiveness) goal for a modern DC?", o: ["Above 3.0", "Exactly 2.0", "As close to 1.0 as possible", "0.5"], a: 2 },
+        { q: "What is a 'Hot Aisle/Cold Aisle' configuration designed to prevent?", o: ["Fire", "Unauthorized access", "Air mixing and hotspots", "Cable clutter"], a: 2 },
+        { q: "Which metric measures the efficiency of cooling in a Data Center?", o: ["PUE", "CUE", "DCIE", "All of the above"], a: 3 },
+        { q: "What is the primary risk associated with high humidity in a DC?", o: ["Static electricity", "Corrosion and condensation", "Fan failure", "Noise pollution"], a: 1 },
+        { q: "A 'Lights Out' Data Center refers to:", o: ["A DC with no power", "An automated DC with no onsite staff", "A DC using only LED lights", "A failed facility"], a: 1 },
+        { q: "What is the purpose of 'Fire Suppression' systems like FM-200?", o: ["Wetting the servers", "Extinguishing fire without damaging electronic equipment", "Lowering room temperature", "None"], a: 1 },
+        { q: "In DC security, 'Man-traps' are used for:", o: ["Catching burglars", "Access control and preventing tailgating", "Ventilation", "Storage"], a: 1 },
+        { q: "What is 'Structured Cabling'?", o: ["Random wires", "A standardized way of organizing data and power cables", "Wireless networking", "None"], a: 1 },
+        { q: "The 'White Space' in a Data Center refers to:", o: ["The office area", "The actual server room floor where equipment is placed", "The ceiling", "Empty racks"], a: 1 },
+        { q: "What does 'SLA' stand for in DC operations?", o: ["Service Level Agreement", "Server Logic Array", "System Link Area", "None"], a: 0 },
+        { q: "What is the 'Network Operations Center' (NOC)?", o: ["A server rack", "Central location for monitoring and managing the network", "The power plant", "None"], a: 1 },
+        { q: "Seismic bracing is essential in Data Centers located in:", o: ["Coastal areas", "Earthquake-prone zones", "Cold climates", "None"], a: 1 },
+        { q: "What is 'CUE' in Data Center metrics?", o: ["Carbon Usage Effectiveness", "Cooling Unit Efficiency", "Computer Unit End", "None"], a: 0 },
+        { q: "What is the role of a 'BMS' (Building Management System)?", o: ["Printing badges", "Centralized control of HVAC, power, and security", "Running supercomputers", "None"], a: 1 },
+        { q: "Which component is part of the 'Grey Space'?", o: ["Server racks", "UPS and generators", "Admin desks", "Network switches"], a: 1 },
+        { q: "Standard server rack width is usually:", o: ["15 inches", "19 inches", "24 inches", "30 inches"], a: 1 },
+        { q: "What is 'Rack Unit' (U) height?", o: ["1 inch", "1.75 inches", "2 inches", "3 inches"], a: 1 },
+        { q: "A typical full-sized server rack is:", o: ["24U", "42U", "10U", "60U"], a: 1 },
+        { q: "What does 'Load Density' refer to?", o: ["Weight of the server", "Power consumed per unit area (e.g., Watts per sq ft)", "Network speed", "None"], a: 1 },
+        { q: "What is 'Business Continuity Planning' (BCP)?", o: ["Buying new servers", "Strategy to continue operations during and after a disaster", "Deleting old data", "None"], a: 1 },
+        { q: "What is 'Disaster Recovery' (DR)?", o: ["Fixing a broken mouse", "Restoring IT infrastructure and data after a failure", "Preventing rain", "None"], a: 1 },
+        { q: "Which document defines the physical layout of a DC?", o: ["Floor Plan", "Source Code", "User Manual", "None"], a: 0 },
+        { q: "What is 'EMR' in DC safety?", o: ["Electromagnetic Radiation", "Emergency Management Room", "Electronic Media Record", "None"], a: 0 },
+        { q: "Why is 'Cable Labeling' important?", o: ["For decoration", "Easier troubleshooting and maintenance", "To increase weight", "None"], a: 1 },
+        { q: "Which tool helps in 'DCIM' (Data Center Infrastructure Management)?", o: ["Software that integrates IT and facility management", "Hammer", "Word processor", "Web browser"], a: 0 },
+        { q: "What is 'Bio-metric' authentication?", o: ["Using a key", "Using physical traits (fingerprint, iris) for access", "Using a password", "None"], a: 1 },
+        { q: "A 'Tier I' Data Center has:", o: ["Full redundancy", "No redundancy", "Two power paths", "Fault tolerance"], a: 1 },
+        { q: "What is the 'Utility Room' used for?", o: ["Server storage", "Electrical switchgear and transformers", "Employee breakroom", "None"], a: 1 },
+        { q: "What is 'MTBF'?", o: ["Mean Time Between Failures", "Maximum Task Binary File", "Main Tool Backup", "None"], a: 0 },
+        { q: "What is 'MTTR'?", o: ["Mean Time To Repair", "Minimum Total Time Run", "Multi Task Target", "None"], a: 0 },
+        { q: "Why are Data Centers often kept at low temperatures?", o: ["For staff comfort", "To prevent hardware overheating and failure", "To save electricity", "None"], a: 1 },
+        { q: "What is 'Cold Aisle Containment'?", o: ["Keeping the room dark", "Using barriers to trap cold air in the cold aisle", "Turning off the AC", "None"], a: 1 },
+        { q: "What is 'Air Flow Modeling' (CFD)?", o: ["Computational Fluid Dynamics to predict airflow patterns", "A drawing of a fan", "Weather forecasting", "None"], a: 0 },
+        { q: "Which fire suppression agent is most common in DCs?", o: ["Water", "Inergen / Novec 1230 / FM-200", "Sand", "None"], a: 1 },
+        { q: "The goal of DC design is to maximize 'Uptime'.", o: ["True", "False"], a: 0 }
+    ],
+    "2": [
+        { q: "What does HVAC stand for?", o: ["High Voltage AC", "Heating, Ventilation, and Air Conditioning", "HPC Virtual Access Control", "None"], a: 1 },
+        { q: "What is a 'CRAC' unit?", o: ["Computer Room Air Conditioner", "Central Resource Access Control", "Cable Router and Connector", "None"], a: 0 },
+        { q: "What is 'Power Sizing'?", o: ["Buying small batteries", "Calculating the total power required by IT and facility equipment", "Measuring the length of cables", "None"], a: 1 },
+        { q: "What is the function of a 'UPS'?", o: ["Universal Power Supply", "Uninterruptible Power Supply (provides battery backup)", "User Power System", "None"], a: 1 },
+        { q: "What is 'Liquid Cooling'?", o: ["Pouring water on racks", "Using liquid (water/coolant) to transfer heat directly from components", "Drinking water in DC", "None"], a: 1 },
+        { q: "What is a 'PDU'?", o: ["Power Distribution Unit", "Process Data Union", "Personal Digital Unit", "None"], a: 0 },
+        { q: "Why are 'Generators' used in Data Centers?", o: ["To replace the UPS", "To provide long-term power during utility outages", "To power the lights only", "None"], a: 1 },
+        { q: "What is 'Sensible Heat' in DC?", o: ["Heat that causes a change in temperature", "Heat from humans only", "Waste heat", "None"], a: 0 },
+        { q: "What is 'Latent Heat'?", o: ["Heat associated with phase change (moisture)", "Cold air", "Electrical heat", "None"], a: 0 },
+        { q: "Which metric is calculated as (Total Facility Power / IT Equipment Power)?", o: ["PUE", "DCIE", "WUE", "None"], a: 0 },
+        { q: "What is 'Free Cooling'?", o: ["Cooling that costs $0", "Using outside air when it's cold enough to cool the DC", "Ice cubes", "None"], a: 1 },
+        { q: "What is a 'Chiller'?", o: ["A cold room", "Machine that removes heat from a liquid via vapor-compression or absorption cycle", "A fan", "None"], a: 1 },
+        { q: "What is 'Thermal Runaway'?", o: ["Running in heat", "A self-sustaining increase in temperature leading to failure", "AC failure", "None"], a: 1 },
+        { q: "What is 'Three-Phase Power' used for?", o: ["Small devices", "Efficient delivery of power to heavy industrial/DC loads", "Batteries", "None"], a: 1 },
+        { q: "What is the 'Automatic Transfer Switch' (ATS) role?", o: ["Switching users", "Switching power sources between utility and generator", "Turning off servers", "None"], a: 1 },
+        { q: "What is 'VFD' in HVAC?", o: ["Variable Frequency Drive", "Virtual File Disk", "Vacuum Fan Device", "None"], a: 0 },
+        { q: "What is 'ASHRAE'?", o: ["A cooling tool", "American Society of Heating, Refrigerating and Air-Conditioning Engineers", "A fire code", "None"], a: 1 },
+        { q: "Which cooling method is most effective for high-density HPC racks?", o: ["Air cooling", "Rear Door Heat Exchanger (RDHx) or Direct-to-Chip Liquid Cooling", "Floor fans", "None"], a: 1 },
+        { q: "What is 'Delta T' (ΔT)?", o: ["A time zone", "The temperature difference between supply and return air", "A math constant", "None"], a: 1 },
+        { q: "What is 'Dew Point'?", o: ["The temperature at which water vapor condenses into liquid", "Freezing point", "Boiling point", "None"], a: 0 },
+        { q: "Static pressure in a raised floor is controlled to:", o: ["Push air through tiles", "Keep the floor down", "Stop dust", "None"], a: 0 },
+        { q: "What is 'Harmonic Distortion' in power?", o: ["Music interference", "Distortion of the normal electrical current waveform", "Speed loss", "None"], a: 1 },
+        { q: "What is 'K-Rated' Transformer?", o: ["A small transformer", "Designed to handle non-linear loads and harmonics", "A brand name", "None"], a: 1 },
+        { q: "A 'Flywheel' UPS uses ________ energy storage.", o: ["Chemical", "Kinetic (Mechanical)", "Potential", "Magnetic"], a: 1 },
+        { q: "What is 'Grounding' essential for?", o: ["Weight", "Electrical safety and protecting equipment from surges", "Speed", "None"], a: 1 },
+        { q: "What is a 'CRAH'?", o: ["Computer Room Air Handler", "Cooling Rack and Heater", "Central Radio", "None"], a: 0 },
+        { q: "Why is 'Heat Reuse' becoming popular?", o: ["To warm the servers", "To heat nearby buildings with waste heat from the DC", "To make steam", "None"], a: 1 },
+        { q: "What is 'WUE'?", o: ["Water Usage Effectiveness", "Wind Unit Energy", "Wait User End", "None"], a: 0 },
+        { q: "What is 'Immersion Cooling'?", o: ["Submerging servers in non-conductive dielectric fluid", "Underwater DC", "Cleaning servers with water", "None"], a: 0 },
+        { q: "What is the 'Dual Power' supply in servers?", o: ["Twice the power", "Redundant power inputs to connect to two different PDU sources", "Battery + Cord", "None"], a: 1 },
+        { q: "What is 'Load Bank' testing?", o: ["Checking bank balance", "Simulating electrical load to test UPS and generators", "Software test", "None"], a: 1 },
+        { q: "What is 'In-Row Cooling'?", o: ["Cooling units placed between server racks", "AC on the roof", "Window AC", "None"], a: 0 },
+        { q: "What is 'Bypass Mode' in a UPS?", o: ["Off mode", "Connecting the load directly to utility power for maintenance", "Charging mode", "None"], a: 1 },
+        { q: "What is 'Total Cost of Ownership' (TCO)?", o: ["Purchase price only", "Total cost including purchase, power, cooling, and maintenance over time", "Electricity bill", "None"], a: 1 },
+        { q: "Which factor affects PUE the most?", o: ["Number of CPUs", "Efficiency of the cooling system", "Color of racks", "Brand of RAM"], a: 1 },
+        { q: "What is 'Air Recirculation'?", o: ["Good air flow", "A problem where hot exhaust air returns to the server intake", "Fresh air", "None"], a: 1 },
+        { q: "What is 'Capacity Planning'?", o: ["Planning for future growth in power, space, and cooling", "Buying a new rack", "Staffing", "None"], a: 0 },
+        { q: "Is water cooling safer than air cooling?", o: ["Always", "No (Risk of leaks, though more efficient)", "It is the same", "None"], a: 1 },
+        { q: "What is the 'Dry Bulb' temperature?", o: ["Temperature of a light bulb", "Ambient air temperature measured by a standard thermometer", "Humidity", "None"], a: 1 },
+        { q: "What is 'Power Factor'?", o: ["How fast power is", "Ratio of real power to apparent power", "Battery size", "None"], a: 1 }
+    ],
+    "3": [
+        { q: "What is an 'HPC Cluster'?", o: ["A single big computer", "A group of interconnected computers working as a single resource", "A cloud server", "None"], a: 1 },
+        { q: "What is 'PARAM Shavak'?", o: ["A laptop", "A supercomputing-in-a-box solution by CDAC", "A network switch", "A programming language"], a: 1 },
+        { q: "What are the three main components of an HPC cluster?", o: ["Mouse, Keyboard, Monitor", "Compute Nodes, Interconnect, Storage", "Windows, Linux, Mac", "None"], a: 1 },
+        { q: "What is 'MPI'?", o: ["Message Passing Interface (standard for parallel programming)", "Memory Process Index", "Multiple Path Input", "None"], a: 0 },
+        { q: "What is a 'Compute Node'?", o: ["The login server", "A server dedicated to performing the actual calculations", "A backup drive", "None"], a: 1 },
+        { q: "What is a 'Head Node' (Login Node)?", o: ["The fastest node", "The node where users log in and submit jobs", "The storage server", "None"], a: 1 },
+        { q: "What is 'InfiniBand'?", o: ["A brand of RAM", "A high-speed, low-latency interconnect often used in HPC", "A wireless protocol", "None"], a: 1 },
+        { q: "What is 'Latency' in HPC networking?", o: ["Network speed", "The delay before a transfer of data begins", "Total bandwidth", "None"], a: 1 },
+        { q: "What is 'Throughput'?", o: ["Wait time", "The amount of data moved in a given time", "Memory size", "None"], a: 1 },
+        { q: "What are 'Accelerators' in HPC?", o: ["Faster fans", "GPUs or FPGAs used to speed up specific tasks", "Overclocked CPUs", "None"], a: 1 },
+        { q: "What is 'CUDA'?", o: ["A cooling system", "Parallel computing platform and API model by NVIDIA", "A storage protocol", "None"], a: 1 },
+        { q: "What is 'Parallel Computing'?", o: ["Running one task after another", "Breaking a problem into parts and solving them simultaneously", "Using two monitors", "None"], a: 1 },
+        { q: "What is 'Shared Memory' architecture?", o: ["Nodes with their own RAM", "Multiple processors accessing the same memory space", "Cloud storage", "None"], a: 1 },
+        { q: "What is 'Distributed Memory' architecture?", o: ["Nodes sharing one RAM", "Each node has its own local memory; nodes communicate via network", "RAM in a box", "None"], a: 1 },
+        { q: "What is 'Scalability'?", o: ["Weight of a node", "The ability to increase performance by adding more resources", "Screen size", "None"], a: 1 },
+        { q: "What is 'Beowulf Cluster'?", o: ["A gaming PC", "A cluster of commodity-grade PCs running Linux", "A proprietary supercomputer", "None"], a: 1 },
+        { q: "What is a 'Job Scheduler' (e.g., SLURM)?", o: ["A calendar", "Software that manages resource allocation and job execution", "A backup tool", "None"], a: 1 },
+        { q: "What is 'TDP' (Thermal Design Power)?", o: ["Maximum power a cooling system must dissipate", "Speed of CPU", "Disk size", "None"], a: 0 },
+        { q: "What is 'Fat Tree' topology?", o: ["A tree in the garden", "A network topology providing full bisection bandwidth", "A wide rack", "None"], a: 1 },
+        { q: "What is 'RDMA'?", o: ["Remote Direct Memory Access (bypassing CPU for data transfer)", "Read Data Memory Area", "Real Digital Media Access", "None"], a: 0 },
+        { q: "In HPC, 'Tops' or 'Flops' measures:", o: ["Storage", "Floating-point operations per second (performance)", "Network packets", "Power"], a: 1 },
+        { q: "What is 'Petaflops'?", o: ["10^12 operations", "10^15 operations", "10^18 operations", "10^9 operations"], a: 1 },
+        { q: "What is 'Exascale' computing?", o: ["10^15 flops", "10^18 flops", "10^21 flops", "None"], a: 1 },
+        { q: "Which file system is commonly used in HPC for high performance?", o: ["NTFS", "Lustre or GPFS", "FAT32", "Ext4"], a: 1 },
+        { q: "What is 'Object Storage'?", o: ["Storing physical objects", "Data storage architecture that manages data as objects", "HDFS only", "None"], a: 1 },
+        { q: "What is 'Metadata' in storage?", o: ["Actual data", "Data about data (size, owner, etc.)", "Deleted data", "None"], a: 1 },
+        { q: "What is 'RAID 6'?", o: ["Mirroring only", "Striping with double parity for fault tolerance", "No redundancy", "None"], a: 1 },
+        { q: "What is 'Burst Buffer'?", o: ["Fast memory/SSD layer between compute and slow storage", "A full disk", "A network switch", "None"], a: 0 },
+        { q: "What is 'Interconnect Topology'?", o: ["Map of the DC", "The physical and logical layout of the network connecting nodes", "Software version", "None"], a: 1 },
+        { q: "What is 'Bisection Bandwidth'?", o: ["Half speed", "Bandwidth between two halves of the network", "Wireless speed", "None"], a: 1 },
+        { q: "What is 'Provisioning' a cluster?", o: ["Selling a cluster", "Installing and configuring OS and software on nodes", "Deleting nodes", "None"], a: 1 },
+        { q: "What is 'Kickstart' or 'Preseed'?", o: ["A motor bike", "Automated installation methods for Linux", "Cluster monitoring", "None"], a: 1 },
+        { q: "What is 'Diskless Node'?", o: ["A broken node", "A node that boots over the network (PXE) without a local hard drive", "A node with SSD", "None"], a: 1 },
+        { q: "What is 'PXE' boot?", o: ["Preboot Execution Environment", "Power Xtra End", "Process X-link", "None"], a: 0 },
+        { q: "What is 'Chassis'?", o: ["A software", "The physical frame/enclosure that holds server components", "A cable", "None"], a: 1 },
+        { q: "What is 'Blade Server'?", o: ["A server with a sword", "A stripped-down server module optimized for space/energy", "A rack", "None"], a: 1 },
+        { q: "What is 'Multicore' architecture?", o: ["Multiple PCs", "A single processor with multiple independent processing units (cores)", "Multiple GPUs", "None"], a: 1 },
+        { q: "What is 'Heterogeneous Computing'?", o: ["Using only CPUs", "Using a mix of different types of processors (e.g., CPU + GPU)", "Using different brands of RAM", "None"], a: 1 },
+        { q: "What is 'SIMD'?", o: ["Single Instruction, Multiple Data", "Simple Input Multiple Disk", "System Input Memory Device", "None"], a: 0 },
+        { q: "What is 'SMT' (Simultaneous Multithreading)?", o: ["Hyper-threading", "Multiple monitors", "Speeding up network", "None"], a: 0 }
+    ],
+    "4": [
+        { q: "What is the role of 'IPMI'?", o: ["A programming language", "Intelligent Platform Management Interface (out-of-band management)", "Internet Protocol Media Input", "None"], a: 1 },
+        { q: "What is 'Out-of-Band' management?", o: ["Using the OS", "Managing a server via a dedicated channel independent of the OS", "Using a keyboard", "None"], a: 1 },
+        { q: "What is 'BMC' (Baseboard Management Controller)?", o: ["Main CPU", "Service processor that monitors the physical state of a server", "RAM module", "None"], a: 1 },
+        { q: "What is 'Ganglia' used for?", o: ["Cluster building", "Scalable distributed monitoring system for HPC", "Security", "None"], a: 1 },
+        { q: "What is 'Nagios' primary function?", o: ["Data storage", "Infrastructure monitoring and alerting", "Compiling code", "None"], a: 1 },
+        { q: "What is 'LDAP' in cluster management?", o: ["A disk format", "Lightweight Directory Access Protocol for centralized user authentication", "A cooling system", "None"], a: 1 },
+        { q: "What is 'NIS' (Network Information Service)?", o: ["Network speed tool", "A directory service protocol for distributing system configuration data", "A type of server", "None"], a: 1 },
+        { q: "What is 'SLURM'?", o: ["A drink", "Simple Linux Utility for Resource Management (Workload Manager)", "A file system", "None"], a: 1 },
+        { q: "A 'Job Queue' is used to:", o: ["Delete jobs", "Hold and prioritize user tasks for execution", "Monitor temperature", "None"], a: 1 },
+        { q: "What is 'Preemption' in job scheduling?", o: ["Starting a job", "Stopping a low-priority job to run a high-priority one", "Deleting a job", "None"], a: 1 },
+        { q: "What is 'Backfilling' in scheduling?", o: ["Running jobs backward", "Running small jobs in 'holes' of the schedule to improve utilization", "Deleting old logs", "None"], a: 1 },
+        { q: "What is 'Cluster Shell' (clush)?", o: ["A GUI", "A tool to run commands on multiple nodes simultaneously", "A physical shell", "None"], a: 1 },
+        { q: "What is 'PDSH'?", o: ["Parallel Distributed Shell", "Power Data Shell", "Process Data Host", "None"], a: 0 },
+        { q: "What is 'NFS'?", o: ["Network File System (for sharing files across the cluster)", "Network Fast Speed", "New File System", "None"], a: 0 },
+        { q: "What is 'KVM' over IP?", o: ["Keyboard, Video, Mouse access over the network", "Kernel Virtual Machine", "Killing Virtual Memory", "None"], a: 0 },
+        { q: "What is 'SNMP'?", o: ["Simple Network Management Protocol", "System Network Main Process", "Security Network Management", "None"], a: 0 },
+        { q: "Monitoring 'Node Health' includes checking:", o: ["CPU temp", "Fan speed", "Memory errors", "All of the above"], a: 3 },
+        { q: "What is 'Log Aggregation'?", o: ["Deleting logs", "Collecting logs from all nodes into a central location", "Printing logs", "None"], a: 1 },
+        { q: "What is 'Configuration Management' (e.g., Ansible, Puppet)?", o: ["Writing emails", "Automating the setup and maintenance of cluster nodes", "Buying hardware", "None"], a: 1 },
+        { q: "What is 'Environment Modules' (Lmod)?", o: ["Hardware parts", "Tool to dynamically change user environment (PATH, etc.) for software", "A fan", "None"], a: 1 },
+        { q: "What is 'User Quota'?", o: ["User name", "Limit on disk space or resources a user can consume", "Password length", "None"], a: 1 },
+        { q: "What is 'Passwordless SSH' used for in clusters?", o: ["Security only", "Allowing automated communication and MPI execution between nodes", "User convenience only", "None"], a: 1 },
+        { q: "What is 'NTP' essential for in a cluster?", o: ["Network speed", "Time synchronization across all nodes", "Naming nodes", "None"], a: 1 },
+        { q: "What is 'Syslog'?", o: ["A system disk", "Standard for message logging in Linux", "A web browser", "None"], a: 1 },
+        { q: "What is 'Downtime'?", o: ["Sleeping", "Period when the cluster is unavailable for use", "Slow network", "None"], a: 1 },
+        { q: "What is 'Maintenance Window'?", o: ["A glass window", "Scheduled time for performing system updates/repairs", "A web popup", "None"], a: 1 },
+        { q: "What is 'High Availability' (HA) for Head Node?", o: ["Fast CPU", "Redundant head nodes to prevent a single point of failure", "More RAM", "None"], a: 1 },
+        { q: "What is 'Fencing' in HA clusters?", o: ["Building a wall", "Isolating a failed node to protect data integrity", "Connecting nodes", "None"], a: 1 },
+        { q: "What is 'Job Accounting'?", o: ["Paying for jobs", "Tracking resource usage by users and groups for reporting/billing", "Counting lines of code", "None"], a: 1 },
+        { q: "What is 'Fairshare' in scheduling?", o: ["Giving everyone 1 core", "Adjusting job priority based on historical usage", "Free access", "None"], a: 1 },
+        { q: "What is 'Root' access?", o: ["Access to the basement", "Administrative superuser access", "User access", "None"], a: 1 },
+        { q: "What is 'SUDO'?", o: ["A Japanese game", "Command to run programs with security privileges of another user", "A file name", "None"], a: 1 },
+        { q: "What is 'Kernel Tuning'?", o: ["Cleaning the CPU", "Adjusting OS kernel parameters for optimal HPC performance", "Installing Windows", "None"], a: 1 },
+        { q: "What is 'HugePages'?", o: ["Big books", "Memory management feature to reduce overhead for large memory apps", "Wide screens", "None"], a: 1 },
+        { q: "What is 'I/O Wait'?", o: ["Speed of disk", "Time CPU spends waiting for disk/network I/O", "Waiting for user", "None"], a: 1 },
+        { q: "What is 'Bonding' in networking?", o: ["Making friends", "Combining multiple network interfaces for redundancy/speed", "Naming cables", "None"], a: 1 },
+        { q: "What is 'VLAN'?", o: ["Virtual Local Area Network", "Video Local Area Network", "Very Large Area Network", "None"], a: 0 },
+        { q: "What is 'Firewall'?", o: ["A hot wall", "Security system that controls incoming/outgoing network traffic", "A physical heater", "None"], a: 1 },
+        { q: "What is 'Intrusion Detection System' (IDS)?", o: ["Alarm clock", "Device/software that monitors for malicious activity", "A door lock", "None"], a: 1 },
+        { q: "What is 'System Hardening'?", o: ["Freezing the PC", "Securing a system by reducing its surface of vulnerability", "Making the case stronger", "None"], a: 1 }
+    ],
+    "5": [
+        { q: "What is 'Benchmarking'?", o: ["Drawing on a bench", "Evaluating the performance of a system using standardized tests", "Cleaning the DC", "None"], a: 1 },
+        { q: "What is the 'LINPACK' benchmark?", o: ["A packing tool", "Standard test used to rank the Top500 supercomputers", "A network test", "None"], a: 1 },
+        { q: "What is 'HPL'?", o: ["High Performance Linpack", "HPC Power Link", "Hard Process List", "None"], a: 0 },
+        { q: "What is 'Theoretical Peak Performance' (Rpeak)?", o: ["Measured speed", "Maximum possible performance based on hardware specs (Clock x Cores x Ops/clock)", "Average speed", "None"], a: 1 },
+        { q: "What is 'Measured Performance' (Rmax)?", o: ["Speed on paper", "Highest performance achieved on the LINPACK benchmark", "Minimum speed", "None"], a: 1 },
+        { q: "What is 'Efficiency' in benchmarking?", o: ["Power usage", "Ratio of Rmax to Rpeak", "Number of nodes", "None"], a: 1 },
+        { q: "What is the 'Top500' list?", o: ["List of 500 movies", "Ranking of the world's most powerful supercomputers", "A tech magazine", "None"], a: 1 },
+        { q: "What is 'Green500'?", o: ["List of green parks", "Ranking of supercomputers based on energy efficiency (Flops/Watt)", "Eco-friendly PCs", "None"], a: 1 },
+        { q: "What is 'Gflops/Watt'?", o: ["Measure of speed", "Measure of energy efficiency", "Measure of disk space", "None"], a: 1 },
+        { q: "What is 'Amdahl's Law'?", o: ["A law of physics", "Formula for the theoretical speedup in latency of the execution of a task at fixed workload", "A fire code", "None"], a: 1 },
+        { q: "What is 'Gustafson's Law'?", o: ["A law of biology", "Formula for scaled speedup when the problem size increases", "A network rule", "None"], a: 1 },
+        { q: "What is 'Micro-benchmarking'?", o: ["Testing small computers", "Testing specific components like memory bandwidth or network latency", "Fast testing", "None"], a: 1 },
+        { q: "What is 'HPCG' benchmark?", o: ["High Performance Conjugate Gradients (meant to complement LINPACK)", "HPC Green", "Hard Process Computer Group", "None"], a: 0 },
+        { q: "What is 'Stream' benchmark used for?", o: ["Video streaming", "Measuring sustainable memory bandwidth", "Network speed", "None"], a: 1 },
+        { q: "What is 'IOR' benchmark?", o: ["I/O Rate (measuring parallel file system performance)", "Input Output Record", "Internal Office Run", "None"], a: 0 },
+        { q: "What is 'Cloud HPC'?", o: ["HPC in a rainy place", "Using cloud resources to run HPC workloads", "Virtual HPC", "None"], a: 1 },
+        { q: "What is 'Quantum Computing'?", o: ["Computing with bits", "Computing based on the principles of quantum mechanics", "Fast Linux", "None"], a: 1 },
+        { q: "What is 'Edge Computing'?", o: ["Computing on a cliff", "Processing data near the source of data generation", "Center of DC", "None"], a: 1 },
+        { q: "What is 'Containerization' (e.g., Docker, Singularity) in HPC?", o: ["Putting PCs in boxes", "Packaging software and its dependencies to run consistently across environments", "Moving nodes", "None"], a: 1 },
+        { q: "Why is 'Singularity' preferred over Docker in HPC?", o: ["It is smaller", "Security features (runs as user, not root) and support for HPC interconnects", "It is faster", "None"], a: 1 },
+        { q: "What is 'AI/ML' integration in HPC?", o: ["Using HPC to train large AI models", "Replacing HPC with AI", "AI in the fan", "None"], a: 0 },
+        { q: "What is 'Digital Twin'?", o: ["A cloned server", "A virtual representation of a physical object or system", "Two monitors", "None"], a: 1 },
+        { q: "What is 'Co-processing'?", o: ["Using two CPUs", "Offloading tasks from the main CPU to an accelerator", "Two users", "None"], a: 1 },
+        { q: "What is 'Dark Fiber'?", o: ["Broken fiber", "Unused optical fiber that can be leased/used for private networks", "Black cables", "None"], a: 1 },
+        { q: "What is 'Exabyte'?", o: ["10^15 bytes", "10^18 bytes", "10^21 bytes", "None"], a: 1 },
+        { q: "What is 'Neuromorphic' computing?", o: ["Brain-inspired computing architecture", "Computing with nerves", "New software", "None"], a: 0 },
+        { q: "What is 'FPGA'?", o: ["Field Programmable Gate Array", "Fast Process Gate Access", "File Program General Area", "None"], a: 0 },
+        { q: "What is 'NVLink'?", o: ["New Video Link", "High-speed point-to-point communication link for GPUs by NVIDIA", "Network Video", "None"], a: 1 },
+        { q: "What is 'Non-Volatile Memory' (NVM)?", o: ["Memory that stays when power is lost", "RAM", "Fast memory", "None"], a: 0 },
+        { q: "What is 'PCIe Gen 5'?", o: ["5th generation of high-speed serial computer expansion bus standard", "A 5GB disk", "A 5th node", "None"], a: 0 },
+        { q: "What is 'Converged Infrastructure'?", o: ["Cables meeting", "Grouping multiple IT components into a single optimized computing package", "Broken DC", "None"], a: 1 },
+        { q: "What is 'Hyper-converged Infrastructure' (HCI)?", o: ["Very fast servers", "Software-centric architecture that tightly integrates compute, storage, and networking", "Cloud", "None"], a: 1 },
+        { q: "What is 'SDR, DDR, QDR, FDR, EDR, HDR, NDR' in InfiniBand?", o: ["RAM types", "Generations of InfiniBand data rates", "Encryption types", "None"], a: 1 },
+        { q: "What is 'Collective Communication' in MPI?", o: ["Talking to one node", "Communication involving a group of processes (e.g., Broadcast, Reduce)", "Sending email", "None"], a: 1 },
+        { q: "What is 'Point-to-Point' communication?", o: ["Direct communication between two specific nodes", "Talking to everyone", "Wireless", "None"], a: 0 },
+        { q: "What is 'Wall Clock Time'?", o: ["Time on the office wall", "The actual time elapsed from start to finish of a job", "CPU time", "None"], a: 1 },
+        { q: "What is 'CPU Time'?", o: ["Time on the CPU clock", "Total time the CPU was busy processing a task", "Total time", "None"], a: 1 },
+        { q: "What is 'Utilization'?", o: ["Buying new nodes", "Percentage of time a resource (e.g., CPU) is actually busy", "Memory size", "None"], a: 1 },
+        { q: "What is 'Throughput Computing'?", o: ["Running one big job", "Running many independent jobs simultaneously", "Fast network", "None"], a: 1 },
+        { q: "HPC is essential for weather forecasting.", o: ["True", "False"], a: 0 }
+    ]
+};
+
+const urlParams = new URLSearchParams(window.location.search);
+const currentSet = urlParams.get('set') || "1";
+const questions = quizData[currentSet] || quizData["1"];
+
+// Set active button
+document.getElementById(`btn-${currentSet}`).classList.add('active');
+
+// Render Questions
+const area = document.getElementById('questions-area');
+questions.forEach((q, i) => {
+    let qDiv = document.createElement('div');
+    qDiv.className = 'question';
+    qDiv.id = `q-block-${i}`;
+    
+    let optionsHtml = q.o.map((opt, optIdx) => `
+        <label class="option" id="opt-${i}-${optIdx}">
+            <input type="radio" name="q${i}" value="${optIdx}">
+            ${opt}
+        </label>
+    `).join('');
+
+    qDiv.innerHTML = `
+        <span class="q-text">${i + 1}. ${q.q}</span>
+        ${optionsHtml}
+    `;
+    area.appendChild(qDiv);
+});
+
+function validateAndScore() {
+    let score = 0;
+    let unanswered = [];
+
+    questions.forEach((q, i) => {
+        const selected = document.querySelector(`input[name="q${i}"]:checked`);
+        if (!selected) {
+            unanswered.push(i + 1);
+        }
+    });
+
+    if (unanswered.length > 0) {
+        alert("Please answer all questions before submitting. Unanswered: " + unanswered.join(", "));
+        return;
+    }
+
+    questions.forEach((q, i) => {
+        const selected = parseInt(document.querySelector(`input[name="q${i}"]:checked`).value);
+        const correct = q.a;
+
+        const labels = document.querySelectorAll(`[id^="opt-${i}-"]`);
+        labels.forEach(l => l.classList.remove('opt-correct', 'opt-wrong'));
+
+        if (selected === correct) {
+            score++;
+            document.getElementById(`opt-${i}-${selected}`).classList.add('opt-correct');
+        } else {
+            document.getElementById(`opt-${i}-${selected}`).classList.add('opt-wrong');
+            document.getElementById(`opt-${i}-${correct}`).classList.add('opt-correct');
+        }
+    });
+
+    const finalScore = Math.round((score / questions.length) * 100);
+    document.getElementById('score-display').innerText = finalScore + "%";
+    document.getElementById('stats-summary').innerText = `You scored ${score} out of ${questions.length}`;
+    document.getElementById('result-modal').style.display = 'flex';
+}
+
+function closeModal() {
+    document.getElementById('result-modal').style.display = 'none';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+</script>
+
+</body>
+</html>

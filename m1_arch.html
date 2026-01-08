@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>M1: Computer Architecture - 200 Q Bank</title>
+    <style>
+        :root { --ca-red: #c0392b; --ca-blue: #2980b9; --ca-dark: #2c3e50; --bg: #fdfdfd; --success: #27ae60; --wrong: #e74c3c; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); margin: 0; padding: 20px; }
+        .quiz-container { max-width: 1100px; margin: auto; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        .header { border-bottom: 5px solid var(--ca-red); padding-bottom: 15px; margin-bottom: 25px; display: flex; justify-content: space-between; align-items: center; }
+        
+        .set-nav { margin-bottom: 25px; display: flex; gap: 10px; flex-wrap: wrap; }
+        .set-btn { padding: 12px 20px; background: #dfe6e9; border: none; border-radius: 6px; cursor: pointer; text-decoration: none; color: #2d3436; font-weight: bold; transition: 0.3s; }
+        .set-btn.active { background: var(--ca-red); color: white; }
+        .set-btn:hover:not(.active) { background: #b2bec3; }
+
+        .question { margin-bottom: 25px; padding: 20px; border: 1px solid #dcdde1; border-radius: 10px; background: #fff; }
+        .q-text { font-weight: bold; font-size: 1.15rem; display: block; margin-bottom: 15px; color: var(--ca-dark); }
+        
+        .option { display: block; padding: 14px; background: #f8f9fa; border: 2px solid #f1f2f6; margin: 8px 0; border-radius: 8px; cursor: pointer; transition: 0.2s; }
+        .option:hover { background: #edf2f7; border-color: #d1d8e0; }
+        
+        input[type="radio"] { margin-right: 10px; transform: scale(1.2); }
+
+        .opt-correct { background: #d4edda !important; border-color: #28a745 !important; color: #155724; font-weight: bold; }
+        .opt-wrong { background: #f8d7da !important; border-color: #dc3545 !important; color: #721c24; }
+        
+        .submit-btn { background: var(--ca-dark); color: white; border: none; padding: 20px; width: 100%; border-radius: 10px; font-size: 1.25rem; cursor: pointer; font-weight: bold; text-transform: uppercase; }
+        
+        #result-modal { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:999; justify-content:center; align-items:center; }
+        .modal-box { background:white; padding:40px; border-radius:20px; text-align:center; max-width:500px; width: 90%; }
+        .score-val { font-size: 4.5rem; color: var(--ca-red); font-weight: 900; margin: 10px 0; }
+    </style>
+</head>
+<body>
+
+<div class="quiz-container">
+    <div class="header">
+        <div>
+            <h1 style="margin:0;">M1: Computer Architecture</h1>
+            <p style="margin:5px 0 0; color: #7f8c8d;">Aug 2025 Guidelines • 40 Questions Per Set</p>
+        </div>
+        <a href="index.html" style="text-decoration:none; color:var(--ca-dark); font-weight:bold; border:2px solid var(--ca-dark); padding:8px 15px; border-radius:5px;">← Home</a>
+    </div>
+
+    <div class="set-nav">
+        <a href="?set=1" class="set-btn" id="btn-1">Set 1: Foundational Concepts</a>
+        <a href="?set=2" class="set-btn" id="btn-2">Set 2: Instruction & CPU</a>
+        <a href="?set=3" class="set-btn" id="btn-3">Set 3: RISC & Parallelism</a>
+        <a href="?set=4" class="set-btn" id="btn-4">Set 4: Memory & Caches</a>
+        <a href="?set=5" class="set-btn" id="btn-5">Set 5: IO & Modern Processors</a>
+    </div>
+
+    <form id="quiz-form">
+        <div id="questions-area"></div>
+        <button type="button" class="submit-btn" id="main-submit" onclick="validateAndScore()">Submit Set Results</button>
+    </form>
+</div>
+
+<div id="result-modal">
+    <div class="modal-box">
+        <h2 id="result-title">Set Complete!</h2>
+        <div class="score-val" id="score-display">0%</div>
+        <p id="stats-summary" style="font-size: 1.3rem; margin-bottom:25px;"></p>
+        <button onclick="location.reload()" style="padding:12px 25px; background:var(--ca-red); color:white; border:none; border-radius:8px; cursor:pointer; font-weight:bold;">Retake Test</button>
+        <button onclick="closeModal()" style="padding:12px 25px; margin-left:10px; cursor:pointer; background: #eee; border: none; border-radius: 8px;">Review Answers</button>
+    </div>
+</div>
+
+<script>
+const quizData = {
+    "1": [
+        { q: "What is the primary difference between Computer Organization and Computer Architecture?", o: ["Organization is visible to programmers, Architecture is physical implementation", "Architecture refers to the hardware-software interface, Organization refers to physical hardware connection", "They are exactly the same", "Organization deals with software only"], a: 1 },
+        { q: "Who is associated with the 'Stored Program' concept?", o: ["Alan Turing", "Charles Babbage", "John von Neumann", "Blaise Pascal"], a: 2 },
+        { q: "Which of the following is considered a core computer component according to the guidelines?", o: ["CPU", "I/O Modules", "Main Memory", "All of the above"], a: 3 },
+        { q: "What does CPI stand for in performance measurement?", o: ["Clock Per Instance", "Cycles Per Instruction", "Command Per Interaction", "Cycles Per Interval"], a: 1 },
+        { q: "The Evolution of Intel x86 architecture is an example of:", o: ["RISC development", "CISC development", "VLIW development", "None of the above"], a: 1 },
+        { q: "ARM architecture is primarily used in which sector?", o: ["Mainframe Servers", "High-Performance Computing only", "Embedded Systems and Mobile Devices", "Supercomputers only"], a: 2 },
+        { q: "Which bus interconnection structure handles communication between CPU and Memory?", o: ["Expansion Bus", "System Bus", "I/O Bus", "Universal Serial Bus"], a: 1 },
+        { q: "What is the main goal of Computer Architecture?", o: ["To maximize power consumption", "To optimize performance, cost, and power", "To make computers larger", "To reduce memory size"], a: 1 },
+        { q: "The 'MAR' register in a basic CPU stands for:", o: ["Main Access Register", "Memory Address Register", "Memory Accumulator Register", "Mobile Access Register"], a: 1 },
+        { q: "Performance Assessment usually involves measuring:", o: ["Color of the CPU", "CPU Execution Time and Throughput", "Number of keys on keyboard", "Weight of the system"], a: 1 },
+        { q: "What describes 'Structure' in computer function?", o: ["The way components are interrelated", "The operation of each individual component", "The software code", "The user interface"], a: 0 },
+        { q: "Moore's Law is related to:", o: ["Software complexity", "The density of transistors on an integrated circuit", "The price of RAM", "The speed of light"], a: 1 },
+        { q: "In the von Neumann architecture, instructions and data are:", o: ["Stored in separate memories", "Stored in the same memory", "Not stored at all", "Stored only in the CPU"], a: 1 },
+        { q: "Which component is responsible for arithmetic and logic operations?", o: ["Control Unit", "ALU", "Program Counter", "Memory"], a: 1 },
+        { q: "Instruction Register (IR) holds:", o: ["Address of next instruction", "The current instruction being executed", "Data results", "User passwords"], a: 1 },
+        { q: "A 32-bit processor can address up to how much RAM?", o: ["2 GB", "4 GB", "8 GB", "16 GB"], a: 1 },
+        { q: "Embedded systems focus on:", o: ["High power consumption", "General purpose computing", "Specific tasks with resource constraints", "Large physical size"], a: 2 },
+        { q: "The 'Harvard Architecture' differs from von Neumann by:", o: ["Using more power", "Having separate paths/memories for data and instructions", "Being older", "Using only ROM"], a: 1 },
+        { q: "What is 'Latency' in computer performance?", o: ["The number of tasks completed", "The delay before a transfer of data begins", "The color of the motherboard", "The size of the hard drive"], a: 1 },
+        { q: "The 'MBR' (Memory Buffer Register) contains:", o: ["The address of data", "The data to be written to or read from memory", "The next command", "Clock signals"], a: 1 },
+        { q: "MIPS is a unit for measuring:", o: ["Millions of Instructions Per Second", "Memory In Personal Systems", "Micro Instruction Program Set", "None"], a: 0 },
+        { q: "The 'Control Unit' functions as the:", o: ["Brain of the computer", "Orchestrator/Traffic cop for the CPU", "Main storage", "Power regulator"], a: 1 },
+        { q: "Little-Endian means:", o: ["Most significant byte at lowest address", "Least significant byte at lowest address", "A small processor", "None"], a: 1 },
+        { q: "What is an Interconnection Structure?", o: ["The software link", "The set of pathways connecting modules like CPU, Memory, and I/O", "The internet", "The power cable"], a: 1 },
+        { q: "Which Intel architecture first introduced 64-bit extensions (EMT64)?", o: ["8086", "80386", "Pentium 4 / Xeon", "80286"], a: 2 },
+        { q: "Which class of computer architecture is meant for large-scale data processing?", o: ["Personal Computer", "Server/Enterprise", "Embedded", "Calculator"], a: 1 },
+        { q: "Clock Cycle Time is:", o: ["The time for one cycle of the system clock", "The total time a program runs", "The time to boot", "None"], a: 0 },
+        { q: "Instruction Set Architecture (ISA) provides a boundary between:", o: ["User and Screen", "Hardware and Software", "CPU and RAM", "Keyboard and Mouse"], a: 1 },
+        { q: "The 'Accumulator' is a:", o: ["Type of battery", "Register in the ALU for storing intermediate results", "Memory fan", "Network protocol"], a: 1 },
+        { q: "What is the primary function of the I/O Module?", o: ["To store files forever", "To interface between the system and external devices", "To provide power to the monitor", "To calculate math"], a: 1 },
+        { q: "A 'Word' in computer architecture refers to:", o: ["A text document", "The natural unit of data used by a particular processor design", "8 bits only", "1024 bytes"], a: 1 },
+        { q: "Data Bus width determines:", o: ["The amount of memory addressable", "How much data can be transferred at once", "The speed of the fan", "The color of the wires"], a: 1 },
+        { q: "Address Bus width determines:", o: ["The speed of calculation", "The maximum memory capacity of the system", "The sound quality", "None"], a: 1 },
+        { q: "System Performance is often evaluated using:", o: ["Benchmarks", "Physical weight", "Cost of the box", "Number of stickers"], a: 0 },
+        { q: "Program Counter (PC) stores:", o: ["The number of programs installed", "The address of the next instruction to be fetched", "The current user's ID", "The system time"], a: 1 },
+        { q: "Which generation of computers used Integrated Circuits?", o: ["1st", "2nd", "3rd", "4th"], a: 2 },
+        { q: "The first generation of computers used:", o: ["Transistors", "Vacuum Tubes", "Microchips", "AI"], a: 1 },
+        { q: "Which component decodes the instruction?", o: ["ALU", "Control Unit", "RAM", "Hard Drive"], a: 1 },
+        { q: "A 'Bus' is a:", o: ["Transportation for engineers", "Shared communication pathway", "Type of storage", "Software bug"], a: 1 },
+        { q: "What is the 'Execution Cycle'?", o: ["Steps to fetch, decode, and execute an instruction", "The warranty of the CPU", "The recycling of hardware", "None"], a: 0 }
+    ],
+    "2": [
+        { q: "What is an 'Opcode'?", o: ["Optional Code", "Operation Code specifying the function to perform", "Optimized Code", "None"], a: 1 },
+        { q: "In a 'Load/Store' architecture, arithmetic operations are performed on:", o: ["Memory data", "Registers only", "Stack only", "I/O devices"], a: 1 },
+        { q: "Which instruction type moves data between registers and memory?", o: ["Arithmetic", "Logic", "Data Transfer", "Control Flow"], a: 2 },
+        { q: "Addressing modes define:", o: ["How to find the operand", "How to name a variable", "How to connect a printer", "None"], a: 0 },
+        { q: "Immediate addressing means:", o: ["The address is in a register", "The operand value is part of the instruction", "The address is on the stack", "None"], a: 1 },
+        { q: "What is the function of an ALU?", o: ["Managing files", "Mathematical and Logical operations", "Controlling the screen", "Power management"], a: 1 },
+        { q: "What is 'Physical Address Space'?", o: ["The size of the hard drive", "The range of addresses that correspond to the actual main memory", "The room where the server is", "None"], a: 1 },
+        { q: "Machine Language consists of:", o: ["C++ code", "Binary (0s and 1s)", "English commands", "Python scripts"], a: 1 },
+        { q: "An 'instruction' typically consists of an opcode and:", o: ["A comment", "Operands/Address info", "A signature", "None"], a: 1 },
+        { q: "Direct addressing mode uses:", o: ["A pointer", "An address field in the instruction that points to memory", "The accumulator directly", "None"], a: 1 },
+        { q: "Relative addressing is often used for:", o: ["Adding numbers", "Branching and loops (offset from PC)", "Accessing global variables", "None"], a: 1 },
+        { q: "PCI-Express is a type of:", o: ["Software", "System Bus / Interconnect technology", "Memory chip", "Processor"], a: 1 },
+        { q: "The 'Status Register' (Flags) stores:", o: ["System time", "Information about result properties (zero, carry, negative)", "User permissions", "None"], a: 1 },
+        { q: "What is 'Assembler'?", o: ["A hardware tool", "Software that translates assembly code to machine code", "A type of memory", "None"], a: 1 },
+        { q: "Effective Address is:", o: ["The address in the register", "The actual memory address of the operand after calculation", "The home address of the user", "None"], a: 1 },
+        { q: "A 64-bit architecture uses registers of what size?", o: ["32 bits", "64 bits", "128 bits", "16 bits"], a: 1 },
+        { q: "What is 'Branching'?", o: ["Growing a tree", "Changing the flow of execution based on a condition", "Deleting code", "None"], a: 1 },
+        { q: "A 'Stack' operates on which principle?", o: ["FIFO", "LIFO", "Priority", "Random"], a: 1 },
+        { q: "Subroutine call instructions save the return address in:", o: ["The ALU", "A Stack or Link Register", "The I/O module", "None"], a: 1 },
+        { q: "Physical aspects of a system bus include:", o: ["Software protocols", "Electrical lines, pins, and mechanical connectors", "The BIOS settings", "None"], a: 1 },
+        { q: "Which addressing mode uses a register to hold the address of the operand?", o: ["Direct", "Register Indirect", "Immediate", "Absolute"], a: 1 },
+        { q: "Arithmetic instructions include:", o: ["MOV, PUSH", "ADD, SUB, MUL", "AND, OR, NOT", "JMP, CALL"], a: 1 },
+        { q: "Logical instructions include:", o: ["ADD, DIV", "AND, XOR, SHIFT", "STORE, LOAD", "None"], a: 1 },
+        { q: "What is an 'Exception' in CPU terms?", o: ["A good thing", "An internal event that interrupts normal execution (e.g., divide by zero)", "A hardware failure only", "None"], a: 1 },
+        { q: "The width of the ALU determines the:", o: ["Size of the monitor", "Precision and size of data handled in one operation", "Total RAM size", "None"], a: 1 },
+        { q: "A 'Micro-operation' is:", o: ["A small program", "An elementary CPU operation during one clock pulse", "A small transistor", "None"], a: 1 },
+        { q: "Endianness refers to:", o: ["Power usage", "Byte ordering in multi-byte data types", "Processor speed", "None"], a: 1 },
+        { q: "The 'Fetch' stage of the instruction cycle:", o: ["Calculates the result", "Reads the instruction from memory", "Writes to disk", "None"], a: 1 },
+        { q: "The 'Decode' stage of the instruction cycle:", o: ["Executes the math", "Interprets the opcode", "Fetches data", "None"], a: 1 },
+        { q: "Indexed addressing mode is useful for:", o: ["Single variables", "Arrays and tables", "Constants", "None"], a: 1 },
+        { q: "What is 'Big-Endian'?", o: ["Most significant byte at lowest address", "Least significant byte at lowest address", "Large memory", "None"], a: 0 },
+        { q: "What is the role of the 'Stack Pointer' (SP)?", o: ["Points to next instruction", "Points to the top of the stack memory", "Points to the screen", "None"], a: 1 },
+        { q: "PCI Express (PCIe) lanes are:", o: ["Serial communication paths", "Parallel wires", "Software folders", "None"], a: 0 },
+        { q: "The 'Execute' stage:", o: ["Gets the instruction", "Performs the operation specified by the instruction", "Saves it to a file", "None"], a: 1 },
+        { q: "General Purpose Registers (GPRs) are used for:", o: ["Long term storage", "Temporary data and addresses inside the CPU", "Holding the OS", "None"], a: 1 },
+        { q: "What is 'Bitwise' operation?", o: ["Operations on individual bits of a binary number", "Operations on whole files", "Encryption", "None"], a: 0 },
+        { q: "What is 'Overflow' in binary arithmetic?", o: ["Data is too small", "Result exceeds the capacity of the storage register", "Computer gets hot", "None"], a: 1 },
+        { q: "The system bus (PCIe) physical layer handles:", o: ["Logic gates", "Signal levels and clocking", "Instruction decoding", "None"], a: 1 },
+        { q: "What is an 'Assembler Directive'?", o: ["A CPU command", "An instruction for the assembler, not converted to machine code", "A user manual", "None"], a: 1 },
+        { q: "How many operands can a standard x86 instruction typically have?", o: ["0 to 3", "Exactly 1", "Minimum 5", "Unlimited"], a: 0 }
+    ],
+    "3": [
+        { q: "What is the core philosophy of RISC?", o: ["Complex instructions", "Simple instructions that can be executed in one cycle", "More software, less hardware", "None"], a: 1 },
+        { q: "CISC stands for:", o: ["Central Instruction Set Computer", "Complex Instruction Set Computer", "Common Integrated System Code", "None"], a: 1 },
+        { q: "Which architecture style usually has many registers?", o: ["CISC", "RISC", "Vacuum tube", "None"], a: 1 },
+        { q: "Pipelining improves CPU performance by:", o: ["Increasing clock speed", "Overlapping the execution of multiple instructions", "Adding more RAM", "None"], a: 1 },
+        { q: "What is a 'Pipeline Hazard'?", o: ["A fire in the CPU", "A situation that prevents the next instruction from executing in its designated cycle", "A software bug", "None"], a: 1 },
+        { q: "A 'Data Hazard' occurs when:", o: ["The CPU runs out of data", "An instruction depends on the result of a previous instruction still in the pipeline", "Memory is slow", "None"], a: 1 },
+        { q: "A 'Control Hazard' is caused by:", o: ["Power fluctuations", "Branch and Jump instructions that change the PC", "Too many users", "None"], a: 1 },
+        { q: "In a 5-stage pipeline, the stages are usually:", o: ["IF, ID, EX, MEM, WB", "FETCH, SAVE, LOAD", "START, DO, END", "None"], a: 0 },
+        { q: "RISC Design Principles include:", o: ["Variable length instructions", "Fixed length instructions and single-cycle execution", "Complex addressing modes", "None"], a: 1 },
+        { q: "Which of these is a RISC processor example?", o: ["Intel 80486", "ARM", "Pentium III", "None"], a: 1 },
+        { q: "CISC architecture aims to minimize:", o: ["The number of registers", "The number of instructions per program", "The price", "The fan noise"], a: 1 },
+        { q: "What is 'Throughput' in a pipeline?", o: ["The time for one instruction", "The number of instructions completed per unit of time", "The speed of the bus", "None"], a: 1 },
+        { q: "Multi-Processor architecture involves:", o: ["One CPU with many monitors", "Two or more CPUs working together", "One CPU with many users", "None"], a: 1 },
+        { q: "What is 'Parallel Processing'?", o: ["Processing one by one", "Executing multiple processes simultaneously", "Drawing parallel lines", "None"], a: 1 },
+        { q: "Flynn's Taxonomy classifies architectures into:", o: ["SISD, SIMD, MISD, MIMD", "RISC, CISC", "Intel, AMD", "None"], a: 0 },
+        { q: "SIMD stands for:", o: ["Simple Instruction Multiple Data", "Single Instruction Multiple Data", "System Integrated Multiple Device", "None"], a: 1 },
+        { q: "A 'Vector Processor' is designed to:", o: ["Calculate single numbers", "Operate on large arrays or vectors of data in a single instruction", "Process text only", "None"], a: 1 },
+        { q: "Multi-core architecture means:", o: ["Multiple PCs", "Multiple processing units on a single chip", "More cables", "None"], a: 1 },
+        { q: "Shared Memory Multiprocessors:", o: ["Have their own RAM each", "All processors access a common main memory", "Don't use RAM", "None"], a: 1 },
+        { q: "A 'Cluster' is a type of:", o: ["Single CPU", "Message-passing multiprocessor system", "Small register", "None"], a: 1 },
+        { q: "What is Hardware Multithreading?", o: ["Connecting many threads", "Allowing a single processor to execute multiple threads by switching quickly", "A software loop", "None"], a: 1 },
+        { q: "GPU stands for:", o: ["General Processing Unit", "Graphics Processing Unit", "Grand Power Unit", "None"], a: 1 },
+        { q: "NVLink is a protocol specifically for:", o: ["Intel CPUs", "NVIDIA GPU communication", "Ethernet", "None"], a: 1 },
+        { q: "What is 'Latency' in a pipeline?", o: ["Total instructions", "The time it takes for a single instruction to pass through all stages", "The heat produced", "None"], a: 1 },
+        { q: "RISC/CISC Evolution Cycle suggests:", o: ["RISC is dying", "Modern CPUs often use a RISC core to execute CISC instructions", "CISC is faster", "None"], a: 1 },
+        { q: "The 'WB' (Write Back) stage in a pipeline:", o: ["Reads from disk", "Updates the register file with the result", "Sends email", "None"], a: 1 },
+        { q: "Which hazard is solved using 'Forwarding' or 'Bypassing'?", o: ["Structural", "Data", "Control", "None"], a: 1 },
+        { q: "A 'Structural Hazard' occurs when:", o: ["The chip breaks", "Hardware resources are insufficient for the instructions in the pipeline", "The software crashes", "None"], a: 1 },
+        { q: "Array Processors are a type of:", o: ["SISD", "SIMD", "MIMD", "None"], a: 1 },
+        { q: "Message-passing systems use:", o: ["Shared RAM", "Explicit messages sent over a network to communicate", "A shared hard drive", "None"], a: 1 },
+        { q: "The 'ID' (Instruction Decode) stage:", o: ["Fetches bits", "Identifies the operation and reads registers", "Calculates", "None"], a: 1 },
+        { q: "What is 'Superscalar' architecture?", o: ["A very large CPU", "Ability to issue and execute multiple instructions per clock cycle", "High speed fans", "None"], a: 1 },
+        { q: "Which architecture is better for energy efficiency usually?", o: ["CISC", "RISC", "Mainframe", "None"], a: 1 },
+        { q: "In MIMD, 'Multiple Instruction Multiple Data' means:", o: ["One program, one data", "Independent processors executing different instructions on different data", "Many programs, one data", "None"], a: 1 },
+        { q: "What is the purpose of 'Pipeline Stalling' (Bubble)?", o: ["To speed up", "To wait for a hazard to clear", "To save power", "None"], a: 1 },
+        { q: "Modern Intel Core i7 is technically:", o: ["Pure RISC", "Pure CISC", "A post-RISC architecture (CISC front end, RISC-like core)", "None"], a: 2 },
+        { q: "What is 'Instruction Level Parallelism' (ILP)?", o: ["Running many PCs", "Identifying instructions that can run at the same time", "Multi-user OS", "None"], a: 1 },
+        { q: "A 'Thread' in hardware refers to:", o: ["A literal piece of string", "The smallest sequence of programmed instructions that can be managed by a scheduler", "A wire", "None"], a: 1 },
+        { q: "Shared memory systems often face which problem?", o: ["Power loss", "Cache Coherency", "Slow monitors", "None"], a: 1 },
+        { q: "Graphics Processing Units are optimized for:", o: ["Word processing", "Highly parallel floating-point tasks", "Single-threaded tasks", "None"], a: 1 }
+    ],
+    "4": [
+        { q: "Memory Hierarchy is designed to provide:", o: ["Less RAM", "High capacity at low cost with fast access speed", "More cables", "None"], a: 1 },
+        { q: "Which memory is the fastest?", o: ["Main Memory", "Hard Disk", "Cache Memory (L1)", "SSD"], a: 2 },
+        { q: "What is 'Locality of Reference'?", o: ["Finding a local shop", "The tendency of a processor to access the same set of memory locations repetitively", "Mapping GPS", "None"], a: 1 },
+        { q: "Temporal Locality means:", o: ["Nearby addresses are likely to be accessed", "Recently accessed items are likely to be accessed again soon", "Time zone changes", "None"], a: 1 },
+        { q: "Spatial Locality means:", o: ["Items near the current address are likely to be accessed soon", "Time based access", "Satellite mapping", "None"], a: 0 },
+        { q: "Cache Memory acts as a buffer between:", o: ["CPU and Main Memory", "Main Memory and Disk", "Keyboard and CPU", "None"], a: 0 },
+        { q: "A 'Cache Hit' occurs when:", o: ["The cache breaks", "Requested data is found in the cache", "Data is missing", "None"], a: 1 },
+        { q: "A 'Cache Miss' means:", o: ["Data is found", "Requested data must be fetched from main memory", "Cache is turned off", "None"], a: 1 },
+        { q: "Cache 'Mapping' techniques include:", o: ["GPS, GLONASS", "Direct, Associative, and Set-Associative", "Linear, Quadratic", "None"], a: 1 },
+        { q: "What is 'Write-Through' policy?", o: ["Write only to cache", "Write to both cache and main memory simultaneously", "Write to disk", "None"], a: 1 },
+        { q: "What is 'Write-Back' policy?", o: ["Write only to main memory", "Write only to cache and update main memory later when the block is replaced", "Don't write at all", "None"], a: 1 },
+        { q: "Virtual Memory allows:", o: ["Fake RAM", "Execution of programs larger than physical memory", "Unlimited storage", "None"], a: 1 },
+        { q: "A 'Page' in virtual memory is:", o: ["A sheet of paper", "A fixed-length block of virtual memory", "A website", "None"], a: 1 },
+        { q: "A 'Page Fault' occurs when:", o: ["The page is torn", "The requested page is not in physical RAM", "The internet is down", "None"], a: 1 },
+        { q: "TLB (Translation Lookaside Buffer) is used for:", o: ["Calculating math", "Speeding up virtual-to-physical address translation", "Storing images", "None"], a: 1 },
+        { q: "Memory Interleaving is used to:", o: ["Save power", "Increase memory bandwidth by accessing multiple banks simultaneously", "Add more RAM", "None"], a: 1 },
+        { q: "Associative Memory is accessed by:", o: ["Address", "Content (Data)", "Name", "Date"], a: 1 },
+        { q: "The 'Page Table' maps:", o: ["Disk to USB", "Virtual addresses to physical addresses", "Filenames to sizes", "None"], a: 1 },
+        { q: "What is 'Cache Coherency'?", o: ["Making cache smaller", "Ensuring all processors see the same data in their local caches", "Deleting cache", "None"], a: 1 },
+        { q: "The AMD Zen and Intel Skylake hierarchies are examples of:", o: ["Real-world modern memory structures", "Ancient computers", "Software apps", "None"], a: 0 },
+        { q: "Memory Hierarchy levels from smallest/fastest to largest/slowest:", o: ["Disk -> RAM -> Cache -> Registers", "Registers -> Cache -> RAM -> Disk", "RAM -> Disk -> Cache", "None"], a: 1 },
+        { q: "What is an 'Auxiliary Memory'?", o: ["Registers", "L1 Cache", "Secondary storage like Magnetic Disks", "None"], a: 2 },
+        { q: "Which cache level is usually shared among cores?", o: ["L1", "L2", "L3", "None"], a: 2 },
+        { q: "Direct Mapping is:", o: ["The most flexible", "Mapping each block of main memory to only one possible cache line", "The most expensive", "None"], a: 1 },
+        { q: "Fully Associative Mapping allows:", o: ["No mapping", "Any block of main memory to be placed in any cache line", "Only one location", "None"], a: 1 },
+        { q: "Which replacement policy removes the item not used for the longest time?", o: ["FIFO", "LRU (Least Recently Used)", "Random", "LIFO"], a: 1 },
+        { q: "SRAM (Static RAM) is typically used for:", o: ["Main Memory", "Cache Memory", "Hard Drives", "None"], a: 1 },
+        { q: "DRAM (Dynamic RAM) is typically used for:", o: ["Registers", "Main Memory", "CPU internal buffers", "None"], a: 1 },
+        { q: "What is 'Thrashing' in virtual memory?", o: ["Cleaning the disk", "Excessive paging leading to system slowdown", "Adding more RAM", "None"], a: 1 },
+        { q: "The purpose of a Finite-State Machine (FSM) in cache is to:", o: ["Draw graphics", "Control the logic of cache hits/misses/updates", "Measure temperature", "None"], a: 1 },
+        { q: "Higher-Order Memory Design involves:", o: ["Slower chips", "Advanced bank organization and hierarchy", "Using less wires", "None"], a: 1 },
+        { q: "What is 'Address Space'?", o: ["The size of the motherboard", "The set of virtual addresses a process can use", "The room size", "None"], a: 1 },
+        { q: "What is 'Memory Space'?", o: ["The size of the hard drive", "The set of physical addresses available in RAM", "Space between chips", "None"], a: 1 },
+        { q: "What is the 'Hit Ratio'?", o: ["Number of hits / Total accesses", "Total accesses / Hits", "Number of misses", "None"], a: 0 },
+        { q: "Dirty Bit is used in cache to indicate:", o: ["Dust on the chip", "The block in cache has been modified and is inconsistent with main memory", "The cache is full", "None"], a: 1 },
+        { q: "In a 'Set-Associative' cache, blocks are grouped into:", o: ["Folders", "Sets", "Buses", "None"], a: 1 },
+        { q: "Main memory is also called:", o: ["Secondary memory", "Primary memory / RAM", "Cache", "None"], a: 1 },
+        { q: "Which memory technology needs periodic refreshing?", o: ["SRAM", "DRAM", "ROM", "Flash"], a: 1 },
+        { q: "What is 'Unified Cache'?", o: ["Separate caches for data and instructions", "A single cache used for both data and instructions", "Cache for the whole network", "None"], a: 1 },
+        { q: "Virtual memory management is primarily handled by:", o: ["The user", "The Operating System and MMU", "The monitor", "None"], a: 1 }
+    ],
+    "5": [
+        { q: "Memory-mapped I/O uses:", o: ["Special instructions for I/O", "The same address space for both memory and I/O devices", "Separate cables for I/O", "None"], a: 1 },
+        { q: "I/O mapped I/O (Isolated I/O) uses:", o: ["The same instructions as memory", "Dedicated I/O instructions and separate address space", "Only the data bus", "None"], a: 1 },
+        { q: "What is an 'Interrupt'?", o: ["A system crash", "A signal to the processor from hardware or software indicating an event needs attention", "A power failure", "None"], a: 1 },
+        { q: "Direct Memory Access (DMA) allows:", o: ["The CPU to run faster", "I/O devices to transfer data directly to/from memory without CPU intervention", "Unlimited RAM", "None"], a: 1 },
+        { q: "Synchronous data transfer is governed by:", o: ["Handshaking", "A common clock signal", "Random pulses", "None"], a: 1 },
+        { q: "Asynchronous data transfer uses:", o: ["A clock", "Handshaking signals (Ready/Acknowledge)", "No signals", "None"], a: 1 },
+        { q: "RAID stands for:", o: ["Random Access Inexpensive Disk", "Redundant Array of Inexpensive (Independent) Disks", "Rapid Access Integrated Device", "None"], a: 1 },
+        { q: "RAID 0 focuses on:", o: ["Mirroring (Redundancy)", "Stripping (Performance)", "Error correction", "None"], a: 1 },
+        { q: "RAID 1 focuses on:", o: ["Stripping", "Mirroring (Redundancy)", "Saving space", "None"], a: 1 },
+        { q: "What is a 'Peripherals'?", o: ["The CPU", "External devices like disks, tapes, and printers", "The OS", "None"], a: 1 },
+        { q: "A Magnetic Disk stores data using:", o: ["Light", "Magnetized spots on a rotating platter", "Pits and lands", "None"], a: 1 },
+        { q: "CD-ROM is which type of storage?", o: ["Magnetic", "Optical", "Electronic", "None"], a: 1 },
+        { q: "What is an Interrupt Service Routine (ISR)?", o: ["A hardware chip", "The software code that executes in response to an interrupt", "A list of users", "None"], a: 1 },
+        { q: "Cycle Stealing is a concept in:", o: ["USB", "DMA (taking bus cycles from CPU)", "Pipelining", "None"], a: 1 },
+        { q: "Which generation of Intel Core processors is the most recent (as per guidelines context)?", o: ["Pentium", "Latest generation (e.g., 13th/14th Gen)", "Core 2 Duo", "8086"], a: 1 },
+        { q: "What is a TPU?", o: ["Thermal Power Unit", "Tensor Processing Unit (AI accelerator)", "Total Program Unit", "None"], a: 1 },
+        { q: "Parallel and Distributed Processing involves:", o: ["Single PC work", "Multiple autonomous computers communicating over a network", "Only multi-core CPUs", "None"], a: 1 },
+        { q: "AMD Zen is an architecture for:", o: ["Only mobile phones", "Processors (Ryzen/EPYC)", "Graphics cards only", "None"], a: 1 },
+        { q: "HPC stands for:", o: ["Home Personal Computer", "High-Performance Computing", "High Power Control", "None"], a: 1 },
+        { q: "Which architecture is widely used in HPC supercomputers for its power efficiency?", o: ["x86", "ARM / POWER", "DOS", "None"], a: 1 },
+        { q: "In I/O interfacing, 'Polling' is:", o: ["Using interrupts", "The CPU periodically checking the device status", "The device calling the CPU", "None"], a: 1 },
+        { q: "What is the purpose of 'Vectored Interrupts'?", o: ["To draw vectors", "To provide the address of the ISR directly to the CPU", "To stop all work", "None"], a: 1 },
+        { q: "What is RAID 5?", o: ["Stripping with parity", "Simple Mirroring", "No redundancy", "None"], a: 0 },
+        { q: "The 'Daisy Chain' method is used for:", o: ["Watering plants", "Prioritizing multiple interrupts", "Connecting RAM", "None"], a: 1 },
+        { q: "GPU System Architectures are optimized for:", o: ["Low latency", "High throughput for parallel data", "Single tasking", "None"], a: 1 },
+        { q: "The 'Northbridge' in older architectures traditionally connected:", o: ["Slower I/O", "CPU, RAM, and High-speed Video", "Keyboard and Mouse", "None"], a: 1 },
+        { q: "Which I/O technique is the most efficient for large data transfers?", o: ["Programmed I/O", "Interrupt-driven I/O", "DMA", "Polling"], a: 2 },
+        { q: "Emerging Architectures include:", o: ["Vacuum Tubes", "Neuromorphic and Quantum Computing / TPUs", "Abacus", "None"], a: 1 },
+        { q: "What is the 'Southbridge' responsible for?", o: ["CPU math", "Slower I/O peripherals (SATA, USB, etc.)", "System RAM", "None"], a: 1 },
+        { q: "What does 'Daisy Chaining' involve?", o: ["Connecting devices in series to handle priority", "Connecting devices in parallel", "Random connections", "None"], a: 0 },
+        { q: "Standard I/O interfaces include:", o: ["BIOS", "USB, SATA, PCIe", "Registers", "None"], a: 1 },
+        { q: "A 'Magnetic Tape' is usually used for:", o: ["Primary RAM", "Backup and archival storage (Sequential access)", "Gaming", "None"], a: 1 },
+        { q: "How does 64-bit differ from 32-bit Intel processors?", o: ["Different color", "Larger register size and more addressable memory", "Uses more water", "None"], a: 1 },
+        { q: "What is 'Distributed Processing'?", o: ["One CPU sharing parts", "Breaking a task into parts that run on multiple computers", "Sharing a monitor", "None"], a: 1 },
+        { q: "The 'Bus Master' is the device that:", o: ["Is broken", "Initiates a data transfer on the bus", "Receives data only", "None"], a: 1 },
+        { q: "What is the role of an 'I/O Controller'?", o: ["To type for you", "To manage the communication between the device and the bus", "To increase disk speed", "None"], a: 1 },
+        { q: "What is a 'Cold Boot'?", o: ["Waking up in winter", "Starting a computer from a powered-off state", "Restarting software", "None"], a: 1 },
+        { q: "What is 'Hot Swapping'?", o: ["Changing users", "Replacing components without shutting down the system", "Trading CPUs", "None"], a: 1 },
+        { q: "Parallelism in I/O (like RAID) primarily improves:", o: ["Sound quality", "Reliability and performance of storage", "Screen resolution", "None"], a: 1 },
+        { q: "64-bit Intel Core generations include names like:", o: ["Skylake, Alder Lake, Raptor Lake", "8086, 8088", "Pentium 1, 2", "None"], a: 0 }
+    ]
+};
+
+// Logic remains the same as the previous modules.
+function validateAndScore() {
+    let unans = 0;
+    activeQs.forEach((_, i) => {
+        if(!document.querySelector(`input[name="q${i}"]:checked`)) unans++;
+    });
+
+    if(unans > 0) {
+        alert(`Please complete all questions! ${unans} remaining.`);
+        return;
+    }
+
+    let correctCount = 0;
+    activeQs.forEach((item, idx) => {
+        const selected = document.querySelector(`input[name="q${idx}"]:checked`).value;
+        const correctIdx = item.a;
+
+        const allOpts = document.querySelectorAll(`#q-block-${idx} .option`);
+        allOpts.forEach(o => o.classList.remove('opt-correct', 'opt-wrong'));
+
+        if (parseInt(selected) === correctIdx) {
+            correctCount++;
+            document.getElementById(`opt-${idx}-${selected}`).classList.add('opt-correct');
+        } else {
+            document.getElementById(`opt-${idx}-${selected}`).classList.add('opt-wrong');
+            document.getElementById(`opt-${idx}-${correctIdx}`).classList.add('opt-correct');
+        }
+    });
+
+    const perc = ((correctCount / activeQs.length) * 100).toFixed(1);
+    document.getElementById('score-display').innerText = perc + "%";
+    document.getElementById('stats-summary').innerText = `Score: ${correctCount} / 40`;
+    document.getElementById('result-modal').style.display = 'flex';
+}
+
+function closeModal() {
+    document.getElementById('result-modal').style.display = 'none';
+    window.scrollTo({top: 0, behavior: 'smooth'});
+    document.querySelectorAll('input').forEach(i => i.disabled = true);
+    document.getElementById('main-submit').style.display = 'none';
+}
+
+const urlParams = new URLSearchParams(window.location.search);
+const setId = urlParams.get('set') || "1";
+const activeQs = quizData[setId] || quizData["1"];
+document.getElementById(`btn-${setId}`).classList.add('active');
+const area = document.getElementById('questions-area');
+activeQs.forEach((item, idx) => {
+    let html = `<div class="question" id="q-block-${idx}"><span class="q-text">${idx+1}. ${item.q}</span><div class="options-group">`;
+    item.o.forEach((opt, i) => { html += `<label class="option" id="opt-${idx}-${i}"><input type="radio" name="q${idx}" value="${i}"> ${opt}</label>`; });
+    html += `</div></div>`;
+    area.innerHTML += html;
+});
+</script>
+</body>
+</html>

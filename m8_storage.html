@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>M8: Storage & Backup - 200 Q Bank</title>
+    <style>
+        :root { --stor-primary: #5a32a8; --stor-secondary: #2c3e50; --stor-bg: #f4f7f6; --success: #2ecc71; --wrong: #e74c3c; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--stor-bg); margin: 0; padding: 20px; }
+        .quiz-container { max-width: 1100px; margin: auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 5px 25px rgba(0,0,0,0.1); }
+        .header { border-bottom: 4px solid var(--stor-primary); padding-bottom: 15px; margin-bottom: 25px; display: flex; justify-content: space-between; align-items: center; }
+        
+        .set-nav { margin-bottom: 25px; display: flex; gap: 10px; flex-wrap: wrap; }
+        .set-btn { padding: 12px 20px; background: #fff; border: 2px solid var(--stor-primary); border-radius: 6px; cursor: pointer; text-decoration: none; color: var(--stor-primary); font-weight: bold; transition: 0.3s; }
+        .set-btn.active { background: var(--stor-primary); color: white; }
+        .set-btn:hover:not(.active) { background: #f0ebf7; }
+
+        .question { margin-bottom: 25px; padding: 20px; border: 1px solid #dfe6e9; border-radius: 8px; background: #fff; }
+        .q-text { font-weight: 600; font-size: 1.1rem; display: block; margin-bottom: 15px; color: var(--stor-secondary); }
+        
+        .option { display: block; padding: 12px; background: #fff; border: 1px solid #dcdde1; margin: 8px 0; border-radius: 5px; cursor: pointer; transition: 0.2s; }
+        .option:hover { background: #f8f9fa; border-color: var(--stor-primary); }
+        
+        input[type="radio"] { margin-right: 12px; transform: scale(1.2); }
+
+        .opt-correct { background: #d4edda !important; border-color: #28a745 !important; color: #155724; font-weight: bold; }
+        .opt-wrong { background: #f8d7da !important; border-color: #dc3545 !important; color: #721c24; }
+        
+        .submit-btn { background: var(--stor-primary); color: white; border: none; padding: 18px; width: 100%; border-radius: 6px; font-size: 1.2rem; cursor: pointer; font-weight: bold; box-shadow: 0 4px 15px rgba(90, 50, 168, 0.3); }
+        .submit-btn:hover { background: #48268a; }
+        
+        #result-modal { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:999; justify-content:center; align-items:center; }
+        .modal-box { background:white; padding:40px; border-radius:12px; text-align:center; max-width:450px; width: 90%; }
+        .score-val { font-size: 4rem; color: var(--stor-primary); font-weight: 800; margin: 10px 0; }
+    </style>
+</head>
+<body>
+
+<div class="quiz-container">
+    <div class="header">
+        <div>
+            <h1 style="margin:0;">M8: Storage & Backup Management</h1>
+            <p style="margin:5px 0 0; color: #7f8c8d;">RAID • SAN/NAS • LVM • Lustre • DR</p>
+        </div>
+        <a href="index.html" style="text-decoration:none; color:var(--stor-secondary); font-weight:bold; border:2px solid var(--stor-secondary); padding:8px 15px; border-radius:6px;">← Module List</a>
+    </div>
+
+    <div class="set-nav">
+        <a href="?set=1" class="set-btn" id="btn-1">Set 1: Physical Disks & RAID</a>
+        <a href="?set=2" class="set-btn" id="btn-2">Set 2: SAN, NAS & Architectures</a>
+        <a href="?set=3" class="set-btn" id="btn-3">Set 3: Linux LVM Management</a>
+        <a href="?set=4" class="set-btn" id="btn-4">Set 4: Parallel File Systems (Lustre)</a>
+        <a href="?set=5" class="set-btn" id="btn-5">Set 5: Backup & Disaster Recovery</a>
+    </div>
+
+    <form id="quiz-form">
+        <div id="questions-area"></div>
+        <button type="button" class="submit-btn" id="main-submit" onclick="validateAndScore()">Submit Storage Assessment</button>
+    </form>
+</div>
+
+<div id="result-modal">
+    <div class="modal-box">
+        <h2 id="result-title">Storage Competency Result</h2>
+        <div class="score-val" id="score-display">0%</div>
+        <p id="stats-summary" style="font-size: 1.1rem; margin-bottom:20px;"></p>
+        <button onclick="location.reload()" style="padding:12px 25px; background:var(--stor-primary); color:white; border:none; border-radius:6px; cursor:pointer; font-weight:bold;">Retake Test</button>
+        <button onclick="closeModal()" style="padding:12px 25px; margin-left:10px; cursor:pointer; background: #ecf0f1; border: none; border-radius: 6px; font-weight:bold;">Review Errors</button>
+    </div>
+</div>
+
+<script>
+const quizData = {
+    "1": [
+        { q: "Which component of a disk drive stores data on its surface?", o: ["Spindle", "Platter", "Actuator", "Read/Write Head"], a: 1 },
+        { q: "What is 'Seek Time'?", o: ["Time to rotate the platter", "Time for the R/W head to position over the correct track", "Time to transfer data to buffer", "None"], a: 1 },
+        { q: "Which RAID level provides striping without any redundancy?", o: ["RAID 1", "RAID 5", "RAID 0", "RAID 10"], a: 2 },
+        { q: "How many drives can fail in a RAID 5 array without data loss?", o: ["0", "1", "2", "3"], a: 1 },
+        { q: "RAID 6 improves availability over RAID 5 by adding:", o: ["A second mirror", "A second parity block", "Faster disks", "More cache"], a: 1 },
+        { q: "What is the primary benefit of RAID 1?", o: ["High capacity", "Data mirroring/Redundancy", "Fastest writes", "None"], a: 1 },
+        { q: "Which RAID is known as 'Striping with Dual Parity'?", o: ["RAID 5", "RAID 6", "RAID 0", "RAID 1+0"], a: 1 },
+        { q: "What is 'Rotational Latency'?", o: ["Time to move head", "Time for the sector to rotate under the head", "Time to power up", "None"], a: 1 },
+        { q: "Which RAID level combines mirroring and striping?", o: ["RAID 2", "RAID 4", "RAID 10", "RAID 0"], a: 2 },
+        { q: "In an Intelligent Storage System, what is the role of the Cache?", o: ["Permanent storage", "Temporary high-speed buffer for I/O operations", "Disk cooling", "Encryption"], a: 1 },
+        { q: "What does 'MTBF' stand for?", o: ["Mean Time Between Failures", "Maximum Time Before Failure", "Main Total Block Format", "None"], a: 0 },
+        { q: "Which physical disk factor is measured in RPM?", o: ["Seek Time", "Data Transfer Rate", "Spindle Speed", "Areal Density"], a: 2 },
+        { q: "What is a 'Hot Spare'?", o: ["A disk used for high-speed tasks", "An idle drive that takes over automatically if a drive fails", "A disk that generates heat", "A manual backup disk"], a: 1 },
+        { q: "Which RAID level has the highest 'Write Penalty'?", o: ["RAID 0", "RAID 1", "RAID 6", "RAID 10"], a: 2 },
+        { q: "A logical drive presented to the OS from a storage array is called:", o: ["Partition", "LUN (Logical Unit Number)", "Physical Volume", "Sector"], a: 1 },
+        { q: "What is 'Areal Density'?", o: ["The weight of the disk", "Number of bits per square inch of platter surface", "Thickness of the disk", "None"], a: 1 },
+        { q: "Which component moves the R/W head arm?", o: ["Spindle", "Platter", "Actuator", "Logic Board"], a: 2 },
+        { q: "What is 'Data Transfer Rate'?", o: ["Speed of head movement", "Amount of data per second a drive can deliver to the CPU", "Rotational speed", "None"], a: 1 },
+        { q: "RAID 1+0 is a ________ of ________.", o: ["Stripe, Mirrors", "Mirror, Stripes", "Parity, Stripes", "None"], a: 0 },
+        { q: "Which RAID is most suitable for heavy database 'Write' workloads?", o: ["RAID 5", "RAID 6", "RAID 10", "RAID 4"], a: 2 },
+        { q: "The 'Outer Tracks' of a disk usually have higher transfer rates than inner tracks.", o: ["True", "False"], a: 0 },
+        { q: "What is a 'Cylinder' in disk physicals?", o: ["A single track", "Same track across all platter surfaces", "A storage box", "The spindle"], a: 1 },
+        { q: "How many disks are required for RAID 5 (Minimum)?", o: ["2", "3", "4", "5"], a: 1 },
+        { q: "How many disks are required for RAID 6 (Minimum)?", o: ["3", "4", "5", "6"], a: 1 },
+        { q: "Which interface is common for high-performance enterprise servers?", o: ["SATA", "SAS (Serial Attached SCSI)", "USB", "IDE"], a: 1 },
+        { q: "What is 'Zoned Bit Recording'?", o: ["Dividing the disk into zones for security", "Placing more sectors on outer tracks than inner ones", "A backup technique", "None"], a: 1 },
+        { q: "What is the 'Disk Controller'?", o: ["A software driver", "Hardware that manages the disk's internal operations", "A user", "None"], a: 1 },
+        { q: "RAID 0 provides high performance but NO fault tolerance.", o: ["True", "False"], a: 0 },
+        { q: "What is 'Striping'?", o: ["Copying data", "Spreading data across multiple disks to increase performance", "Encrypting data", "Deleting data"], a: 1 },
+        { q: "What is 'Mirroring'?", o: ["Spreading data", "Storing the same data on two or more disks", "Compressing data", "None"], a: 1 },
+        { q: "Which factor affects 'Average Access Time'?", o: ["Seek time + Latency", "Seek time + Data rate", "RPM only", "Platter size"], a: 0 },
+        { q: "In RAID 5, where is parity stored?", o: ["On a dedicated disk", "Distributed across all disks", "In the cache only", "On the first disk"], a: 1 },
+        { q: "Which RAID level is known as 'Independent Access Array'?", o: ["RAID 0", "RAID 1", "RAID 5", "RAID 3"], a: 2 },
+        { q: "A 'Cold Spare' requires manual intervention to replace a failed drive.", o: ["True", "False"], a: 0 },
+        { q: "What is the 'Logic Board' on a HDD?", o: ["The platter", "The PCB that controls the drive", "The BIOS", "None"], a: 1 },
+        { q: "What is 'S.M.A.R.T'?", o: ["A fast disk", "Self-Monitoring, Analysis, and Reporting Technology", "A RAID controller", "None"], a: 1 },
+        { q: "Which storage type is usually faster?", o: ["HDD", "SSD (Solid State Drive)", "Tape", "CD-ROM"], a: 1 },
+        { q: "What is 'I/O Wait'?", o: ["CPU idle time waiting for storage response", "Disk spinning up", "A backup process", "None"], a: 0 },
+        { q: "What is 'Head Crash'?", o: ["The disk stopping", "R/W head touching the platter surface", "Controller failure", "None"], a: 1 },
+        { q: "RAID 0 capacity is the sum of all disks.", o: ["True", "False"], a: 0 }
+    ],
+    "2": [
+        { q: "What is DAS?", o: ["Distributed Access Storage", "Direct Attached Storage", "Data Access System", "None"], a: 1 },
+        { q: "Which architecture uses a dedicated high-speed network for storage?", o: ["DAS", "NAS", "SAN (Storage Area Network)", "LVM"], a: 2 },
+        { q: "NAS (Network Attached Storage) provides access at the ________ level.", o: ["Block", "File", "Bit", "Physical"], a: 1 },
+        { q: "SAN (Storage Area Network) provides access at the ________ level.", o: ["File", "Block", "Object", "None"], a: 1 },
+        { q: "Which protocol is the standard for Fibre Channel SANs?", o: ["NFS", "FCP (Fibre Channel Protocol)", "SMB", "iSCSI"], a: 1 },
+        { q: "What is 'iSCSI'?", o: ["Block storage over IP/Ethernet", "File storage over Fiber", "A new RAID level", "None"], a: 0 },
+        { q: "What is a 'Fabric' in a SAN?", o: ["A type of cable", "A network of interconnected Fibre Channel switches", "A storage array", "A software"], a: 1 },
+        { q: "What is 'Zoning'?", o: ["Geographic locations", "Isolating communication between specific SAN devices for security", "Naming disks", "None"], a: 1 },
+        { q: "What is an 'HBA'?", o: ["Host Bus Adapter (SAN Network Card)", "High Bandwidth Access", "Hardware Block Array", "None"], a: 0 },
+        { q: "Which protocol is commonly used by NAS for Linux clients?", o: ["CIFS", "SMB", "NFS (Network File System)", "iSCSI"], a: 2 },
+        { q: "Which protocol is commonly used by NAS for Windows clients?", o: ["NFS", "SMB/CIFS", "FCP", "None"], a: 1 },
+        { q: "What is 'LUN Masking'?", o: ["Hiding the server", "Restricting LUN access to specific HBAs", "Encrypting the disk", "None"], a: 1 },
+        { q: "What is the 'WWN' (World Wide Name)?", o: ["A website", "A unique 64-bit identifier for SAN devices", "A RAID name", "None"], a: 1 },
+        { q: "Which SAN topology is most scalable?", o: ["Point-to-Point", "Arbitrated Loop (FC-AL)", "Switched Fabric (FC-SW)", "None"], a: 2 },
+        { q: "What is 'FCoE'?", o: ["Fiber Channel over Ethernet", "Fiber Connection on EC2", "Fast Content on Edge", "None"], a: 0 },
+        { q: "Which layer of the FC Stack is responsible for physical media?", o: ["FC-0", "FC-1", "FC-2", "FC-4"], a: 0 },
+        { q: "What is 'Storage Replication'?", o: ["Copying files", "Copying data from one storage array to another for DR", "RAID 1", "None"], a: 1 },
+        { q: "What is 'HSM'?", o: ["High Speed Memory", "Hierarchical Storage Management", "Hardware Security Module", "None"], a: 1 },
+        { q: "A 'NAS Head' is essentially a optimized ________.", o: ["Switch", "File Server", "Hard Drive", "Database"], a: 1 },
+        { q: "What is the maximum speed of modern FC SANs?", o: ["1 Gbps", "100 Mbps", "32/64 Gbps and above", "None"], a: 2 },
+        { q: "Which is a characteristic of DAS?", o: ["High Scalability", "Server-to-Storage dedicated link", "Network sharing", "None"], a: 1 },
+        { q: "What is 'IP Storage'?", o: ["Storing IPs", "Using IP networks (iSCSI, FCIP) for storage traffic", "S3 buckets", "None"], a: 1 },
+        { q: "What is 'FCIP'?", o: ["Fiber Channel over IP (for long distance SAN)", "Fast Connection IP", "Fiber Cloud IP", "None"], a: 0 },
+        { q: "In SAN, what is a 'Target'?", o: ["The Server", "The Storage Array port", "The Switch", "The User"], a: 1 },
+        { q: "In SAN, what is an 'Initiator'?", o: ["The Storage Array", "The Host/Server HBA", "The Administrator", "None"], a: 1 },
+        { q: "What is 'Hard Zoning'?", o: ["Zoning by Port", "Zoning by WWN", "Software zoning", "None"], a: 0 },
+        { q: "What is 'Soft Zoning'?", o: ["Zoning by Port", "Zoning by WWN/Name", "Unsecured zoning", "None"], a: 1 },
+        { q: "Which architecture is best for high-performance databases?", o: ["NAS", "SAN", "Cloud Storage only", "Tape"], a: 1 },
+        { q: "Which architecture is best for general office file sharing?", o: ["SAN", "NAS", "DAS", "None"], a: 1 },
+        { q: "Can iSCSI run on standard Ethernet switches?", o: ["Yes", "No", "Only on Fiber", "None"], a: 0 },
+        { q: "What is a 'JBOD'?", o: ["Just a Bunch of Disks", "Joint Backup on Demand", "Java Based Object Disk", "None"], a: 0 },
+        { q: "What is 'Thin Provisioning'?", o: ["Small disks", "Allocating storage on-demand rather than all at once", "Compressing files", "None"], a: 1 },
+        { q: "What is 'Storage Virtualization'?", o: ["Using VMware", "Abstracting physical storage into logical pools", "Cloud storage", "None"], a: 1 },
+        { q: "What is 'Data Deduplication'?", o: ["Copying data", "Eliminating redundant copies of data to save space", "RAID 1", "None"], a: 1 },
+        { q: "Which device connects different SAN fabrics?", o: ["Bridge", "Router", "HBA", "None"], a: 1 },
+        { q: "What is 'Multipathing'?", o: ["Many users", "Using multiple physical paths between server and storage for redundancy", "Multiple partitions", "None"], a: 1 },
+        { q: "What is 'Flow Control' in FC?", o: ["Traffic lights", "Managing the pace of data to prevent buffer overflow", "Network speed", "None"], a: 1 },
+        { q: "What is 'Class 3' service in FC?", o: ["Connection-oriented", "Connectionless unacknowledged delivery", "High priority", "None"], a: 1 },
+        { q: "What is 'Converged Network Adapter' (CNA)?", o: ["A LAN card", "A card that handles both Ethernet and FCoE traffic", "A SAN switch", "None"], a: 1 },
+        { q: "SANs are typically managed by a 'Storage Administrator'.", o: ["True", "False"], a: 0 }
+    ],
+    "3": [
+        { q: "What does LVM stand for?", o: ["Linux Virtual Machine", "Logical Volume Manager", "Large Volume Method", "None"], a: 1 },
+        { q: "What is a 'Physical Volume' (PV)?", o: ["A software folder", "A physical disk or partition initialized for LVM", "A virtual disk", "None"], a: 1 },
+        { q: "What is a 'Volume Group' (VG)?", o: ["A single disk", "A pool of storage created from one or more PVs", "A backup set", "None"], a: 1 },
+        { q: "What is a 'Logical Volume' (LV)?", o: ["The raw disk", "A slice of a VG that acts as a usable partition", "A RAID mirror", "None"], a: 1 },
+        { q: "Which command initializes a disk for LVM?", o: ["vgcreate", "pvcreate", "lvcreate", "pvinit"], a: 1 },
+        { q: "Which command creates a Volume Group named 'myvg' using '/dev/sdb'?", o: ["vgcreate myvg /dev/sdb", "pvcreate /dev/sdb", "lvcreate myvg", "none"], a: 0 },
+        { q: "Which command creates a 10GB Logical Volume named 'mylv' in 'myvg'?", o: ["lvcreate -L 10G -n mylv myvg", "vgextend myvg 10G", "pvcreate mylv", "none"], a: 0 },
+        { q: "What is a 'PE' (Physical Extent)?", o: ["A large disk", "The smallest chunk of data (usually 4MB) in LVM", "A user group", "None"], a: 1 },
+        { q: "How do you extend a Logical Volume 'mylv' by 5GB?", o: ["lvextend -L +5G /dev/myvg/mylv", "vgextend +5G", "pvcreate +5G", "none"], a: 0 },
+        { q: "Which command is used to resize the underlying filesystem after extending an LV?", o: ["lvresize", "resize2fs (for ext4) or xfs_growfs", "format", "none"], a: 1 },
+        { q: "Which command displays all Physical Volumes?", o: ["vgs", "pvs", "lvs", "pvshow"], a: 1 },
+        { q: "Which command displays all Volume Groups?", o: ["vgs", "pvs", "lvs", "vginfo"], a: 0 },
+        { q: "Which command displays all Logical Volumes?", o: ["vgs", "pvs", "lvs", "lvinfo"], a: 2 },
+        { q: "How do you add a new disk '/dev/sdc' to an existing Volume Group 'myvg'?", o: ["vgextend myvg /dev/sdc", "vgcreate myvg /dev/sdc", "pvcreate myvg", "none"], a: 0 },
+        { q: "What is 'LVM Snapshot' used for?", o: ["Permanent backup", "Creating a point-in-time copy of an LV for backups", "Formatting", "None"], a: 1 },
+        { q: "Can an LVM Volume Group span multiple physical hard drives?", o: ["Yes", "No", "Only if they are the same size", "None"], a: 0 },
+        { q: "Which command removes a Logical Volume?", o: ["lvremove", "lvdelete", "rmlv", "none"], a: 0 },
+        { q: "Which command removes a Volume Group?", o: ["vgdelete", "vgremove", "rmvg", "none"], a: 1 },
+        { q: "Which command removes a Physical Volume?", o: ["pvremove", "pvdelete", "rmpv", "none"], a: 0 },
+        { q: "What is 'lvdisplay' used for?", o: ["Showing VG info", "Showing detailed information about Logical Volumes", "Listing disks", "None"], a: 1 },
+        { q: "What is 'pvmove' used for?", o: ["Renaming a disk", "Moving data from one PV to another (online migration)", "Deleting data", "None"], a: 1 },
+        { q: "LVM allows resizing partitions without unmounting (online) in many cases.", o: ["True", "False"], a: 0 },
+        { q: "What is the 'Metadata' area in LVM?", o: ["User files", "Storage for LVM configuration on the disk itself", "The OS", "None"], a: 1 },
+        { q: "Which command scans for LVM Volume Groups on the system?", o: ["vgscan", "lvscan", "pvscan", "all of these"], a: 3 },
+        { q: "What is 'Thin Pool' in LVM?", o: ["A small disk", "A pool for thin-provisioned volumes", "A deleted disk", "None"], a: 1 },
+        { q: "What is 'Mirroring' in LVM?", o: ["RAID 0", "Creating a redundant copy of an LV", "Striping", "None"], a: 1 },
+        { q: "How do you rename a Volume Group 'oldvg' to 'newvg'?", o: ["vgrename oldvg newvg", "vgmove oldvg newvg", "vgset oldvg newvg", "none"], a: 0 },
+        { q: "What is 'VGDA'?", o: ["Volume Group Data Area", "Virtual Grid Disk Array", "Volume Group Descriptor Area", "None"], a: 2 },
+        { q: "LVM is implemented as a ________ driver in Linux.", o: ["User space", "Kernel space (Device Mapper)", "Network", "None"], a: 1 },
+        { q: "What is 'Linear' mapping in LVM?", o: ["Striping", "Mapping one or more PVs into a single LV sequentially", "Mirroring", "None"], a: 1 },
+        { q: "Can you shrink a Logical Volume?", o: ["Yes (but must shrink filesystem first)", "No", "Only in SAN", "None"], a: 0 },
+        { q: "Which command shows the attributes of a VG?", o: ["vgdisplay", "vgshow", "vgs", "Both A and C"], a: 3 },
+        { q: "What is the 'Physical Extent' size by default?", o: ["1MB", "4MB", "1GB", "None"], a: 1 },
+        { q: "What is 'lvchange' used for?", o: ["Changing LV name", "Changing LV attributes (like activation)", "Deleting LV", "None"], a: 1 },
+        { q: "What is 'vgexport'?", o: ["Saving data to USB", "Preparing a VG to be moved to another system", "Deleting a VG", "None"], a: 1 },
+        { q: "What is 'vgimport'?", o: ["Loading data", "Registering an exported VG on a new system", "Creating a VG", "None"], a: 1 },
+        { q: "What is the maximum number of LVs in a VG?", o: ["10", "255", "Depends on PE size/Metadata", "Unlimited"], a: 2 },
+        { q: "Does LVM provide RAID protection by default?", o: ["Yes", "No (It provides management; RAID is extra)", "Only Mirroring", "None"], a: 1 },
+        { q: "LVM metadata is stored at the beginning of each Physical Volume.", o: ["True", "False"], a: 0 },
+        { q: "What is 'pvck'?", o: ["Checking disk speed", "Checking Physical Volume metadata integrity", "None", "None"], a: 1 }
+    ],
+    "4": [
+        { q: "What is a Parallel File System (PFS)?", o: ["A standard disk", "A file system that distributes data across multiple servers for simultaneous access", "A backup tool", "None"], a: 1 },
+        { q: "Which is a popular open-source Parallel File System used in HPC?", o: ["NTFS", "Lustre", "FAT32", "EXT4"], a: 1 },
+        { q: "In Lustre, what does 'MDS' stand for?", o: ["Metadata Server", "Main Data Storage", "Multi Disk System", "None"], a: 0 },
+        { q: "In Lustre, what does 'OSS' stand for?", o: ["Open Source Storage", "Object Storage Server", "Operational System Server", "None"], a: 1 },
+        { q: "What is an 'OST' (Object Storage Target)?", o: ["A user", "The actual storage device (LUN) where file data is stored", "A network switch", "None"], a: 1 },
+        { q: "What is an 'MDT' (Metadata Target)?", o: ["The storage for file names, permissions, and layout info", "The storage for file content", "A backup tape", "None"], a: 0 },
+        { q: "What is 'Striping' in Lustre?", o: ["Deleting files", "Distributing a single file across multiple OSTs for performance", "Mirroring files", "None"], a: 1 },
+        { q: "Which PFS was developed by IBM?", o: ["Lustre", "GPFS (now IBM Spectrum Scale)", "BeeGFS", "PVFS2"], a: 1 },
+        { q: "What is 'BeeGFS' (formerly FhGFS)?", o: ["A database", "A high-performance parallel file system designed for ease of use", "A RAID controller", "None"], a: 1 },
+        { q: "What is 'PVFS2'?", o: ["Parallel Virtual File System version 2", "Private Virtual File Store", "Public Video File System", "None"], a: 0 },
+        { q: "Which component is responsible for managing file NAMES and DIRECTORIES in Lustre?", o: ["OSS", "MDS", "Client", "MGS"], a: 1 },
+        { q: "What is the 'Lustre Client'?", o: ["A person", "A compute node that mounts and uses the Lustre filesystem", "A support tool", "None"], a: 1 },
+        { q: "What is 'MGS' in Lustre?", o: ["Metadata Global Server", "Management Server (stores configuration info)", "Main Gateway Server", "None"], a: 1 },
+        { q: "Which network protocol is Lustre specifically optimized for?", o: ["TCP/IP", "LNET (Lustre Networking)", "HTTP", "FTP"], a: 1 },
+        { q: "What is 'LNET'?", o: ["A fiber cable", "A custom networking layer that allows Lustre to run over InfiniBand, TCP, etc.", "A cloud network", "None"], a: 1 },
+        { q: "Parallel File Systems are primarily used for:", o: ["Home PCs", "HPC Clusters and Supercomputers", "Mobile apps", "None"], a: 1 },
+        { q: "Which PFS is known for being entirely metadata-server-free (distributes metadata)?", o: ["Lustre", "PVFS2 / OrangeFS", "GPFS", "None"], a: 1 },
+        { q: "What is 'Benchmarking' in storage?", o: ["Cleaning the disk", "Testing and measuring the performance (IOPS, Throughput) of a system", "RAID setup", "None"], a: 1 },
+        { q: "Which tool is commonly used to benchmark Parallel File Systems?", o: ["Microsoft Word", "IOR or FIO", "Chrome", "None"], a: 1 },
+        { q: "What is 'POSIX' compliance?", o: ["A security level", "A standard for file system API (Open, Read, Write, Close)", "A cloud brand", "None"], a: 1 },
+        { q: "How does Lustre handle 'Failover'?", o: ["It doesn't", "Using shared storage and secondary servers (MDS/OSS pairs)", "By deleting data", "None"], a: 1 },
+        { q: "What is 'Striping Count' in Lustre?", o: ["Number of files", "Number of OSTs a single file is spread across", "Number of users", "None"], a: 1 },
+        { q: "What is 'Striping Size'?", o: ["Total file size", "The size of each chunk written to an OST (e.g., 1MB)", "Disk capacity", "None"], a: 1 },
+        { q: "GPFS uses a 'Shared Disk' architecture.", o: ["True", "False"], a: 0 },
+        { q: "What is 'Quorum' in GPFS?", o: ["A backup", "A mechanism to ensure cluster consistency by requiring a majority of nodes", "A storage protocol", "None"], a: 1 },
+        { q: "What is 'OrangeFS'?", o: ["A color", "The modern version of PVFS2", "A backup software", "None"], a: 1 },
+        { q: "Lustre can scale to support thousands of client nodes.", o: ["True", "False"], a: 0 },
+        { q: "What is 'Direct I/O'?", o: ["Slow I/O", "Bypassing the OS cache for faster data transfer directly to storage", "Manual I/O", "None"], a: 1 },
+        { q: "What is 'Global Namespace'?", o: ["A website name", "A single unified view of all files across multiple storage nodes", "A user database", "None"], a: 1 },
+        { q: "Which command shows Lustre striping information for a file?", o: ["ls -l", "lfs getstripe", "lfs show", "lustre_info"], a: 1 },
+        { q: "Which command sets the striping policy for a directory in Lustre?", o: ["lfs setstripe", "mkdir", "chmod", "lfs striping"], a: 0 },
+        { q: "Lustre MDTs should ideally be stored on high-speed disks (SSDs).", o: ["True", "False"], a: 0 },
+        { q: "What is 'Metadata'?", o: ["Data about data (Size, Name, Permissions)", "The content of the file", "A backup", "None"], a: 0 },
+        { q: "Can a client be an OSS or MDS at the same time in Lustre?", o: ["Yes (but not recommended for production)", "No", "Only on Windows", "None"], a: 0 },
+        { q: "Parallel File Systems solve the 'I/O Bottleneck' in HPC.", o: ["True", "False"], a: 0 },
+        { q: "What is 'In-memory' metadata?", o: ["Storing file data in RAM", "Caching metadata in MDS RAM for faster access", "A fast disk", "None"], a: 1 },
+        { q: "Which PFS has a 'Buddy Mirroring' feature?", o: ["Lustre", "BeeGFS", "GPFS", "None"], a: 1 },
+        { q: "What is 'Object-based' storage?", o: ["Files in folders", "Storing data as objects with unique IDs on OSTs", "Relational databases", "None"], a: 1 },
+        { q: "Is Lustre free to use?", o: ["Yes (Open Source)", "No (Paid only)", "Free for 1 user", "None"], a: 0 },
+        { q: "Which command mounts a Lustre filesystem?", o: ["mount -t lustre", "mount_pfs", "lfs mount", "none"], a: 0 }
+    ],
+    "5": [
+        { q: "What is the primary goal of Backup?", o: ["Save space", "Protect data against loss by keeping a copy", "Encrypt data", "None"], a: 1 },
+        { q: "What is a 'Full Backup'?", o: ["Only new files", "A complete copy of all selected data", "A mirror", "None"], a: 1 },
+        { q: "What is 'Incremental Backup'?", o: ["Full copy", "Backup of only data that has changed since the LAST backup (any type)", "A mirror", "None"], a: 1 },
+        { q: "What is 'Differential Backup'?", o: ["Full copy", "Backup of all data changed since the last FULL backup", "A mirror", "None"], a: 1 },
+        { q: "Which backup type is fastest to RESTORE?", o: ["Incremental", "Differential", "Full", "None"], a: 2 },
+        { q: "What is 'Archive'?", o: ["A backup", "Long-term storage of data that is no longer in active use", "A deleted file", "None"], a: 1 },
+        { q: "What is 'Disaster Recovery' (DR)?", o: ["Deleting data", "The process of restoring IT infrastructure and data after a disaster", "Daily backup", "None"], a: 1 },
+        { q: "What is 'RPO' (Recovery Point Objective)?", o: ["Time to recover", "Maximum acceptable amount of data loss (measured in time)", "Return point", "None"], a: 1 },
+        { q: "What is 'RTO' (Recovery Time Objective)?", o: ["Target time to restore a system after failure", "Restore point", "Tape speed", "None"], a: 0 },
+        { q: "What is 'LTO'?", o: ["Large Tape Only", "Linear Tape-Open (Industry standard for tape storage)", "Linux Tape Option", "None"], a: 1 },
+        { q: "What is a 'Tape Library'?", o: ["A book about tapes", "A hardware device that contains multiple tape drives and a robot to move tapes", "A software", "None"], a: 1 },
+        { q: "Which open-source tool is used for network backup management?", o: ["Amanda", "Bacula", "Both A and B", "None"], a: 2 },
+        { q: "What is 'Retrieve'?", o: ["Deleting", "Accessing and bringing back archived data", "RAID mirror", "None"], a: 1 },
+        { q: "What is 'Restore'?", o: ["Copying", "Copying backup data back to its original or new location", "Deleting", "None"], a: 1 },
+        { q: "What is 'Off-site' backup?", o: ["In the same rack", "Storing backup media in a different geographical location", "In the cloud", "None"], a: 1 },
+        { q: "What is 'Cold Backup' (Offline)?", o: ["Backup while system is running", "Backup while the database or system is shut down", "Backup in winter", "None"], a: 1 },
+        { q: "What is 'Hot Backup' (Online)?", o: ["Backup while system is running", "Backup while system is shut down", "Backup in summer", "None"], a: 0 },
+        { q: "What is 'Bare Metal Recovery'?", o: ["Restoring files", "Restoring a whole system from scratch (including OS) onto new hardware", "Scraping metal", "None"], a: 1 },
+        { q: "What is 'Snapshot-based' backup?", o: ["A photo", "Using a filesystem/storage snapshot as the source for backup", "A manual copy", "None"], a: 1 },
+        { q: "What is 'Backup Optimization'?", o: ["Buying more tapes", "Techniques like deduplication and compression to reduce backup time/space", "Deleting files", "None"], a: 1 },
+        { q: "What is a 'Backup Policy'?", o: ["A price list", "A set of rules defining what, when, and how data is backed up", "A legal document", "None"], a: 1 },
+        { q: "What is 'Cold Site' in DR?", o: ["Ready to go site", "A site with infrastructure (power/cooling) but no pre-installed hardware", "A data center in Alaska", "None"], a: 1 },
+        { q: "What is 'Hot Site' in DR?", o: ["A site with power", "A fully functional site with mirrored data ready for immediate failover", "A site in a desert", "None"], a: 1 },
+        { q: "What is 'Warm Site' in DR?", o: ["A cold site", "A middle ground with hardware but requiring some setup/data restore", "None", "None"], a: 1 },
+        { q: "Which media is best for 'Air-gapped' backups?", o: ["Cloud", "Tape", "SAN", "None"], a: 1 },
+        { q: "What is 'Data Encryption' in backup?", o: ["Compressing", "Securing backup data so it cannot be read without a key", "Naming", "None"], a: 1 },
+        { q: "What is 'Cloud Backup'?", o: ["Backup to tapes", "Backing up data to a remote service provider over the internet", "Backup in the rain", "None"], a: 1 },
+        { q: "Deduplication can be 'Source-side' or 'Target-side'.", o: ["True", "False"], a: 0 },
+        { q: "What is 'VTL'?", o: ["Virtual Tape Library (Disk acting like tape)", "Volume Total List", "Virtual Total Link", "None"], a: 0 },
+        { q: "How does 'Compression' help backups?", o: ["Reduces file size to save media space", "Makes files faster to read", "Encrypts files", "None"], a: 0 },
+        { q: "The '3-2-1 Rule' of backup means:", o: ["3 copies, 2 media types, 1 offsite", "3 servers, 2 users, 1 tape", "3 sites, 2 disks, 1 cloud", "None"], a: 0 },
+        { q: "What is 'Retention Period'?", o: ["Time to backup", "How long backup data is kept before being deleted/overwritten", "Speed of disk", "None"], a: 1 },
+        { q: "What is 'Amanda' (Open Source Tool)?", o: ["A database", "Advanced Maryland Automatic Network Disk Archiver", "A file system", "None"], a: 1 },
+        { q: "What is 'Bacula'?", o: ["A virus", "A set of open-source tools to manage backup/restore across a network", "A cloud platform", "None"], a: 1 },
+        { q: "A 'Backup Window' is:", o: ["A GUI", "The time period when backups are allowed to run", "A storage shelf", "None"], a: 1 },
+        { q: "What is 'Consistency Check' in backup?", o: ["Checking file names", "Verifying that backed up data is valid and readable", "Counting files", "None"], a: 1 },
+        { q: "Which is a common disaster for a data center?", o: ["Fire", "Flood", "Cyber-attack", "All of these"], a: 3 },
+        { q: "Is RAID a replacement for Backup?", o: ["Yes", "No (RAID protects against disk failure, not accidental deletion/disaster)", "Only RAID 6", "None"], a: 1 },
+        { q: "What is 'Metadata Backup'?", o: ["Backing up the OS", "Backing up the structures (LVM info, Lustre layout) needed to restore data", "None", "None"], a: 1 },
+        { q: "What is 'Multi-streaming'?", o: ["Watching movies", "Running multiple backup streams simultaneously to reduce backup time", "None", "None"], a: 1 }
+    ]
+};
+
+const urlParams = new URLSearchParams(window.location.search);
+const currentSet = urlParams.get('set') || "1";
+const questions = quizData[currentSet] || quizData["1"];
+
+document.getElementById(`btn-${currentSet}`).classList.add('active');
+
+const area = document.getElementById('questions-area');
+questions.forEach((q, i) => {
+    let qDiv = document.createElement('div');
+    qDiv.className = 'question';
+    qDiv.id = `q-block-${i}`;
+    
+    let optionsHtml = q.o.map((opt, optIdx) => `
+        <label class="option" id="opt-${i}-${optIdx}">
+            <input type="radio" name="q${i}" value="${optIdx}">
+            ${opt}
+        </label>
+    `).join('');
+
+    qDiv.innerHTML = `
+        <span class="q-text">${i + 1}. ${q.q}</span>
+        ${optionsHtml}
+    `;
+    area.appendChild(qDiv);
+});
+
+function validateAndScore() {
+    let score = 0;
+    let unanswered = [];
+
+    questions.forEach((q, i) => {
+        const selected = document.querySelector(`input[name="q${i}"]:checked`);
+        if (!selected) unanswered.push(i + 1);
+    });
+
+    if (unanswered.length > 0) {
+        alert("Attention: Please complete all questions. Missing: " + unanswered.join(", "));
+        return;
+    }
+
+    questions.forEach((q, i) => {
+        const selected = parseInt(document.querySelector(`input[name="q${i}"]:checked`).value);
+        const correct = q.a;
+        const labels = document.querySelectorAll(`[id^="opt-${i}-"]`);
+        labels.forEach(l => l.classList.remove('opt-correct', 'opt-wrong'));
+
+        if (selected === correct) {
+            score++;
+            document.getElementById(`opt-${i}-${selected}`).classList.add('opt-correct');
+        } else {
+            document.getElementById(`opt-${i}-${selected}`).classList.add('opt-wrong');
+            document.getElementById(`opt-${i}-${correct}`).classList.add('opt-correct');
+        }
+    });
+
+    const finalScore = Math.round((score / questions.length) * 100);
+    document.getElementById('score-display').innerText = finalScore + "%";
+    document.getElementById('stats-summary').innerText = `You correctly answered ${score} out of ${questions.length} storage questions.`;
+    document.getElementById('result-modal').style.display = 'flex';
+}
+
+function closeModal() {
+    document.getElementById('result-modal').style.display = 'none';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+</script>
+
+</body>
+</html>

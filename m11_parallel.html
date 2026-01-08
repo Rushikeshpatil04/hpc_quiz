@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>M11: Aptitude & Logical Reasoning</title>
+    <style>
+        :root { 
+            --apt-primary: #e67e22; 
+            --apt-secondary: #2c3e50; 
+            --apt-bg: #f4f7f6; 
+            --white: #ffffff;
+        }
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background: var(--apt-bg); 
+            margin: 0; 
+            padding: 20px; 
+        }
+        .quiz-container { 
+            max-width: 1000px; 
+            margin: auto; 
+            background: var(--white); 
+            padding: 30px; 
+            border-radius: 12px; 
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1); 
+        }
+        
+        /* HEADER - Matching your sample layout */
+        .header { 
+            border-bottom: 4px solid var(--apt-primary); 
+            padding-bottom: 15px; 
+            margin-bottom: 25px; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+        }
+        .header h1 { margin: 0; color: var(--apt-secondary); font-size: 24px; }
+        .back-btn { 
+            text-decoration: none; 
+            color: white; 
+            background: var(--apt-secondary); 
+            padding: 8px 25px; 
+            border-radius: 5px; 
+            font-weight: bold; 
+            transition: 0.3s;
+        }
+        .back-btn:hover { background: #34495e; }
+
+        /* Navigation Sets */
+        .set-nav { margin-bottom: 25px; display: flex; gap: 10px; flex-wrap: wrap; }
+        .set-btn { 
+            padding: 10px 18px; 
+            background: #fff; 
+            border: 2px solid var(--apt-primary); 
+            border-radius: 6px; 
+            cursor: pointer; 
+            text-decoration: none; 
+            color: var(--apt-primary); 
+            font-weight: bold; 
+            font-size: 14px;
+        }
+        .set-btn.active { background: var(--apt-primary); color: white; }
+
+        /* Questions Styling */
+        .question-card { 
+            margin-bottom: 20px; 
+            padding: 20px; 
+            border: 1px solid #e0e0e0; 
+            border-radius: 8px; 
+        }
+        .q-text { font-weight: 600; font-size: 17px; color: var(--apt-secondary); display: block; margin-bottom: 12px; }
+        .option { 
+            display: block; 
+            padding: 10px; 
+            border: 1px solid #ccc; 
+            margin: 5px 0; 
+            border-radius: 4px; 
+            cursor: pointer; 
+        }
+        .option:hover { background: #fff5eb; }
+        .opt-correct { background: #d4edda !important; border-color: #28a745 !important; }
+        .opt-wrong { background: #f8d7da !important; border-color: #dc3545 !important; }
+
+        .submit-btn { 
+            background: var(--apt-primary); 
+            color: white; 
+            border: none; 
+            padding: 15px; 
+            width: 100%; 
+            border-radius: 6px; 
+            font-size: 18px; 
+            cursor: pointer; 
+            font-weight: bold; 
+        }
+
+        /* Result Modal */
+        #result-modal { 
+            display: none; 
+            position: fixed; 
+            top:0; left:0; width:100%; height:100%; 
+            background: rgba(0,0,0,0.8); 
+            z-index: 1000; 
+            justify-content: center; 
+            align-items: center; 
+        }
+        .modal-content { background: white; padding: 40px; border-radius: 10px; text-align: center; }
+        .score { font-size: 48px; color: var(--apt-primary); font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div class="quiz-container">
+    <div class="header">
+        <div>
+            <h1>Aptitude Training Module</h1>
+            <p style="margin:0; color:#666;">Set based on PG-DHPCSA Syllabus</p>
+        </div>
+        <a href="index.html" class="back-btn">← Home</a>
+    </div>
+
+    <div class="set-nav">
+        <a href="?set=1" class="set-btn" id="btn-1">SET 1: Number System</a>
+        <a href="?set=2" class="set-btn" id="btn-2">SET 2: Arithmetic</a>
+        <a href="?set=3" class="set-btn" id="btn-3">SET 3: Speed & Work</a>
+        <a href="?set=4" class="set-btn" id="btn-4">SET 4: Reasoning</a>
+        <a href="?set=5" class="set-btn" id="btn-5">SET 5: DI & Logic</a>
+    </div>
+
+    <form id="quiz-form">
+        <div id="questions-area"></div>
+        <button type="button" class="submit-btn" onclick="checkScore()">SUBMIT ANSWERS</button>
+    </form>
+</div>
+
+<div id="result-modal">
+    <div class="modal-content">
+        <h2>Your Score</h2>
+        <div class="score" id="score-text">0%</div>
+        <p id="score-details"></p>
+        <button onclick="location.reload()" style="padding:10px 20px; cursor:pointer;">Retry</button>
+        <button onclick="document.getElementById('result-modal').style.display='none'" style="margin-left:10px; padding:10px 20px;">Review</button>
+    </div>
+</div>
+
+<script>
+// Mock data generation for 40 questions per set following your syllabus
+const generateQuestions = (topic, startIdx) => {
+    return Array(40).fill(null).map((_, i) => ({
+        q: `${topic} - Practice Question ${i + 1}: Solve the problem based on session ${startIdx} guidelines.`,
+        o: ["Option A", "Option B", "Option C", "Option D"],
+        a: Math.floor(Math.random() * 4) // Random correct answer for demo
+    }));
+};
+
+const quizData = {
+    "1": [
+        { q: "What is the unit digit in (3^65 x 6^59 x 7^71)?", o: ["1", "2", "4", "6"], a: 2 },
+        { q: "A number when divided by 899 gives a remainder 63. If divided by 29, the remainder is?", o: ["3", "4", "5", "2"], a: 2 },
+        { q: "Find HCF of 2/3, 8/9, 64/81, 10/27.", o: ["2/81", "2/3", "4/81", "10/81"], a: 0 },
+        { q: "Ratio of two numbers is 3:4 and LCM is 120. Sum of numbers is?", o: ["70", "35", "140", "105"], a: 0 },
+        { q: "The sum of first 45 natural numbers is?", o: ["1035", "1280", "2070", "2140"], a: 0 },
+        { q: "If A:B=2:3 and B:C=4:5, find A:B:C.", o: ["8:12:15", "4:6:10", "2:4:5", "8:10:15"], a: 0 },
+        { q: "Largest 4-digit number divisible by 88?", o: ["9944", "9768", "9988", "8888"], a: 0 },
+        { q: "Difference between a number and its 2/5 is 510. What is 10% of the number?", o: ["85", "51", "110", "105"], a: 0 },
+        { q: "If x:y=5:2, find (8x+9y):(8x+2y).", o: ["29:22", "58:44", "30:22", "15:11"], a: 0 },
+        { q: "Sum of three consecutive multiples of 3 is 72. Largest is?", o: ["21", "24", "27", "30"], a: 2 },
+        { q: "0.003 * 0.02 = ?", o: ["0.06", "0.006", "0.0006", "0.00006"], a: 3 },
+        { q: "Unit digit of 213^6?", o: ["3", "9", "7", "1"], a: 1 },
+        { q: "The mean proportional between 25 and 81 is?", o: ["40", "45", "50", "55"], a: 1 },
+        { q: "Smallest prime number?", o: ["0", "1", "2", "3"], a: 2 },
+        { q: "LCM of 12, 15, 18 is?", o: ["120", "180", "90", "360"], a: 1 },
+        { q: "Number divisible by 9?", o: ["123456", "678912", "4536", "4539"], a: 2 },
+        { q: "A:B=5:7, B:C=6:11. Find A:B:C.", o: ["30:42:77", "30:49:77", "35:42:77", "None"], a: 0 },
+        { q: "Two numbers in ratio 1:3 sum to 240. Difference?", o: ["120", "100", "80", "40"], a: 0 },
+        { q: "HCF of two prime numbers is?", o: ["0", "1", "Product", "None"], a: 1 },
+        { q: "Bag with 50p, 25p, 10p in ratio 5:9:4 sums to Rs.206. 50p coins?", o: ["200", "150", "100", "250"], a: 0 },
+        { q: "Fourth proportional to 5, 8, 15?", o: ["18", "24", "19", "20"], a: 1 },
+        { q: "Sum of even numbers between 1 and 31?", o: ["240", "256", "272", "None"], a: 0 },
+        { q: "0.75 as fraction?", o: ["1/4", "3/4", "1/2", "3/5"], a: 1 },
+        { q: "Value of 1+2+...+50?", o: ["1225", "1275", "1300", "2500"], a: 1 },
+        { q: "Unit digit of 123*456*789?", o: ["2", "4", "6", "8"], a: 3 },
+        { q: "Which is not prime?", o: ["31", "61", "71", "91"], a: 3 },
+        { q: "If A:B=2:3, B:C=4:5, C:D=6:7. Find A:D.", o: ["16:35", "2:7", "4:7", "8:15"], a: 0 },
+        { q: "4th proportional to 4, 9, 12?", o: ["27", "36", "18", "40"], a: 0 },
+        { q: "Ratio of 75 paise to Rs.3?", o: ["1:4", "4:1", "1:3", "3:1"], a: 0 },
+        { q: "Number whose 7% is 42?", o: ["300", "600", "400", "500"], a: 1 },
+        { q: "Reciprocal of 5?", o: ["0.5", "1/5", "5/1", "1"], a: 1 },
+        { q: "Sum of two numbers is 40, difference is 4. Ratio?", o: ["11:9", "10:7", "5:4", "22:18"], a: 0 },
+        { q: "Product of two numbers is 120, sum of squares is 289. Sum?", o: ["20", "23", "169", "None"], a: 1 },
+        { q: "Remainder of 17^200 / 18?", o: ["17", "16", "1", "2"], a: 2 },
+        { q: "Smallest composite number?", o: ["1", "2", "3", "4"], a: 3 },
+        { q: "Sum of digits of 2-digit number is 15, diff is 3. Number?", o: ["69", "78", "96", "None"], a: 3 },
+        { q: "Square root of 0.0009?", o: ["0.3", "0.03", "0.003", "3"], a: 1 },
+        { q: "A invests Rs.2000, B Rs.2500, C Rs.1000. Profit ratio?", o: ["4:5:2", "2:5:4", "5:4:2", "None"], a: 0 },
+        { q: "HCF of 42 and 70?", o: ["14", "7", "21", "2"], a: 0 },
+        { q: "Value of 1000 - 999 + 1?", o: ["0", "2", "1", "None"], a: 1 }
+    ],
+    "2": [
+        { q: "Profit % if CP=500, SP=600?", o: ["10%", "20%", "25%", "15%"], a: 1 },
+        { q: "SI on Rs.2000 at 5% for 3 years?", o: ["300", "400", "200", "None"], a: 0 },
+        { q: "If CP is 80% of SP, profit % is?", o: ["20%", "25%", "15%", "10%"], a: 1 },
+        { q: "CI on Rs.1000 at 10% for 2 years?", o: ["200", "210", "220", "None"], a: 1 },
+        { q: "Sum doubles in 5 years SI. Rate?", o: ["10%", "20%", "15%", "12%"], a: 1 },
+        { q: "A man sells two fans for Rs.1200 each, one at 10% profit, other 10% loss. Overall?", o: ["1% loss", "1% gain", "No loss/gain", "0.5% loss"], a: 0 },
+        { q: "Successive discounts of 10% and 20% equals?", o: ["30%", "28%", "25%", "22%"], a: 1 },
+        { q: "Ratio of CP to SP is 5:4. Loss %?", o: ["20%", "25%", "10%", "15%"], a: 0 },
+        { q: "SI on sum is 4/9 of principal. Rate=Time. Rate?", o: ["5%", "6%", "20/3 %", "None"], a: 2 },
+        { q: "Difference between CI and SI on 1000 at 10% for 2 years?", o: ["5", "10", "20", "15"], a: 1 },
+        { q: "By selling 33m cloth, gain is CP of 11m. Gain %?", o: ["33.33%", "25%", "20%", "50%"], a: 0 },
+        { q: "If a=b*1.2, then a is what % more than b?", o: ["12%", "20%", "80%", "120%"], a: 1 },
+        { q: "What is 15% of 34% of 1000?", o: ["51", "34", "15", "150"], a: 0 },
+        { q: "Partner A invests 3x, B invests 2x. Profit 5000. A's share?", o: ["2000", "3000", "2500", "1000"], a: 1 },
+        { q: "SP of 10 items = CP of 11. Profit %?", o: ["10%", "11%", "9.09%", "1%"], a: 0 },
+        { q: "Principal that yields SI of 1 in 1 day at 5% p.a.?", o: ["3650", "7300", "1000", "None"], a: 1 },
+        { q: "CI on 25000 at 12% for 3 years?", o: ["9000", "10123", "10000", "None"], a: 1 },
+        { q: "Item sold for 450 at 10% loss. CP?", o: ["500", "490", "480", "510"], a: 0 },
+        { q: "Tax on 5000 is 10%. Net amount?", o: ["5500", "4500", "5000", "None"], a: 1 },
+        { q: "Population increases 5% annually. If now 8000, after 2 years?", o: ["8820", "8400", "8800", "9000"], a: 0 },
+        { q: "Fruit seller buys lemons 2 for Re.1, sells 5 for Rs.3. Gain %?", o: ["10%", "15%", "20%", "25%"], a: 2 },
+        { q: "Find SI on 68000 at 16.66% for 9 months.", o: ["8500", "11333", "9000", "None"], a: 0 },
+        { q: "SP of article is 3/4 of CP. Loss %?", o: ["25%", "33%", "20%", "None"], a: 0 },
+        { q: "Effective discount of 10%, 10% and 10%?", o: ["30%", "27.1%", "29%", "None"], a: 1 },
+        { q: "If SI for 2 yrs is 40 and CI is 41. Rate?", o: ["5%", "10%", "2.5%", "1%"], a: 0 },
+        { q: "A sells to B at 20% gain, B to C at 10% loss. C pays 108. A's CP?", o: ["100", "90", "110", "120"], a: 0 },
+        { q: "Sum becomes 1331 from 1000 in 3 yrs. Rate CI?", o: ["10%", "11%", "12%", "None"], a: 0 },
+        { q: "At what rate will 1000 become 2000 in 10 years SI?", o: ["5%", "10%", "12.5%", "None"], a: 1 },
+        { q: "Discount 20% on 500. Selling price?", o: ["400", "420", "480", "450"], a: 0 },
+        { q: "10% of x = 20% of y. Ratio x:y?", o: ["2:1", "1:2", "1:1", "None"], a: 0 },
+        { q: "VAT 8% on 1000 item. Final price?", o: ["1080", "920", "1008", "None"], a: 0 },
+        { q: "Profit on 100 is 10. Profit on 1000?", o: ["10", "100", "110", "1"], a: 1 },
+        { q: "Sum becomes 3 times in 20 yrs SI. Rate?", o: ["10%", "20%", "5%", "15%"], a: 0 },
+        { q: "Buy 5 get 1 free. Discount %?", o: ["20%", "16.66%", "25%", "10%"], a: 1 },
+        { q: "SP is doubled, profit triples. Initial profit %?", o: ["50%", "100%", "150%", "None"], a: 1 },
+        { q: "Dealer marks 20% above CP, gives 10% discount. Profit %?", o: ["10%", "8%", "12%", "5%"], a: 1 },
+        { q: "CI on 5000 1st yr 10%, 2nd yr 20%. Total CI?", o: ["1500", "1600", "1100", "None"], a: 1 },
+        { q: "SI on 500 for 4 yrs at 6.25%?", o: ["125", "150", "100", "None"], a: 0 },
+        { q: "Pure milk cost Rs.20/L. Water added, sold at Rs.20/L to gain 25%. Water:Milk?", o: ["1:4", "1:5", "4:1", "None"], a: 0 },
+        { q: "10% loss on SP equals what % loss on CP?", o: ["10%", "9.09%", "11.11%", "None"], a: 1 }
+    ],
+    "3": [
+        { q: "A can do work in 10 days, B in 15. Together?", o: ["5", "6", "7", "8"], a: 1 },
+        { q: "Speed of 54 km/hr in m/s?", o: ["10", "15", "20", "25"], a: 1 },
+        { q: "Train 100m long passes bridge 200m in 30s. Speed m/s?", o: ["10", "15", "20", "30"], a: 0 },
+        { q: "A is twice as fast as B. Together they finish in 12 days. A alone?", o: ["18", "24", "15", "36"], a: 0 },
+        { q: "Relative speed of two trains (50 km/h and 40 km/h) in opposite direction?", o: ["10", "90", "45", "None"], a: 1 },
+        { q: "Boat speed 10 km/h in still water, stream 2 km/h. Downstream speed?", o: ["8", "12", "10", "20"], a: 1 },
+        { q: "A can do work in 12 days. B 60% more efficient. B alone?", o: ["7.5", "8", "10", "6"], a: 0 },
+        { q: "Distance=100km, Speed=25km/h. Time?", o: ["4h", "5h", "2h", "None"], a: 0 },
+        { q: "Pipes A and B fill in 20 and 30 mins. Both together?", o: ["10", "12", "15", "25"], a: 1 },
+        { q: "Man crosses 600m street in 5 mins. Speed km/h?", o: ["7.2", "3.6", "8.4", "10"], a: 0 },
+        { q: "Upstream 7 km/h, Downstream 11 km/h. Speed in still water?", o: ["9", "4", "2", "18"], a: 0 },
+        { q: "Train passes pole in 15s at 60km/h. Length?", o: ["150m", "250m", "500m", "None"], a: 1 },
+        { q: "A can do 1/4 work in 10 days. Full work?", o: ["40", "30", "20", "None"], a: 0 },
+        { q: "Average speed for 20km/h and 30km/h for equal distances?", o: ["24", "25", "26", "None"], a: 0 },
+        { q: "Pipe fills in 8h, leak empties in 16h. Net time?", o: ["12", "16", "24", "None"], a: 1 },
+        { q: "10 men finish in 20 days. 20 men finish in?", o: ["10", "40", "5", "15"], a: 0 },
+        { q: "Walking at 3/4 speed, man is 20 min late. Usual time?", o: ["60 min", "40 min", "80 min", "None"], a: 0 },
+        { q: "Two pipes A(10h) and B(12h) fill, C(20h) empties. Together?", o: ["7.5h", "15h", "5h", "None"], a: 0 },
+        { q: "Running 100m in 10s. Speed km/h?", o: ["36", "40", "25", "None"], a: 0 },
+        { q: "A, B, C can do work in 2, 3, 4 days. They get Rs.3900. B's share?", o: ["1200", "1800", "900", "None"], a: 0 },
+        { q: "Excluding stoppages speed is 54, including is 45. Min stop per hour?", o: ["9", "10", "12", "None"], a: 1 },
+        { q: "Efficiency of A is 3:1 to B. A finishes 60 days earlier. Together?", o: ["22.5", "30", "45", "None"], a: 0 },
+        { q: "Speed of stream 3 km/h, boat downstream 15 km/h. Upstream?", o: ["9", "12", "6", "None"], a: 0 },
+        { q: "Train 150m long, speed 90km/h. Time to cross pole?", o: ["6s", "8s", "10s", "None"], a: 0 },
+        { q: "A and B in 12 days, B and C in 15, C and A in 20. A, B, C together?", o: ["10", "8", "12", "None"], a: 0 },
+        { q: "Speed of 10 m/s in km/h?", o: ["36", "18", "40", "None"], a: 0 },
+        { q: "Leak can empty tank in 8h. Tap fills 6L/min. Full tank emptied in 12h. Capacity?", o: ["8640", "7200", "9000", "None"], a: 0 },
+        { q: "Man covers 1/3 at 20km/h, 1/3 at 30, 1/3 at 10. Avg speed?", o: ["16.36", "20", "15", "None"], a: 0 },
+        { q: "3 pumps work 8h/day empty tank in 2 days. 4 pumps for 1 day, hours?", o: ["12", "10", "8", "None"], a: 0 },
+        { q: "A can do in 20. After 5 days B joins, they finish in 3 more days. B alone?", o: ["5", "10", "12", "None"], a: 0 },
+        { q: "Train crosses station 162m in 18s and another 120m in 15s. Length?", o: ["90m", "100m", "80m", "None"], a: 0 },
+        { q: "Man can row 18 km/h in still water. Takes triple time upstream. Stream speed?", o: ["9", "6", "12", "None"], a: 0 },
+        { q: "Ratio of speeds 2:3:4. Ratio of time to cover same distance?", o: ["6:4:3", "4:3:2", "2:3:4", "None"], a: 0 },
+        { q: "A can do in 40, B in 60. They work together for 8 days, A leaves. B finishes?", o: ["40", "44", "20", "None"], a: 0 },
+        { q: "Sound travels 330m/s. Thunder heard 10s after flash. Distance?", o: ["3.3km", "33km", "330m", "None"], a: 0 },
+        { q: "12 monkeys eat 12 bananas in 12 min. 4 monkeys eat 4 bananas in?", o: ["4 min", "12 min", "1 min", "None"], a: 1 },
+        { q: "Two trains 140m and 160m long run at 60km/h and 40km/h in opposite. Time?", o: ["10.8s", "12s", "9s", "None"], a: 0 },
+        { q: "Man rows downstream 20km in 2h, upstream 4km in 2h. Boat speed?", o: ["6", "4", "8", "None"], a: 0 },
+        { q: "A work in 10, B in 12, C in 15. A leaves 5 days before completion. Net time?", o: ["5.2", "6", "4", "None"], a: 0 },
+        { q: "Speed 1km/h = ___ m/s?", o: ["5/18", "18/5", "10/3", "None"], a: 0 }
+    ],
+    "4": [
+        { q: "If A is B's sister, C is B's mother, D is C's father. How is A related to D?", o: ["Granddaughter", "Mother", "Daughter", "Niece"], a: 0 },
+        { q: "Odd one out: 3, 5, 7, 9, 11", o: ["3", "7", "9", "11"], a: 2 },
+        { q: "In code TEACHER is VGCEJGT. How is SCHOOL?", o: ["UFKQNM", "UEJQMN", "UFKPMP", "None"], a: 0 },
+        { q: "Man said 'This man's father is my father's son'. Who?", o: ["His son", "Himself", "Father", "Grandson"], a: 0 },
+        { q: "Find next: 1, 4, 9, 16, ?", o: ["20", "25", "30", "36"], a: 1 },
+        { q: "If South-East becomes North. West?", o: ["South-East", "North-East", "South-West", "North-West"], a: 0 },
+        { q: "Point to Lady, man said 'Her mother is the only daughter of my mother'. Who is man?", o: ["Father", "Brother", "Uncle", "None"], a: 1 },
+        { q: "CAT=24. DOG=?", o: ["26", "22", "24", "28"], a: 0 },
+        { q: "Odd one: Apple, Orange, Potato, Grape.", o: ["Potato", "Apple", "Orange", "Grape"], a: 0 },
+        { q: "Next in series: 2, 6, 12, 20, 30, ?", o: ["40", "42", "44", "46"], a: 1 },
+        { q: "If '+' means 'x', '-' means '+'. 10 + 5 - 3 = ?", o: ["53", "18", "50", "None"], a: 0 },
+        { q: "A is 10th from left, B 9th from right. If they swap, A is 15th. How many?", o: ["23", "32", "24", "31"], a: 0 },
+        { q: "Rohan walks 20m North, turns right 30m, turns right 35m. Distance from start?", o: ["15m", "25m", "30m", "None"], a: 1 },
+        { q: "Day before yesterday was Saturday. Day after tomorrow?", o: ["Tuesday", "Wednesday", "Thursday", "None"], a: 1 },
+        { q: "Light : Sun :: Heat : ?", o: ["Fire", "Moon", "Star", "Electricity"], a: 0 },
+        { q: "CUP : LIP :: BIRD : ?", o: ["BEAK", "WINGS", "FOREST", "SKY"], a: 0 },
+        { q: "Find next: 7, 10, 8, 11, 9, 12, ?", o: ["7", "10", "12", "13"], a: 1 },
+        { q: "A is B's brother. C is A's father. D is C's sister. E is D's mother. How is B related to E?", o: ["Granddaughter", "Daughter", "Grandson", "Can't tell"], a: 3 },
+        { q: "Odd: Square, Triangle, Rectangle, Circle.", o: ["Circle", "Square", "Triangle", "None"], a: 0 },
+        { q: "Next: J14, L16, N18, P20, ?", o: ["R22", "S24", "Q21", "None"], a: 0 },
+        { q: "Suresh is older than Ramesh, but younger than Geeta. Geeta is?", o: ["Oldest", "Youngest", "Middle", "None"], a: 0 },
+        { q: "If 'BOOK' is '26', 'PEN' is?", o: ["35", "28", "30", "None"], a: 0 },
+        { q: "A starts walking towards West. After 30m turns left 20m. Again left 30m. Which direction?", o: ["North", "South", "East", "West"], a: 2 },
+        { q: "Which word doesn't belong: Physics, Chemistry, Biology, History.", o: ["History", "Physics", "Chemistry", "None"], a: 0 },
+        { q: "Find missing: 8, 24, 12, 36, 18, 54, ?", o: ["27", "108", "72", "None"], a: 0 },
+        { q: "If A=1, B=2. Z=?", o: ["24", "25", "26", "1"], a: 2 },
+        { q: "Pointing to man, woman said 'His mother is the only daughter of my father'. Woman relation?", o: ["Mother", "Sister", "Niece", "None"], a: 0 },
+        { q: "Series: 1, 1, 2, 6, 24, ?", o: ["120", "100", "96", "None"], a: 0 },
+        { q: "Clock shows 4:30. Minute hand points East. Hour hand?", o: ["South-East", "North-East", "South", "None"], a: 1 },
+        { q: "Odd: 10, 25, 45, 54, 60.", o: ["54", "10", "25", "45"], a: 0 },
+        { q: "Doctor : Patient :: Lawyer : ?", o: ["Client", "Court", "Judge", "Case"], a: 0 },
+        { q: "Missing: 4, 7, 12, 19, 28, ?", o: ["30", "36", "39", "None"], a: 2 },
+        { q: "Rahul ranked 9th from top and 38th from bottom. Total?", o: ["45", "46", "47", "None"], a: 1 },
+        { q: "If 'WATER' is 'BLUE', 'SKY' is 'GREEN', 'GRASS' is 'RED'. Color of sky?", o: ["GREEN", "BLUE", "RED", "None"], a: 0 },
+        { q: "A is father of B, but B is not son of A. What is B?", o: ["Daughter", "Son", "Brother", "None"], a: 0 },
+        { q: "Next: 3, 4, 7, 11, 18, ?", o: ["29", "25", "22", "None"], a: 0 },
+        { q: "Odd: Mumbai, Chennai, Kolkata, Delhi.", o: ["Delhi", "Mumbai", "Kolkata", "None"], a: 0 },
+        { q: "A, B, C, D are playing cards. A and C are partners. If D is North, A is West. B is?", o: ["South", "East", "North", "None"], a: 1 },
+        { q: "In a class of 60, girls are twice boys. Kamal ranked 17th from top. 9 girls ahead. Boys after him?", o: ["12", "13", "10", "None"], a: 0 },
+        { q: "If 1st Jan 2007 was Monday. 1st Jan 2008?", o: ["Tuesday", "Wednesday", "Monday", "None"], a: 0 }
+    ],
+    "5": [
+        { q: "All Men are mortal. Socrates is a man. Conclusion:", o: ["Socrates is mortal", "All mortal are men", "None", "Both"], a: 0 },
+        { q: "Average of 10, 20, 30, 40, 50?", o: ["25", "30", "35", "40"], a: 1 },
+        { q: "Syllogism: All A are B. All B are C. Then:", o: ["All A are C", "Some B are A", "Both", "None"], a: 2 },
+        { q: "DI: Sales increase from 100 to 120. % increase?", o: ["10%", "20%", "25%", "None"], a: 1 },
+        { q: "Statements: No dog is cat. All cats are rats. Conclusion:", o: ["Some rats are cats", "No dog is rat", "Both", "None"], a: 0 },
+        { q: "Probability of getting Head in a coin toss?", o: ["1", "0.5", "0.25", "0"], a: 1 },
+        { q: "Dice rolled once. Prob of getting 6?", o: ["1/6", "1/2", "1/4", "None"], a: 0 },
+        { q: "Average of first 5 prime numbers?", o: ["5.6", "5", "5.2", "None"], a: 0 },
+        { q: "Syllogism: Some books are pens. No pen is pencil. Then:", o: ["Some books are not pencils", "No book is pencil", "Both", "None"], a: 0 },
+        { q: "Average age of 3 boys is 15. Ratio 3:5:7. Youngest?", o: ["9", "15", "21", "None"], a: 0 },
+        { q: "Prob of drawing a King from deck of 52?", o: ["1/13", "1/52", "4/13", "None"], a: 0 },
+        { q: "Venn: Cats, Dogs, Mammals.", o: ["Two circles in one", "Interlocking", "Separate", "None"], a: 0 },
+        { q: "Mean of 5 numbers is 18. If one removed, mean is 16. Removed?", o: ["26", "24", "20", "None"], a: 0 },
+        { q: "Statements: All keys are locks. Some locks are doors. Conclusion:", o: ["Some doors are locks", "Some keys are doors", "Both", "None"], a: 0 },
+        { q: "Median of 1, 3, 5, 7, 9?", o: ["5", "3", "7", "None"], a: 0 },
+        { q: "Prob of getting prime number on dice roll?", o: ["1/2", "1/3", "1/6", "None"], a: 0 },
+        { q: "Syllogism: Some fruits are sweet. Some sweet are red. Conclusion:", o: ["Some fruits are red", "All red are sweet", "Neither", "Both"], a: 2 },
+        { q: "Average weight of 8 men increases by 2.5kg when one of 65kg is replaced. New man?", o: ["85kg", "75kg", "80kg", "None"], a: 0 },
+        { q: "DI: 20% of 500 is same as x% of 1000. x?", o: ["10", "20", "5", "None"], a: 0 },
+        { q: "Median of 2, 4, 6, 8, 10, 12?", o: ["7", "6", "8", "None"], a: 0 },
+        { q: "Mode of 1, 2, 2, 3, 4?", o: ["2", "1", "3", "None"], a: 0 },
+        { q: "Prob of drawing red card from 52?", o: ["1/2", "1/4", "1/13", "None"], a: 0 },
+        { q: "Total outcomes in 2 coin tosses?", o: ["4", "2", "8", "None"], a: 0 },
+        { q: "Average of first 10 odd numbers?", o: ["10", "11", "9", "None"], a: 0 },
+        { q: "Average of first 5 multiples of 3?", o: ["9", "12", "15", "None"], a: 0 },
+        { q: "Venn: Father, Mother, Parents.", o: ["Two circles in one", "Interlocking", "Separate", "None"], a: 0 },
+        { q: "Mean proportional of 4 and 16?", o: ["8", "10", "12", "None"], a: 0 },
+        { q: "Prob of sum 7 on 2 dice?", o: ["1/6", "1/12", "1/36", "None"], a: 0 },
+        { q: "Median of 10, 12, 14, 16, 18, 20?", o: ["15", "14", "16", "None"], a: 0 },
+        { q: "Range of 10, 20, 30, 40, 50?", o: ["40", "50", "30", "None"], a: 0 },
+        { q: "Syllogism: All birds fly. Ostrich is a bird. Conclusion?", o: ["Ostrich flies", "Ostrich doesn't fly", "Logical conflict", "None"], a: 0 },
+        { q: "Average speed for 10km at 5km/h and 10km at 10km/h?", o: ["6.66", "7.5", "8", "None"], a: 0 },
+        { q: "Prob of getting non-face card from 52?", o: ["10/13", "3/13", "1/2", "None"], a: 0 },
+        { q: "Data Sufficiency: Is x even? (1) x+2 is even (2) x/2 is integer.", o: ["Both sufficient", "Only 1", "Only 2", "Neither"], a: 0 },
+        { q: "Venn: Tea, Coffee, Beverage.", o: ["Two circles in one", "Separate", "Interlocked", "None"], a: 0 },
+        { q: "Mean of x, x+3, x+6 is 15. x?", o: ["12", "9", "15", "None"], a: 0 },
+        { q: "Average of 1.1, 2.2, 3.3?", o: ["2.2", "2.1", "2.3", "None"], a: 0 },
+        { q: "Prob of picking 'A' from 'APPLE'?", o: ["1/5", "2/5", "1/2", "None"], a: 0 },
+        { q: "Average of first 30 natural numbers?", o: ["15.5", "15", "16", "None"], a: 0 },
+        { q: "Which is certain probability?", o: ["1", "0", "0.5", "None"], a: 0 }
+    ]
+};
+
+const urlParams = new URLSearchParams(window.location.search);
+const currentSet = urlParams.get('set') || "1";
+document.getElementById(`btn-${currentSet}`).classList.add('active');
+
+const area = document.getElementById('questions-area');
+const currentQuestions = quizData[currentSet];
+
+currentQuestions.forEach((item, index) => {
+    const div = document.createElement('div');
+    div.className = 'question-card';
+    div.innerHTML = `
+        <span class="q-text">${index + 1}. ${item.q}</span>
+        ${item.o.map((opt, i) => `
+            <label class="option" id="q${index}o${i}">
+                <input type="radio" name="q${index}" value="${i}"> ${opt}
+            </label>
+        `).join('')}
+    `;
+    area.appendChild(div);
+});
+
+function checkScore() {
+    let score = 0;
+    currentQuestions.forEach((item, index) => {
+        const selected = document.querySelector(`input[name="q${index}"]:checked`);
+        const correctLabel = document.getElementById(`q${index}o${item.a}`);
+        
+        correctLabel.classList.add('opt-correct');
+        
+        if (selected) {
+            if (parseInt(selected.value) === item.a) {
+                score++;
+            } else {
+                document.getElementById(`q${index}o${selected.value}`).classList.add('opt-wrong');
+            }
+        }
+    });
+
+    const percent = Math.round((score / 40) * 100);
+    document.getElementById('score-text').innerText = percent + "%";
+    document.getElementById('score-details').innerText = `Correct: ${score} | Total: 40`;
+    document.getElementById('result-modal').style.display = 'flex';
+}
+</script>
+
+</body>
+</html>

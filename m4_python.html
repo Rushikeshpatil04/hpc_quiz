@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>M5: Python Programming - 200 Q Bank</title>
+    <style>
+        :root { --py-yellow: #f1c40f; --py-blue: #2980b9; --py-dark: #2c3e50; --bg: #fdfdfd; --success: #27ae60; --wrong: #e74c3c; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); margin: 0; padding: 20px; }
+        .quiz-container { max-width: 1100px; margin: auto; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        .header { border-bottom: 5px solid var(--py-blue); padding-bottom: 15px; margin-bottom: 25px; display: flex; justify-content: space-between; align-items: center; }
+        
+        .set-nav { margin-bottom: 25px; display: flex; gap: 10px; flex-wrap: wrap; }
+        .set-btn { padding: 12px 20px; background: #dfe6e9; border: none; border-radius: 6px; cursor: pointer; text-decoration: none; color: #2d3436; font-weight: bold; transition: 0.3s; }
+        .set-btn.active { background: var(--py-blue); color: white; }
+        .set-btn:hover:not(.active) { background: #b2bec3; }
+
+        .question { margin-bottom: 25px; padding: 20px; border: 1px solid #dcdde1; border-radius: 10px; background: #fff; }
+        .q-text { font-weight: bold; font-size: 1.15rem; display: block; margin-bottom: 15px; color: var(--py-dark); }
+        
+        .option { display: block; padding: 14px; background: #f8f9fa; border: 2px solid #f1f2f6; margin: 8px 0; border-radius: 8px; cursor: pointer; transition: 0.2s; }
+        .option:hover { background: #edf2f7; border-color: #d1d8e0; }
+        
+        input[type="radio"] { margin-right: 10px; transform: scale(1.2); }
+
+        .opt-correct { background: #d4edda !important; border-color: #28a745 !important; color: #155724; font-weight: bold; }
+        .opt-wrong { background: #f8d7da !important; border-color: #dc3545 !important; color: #721c24; }
+        
+        .submit-btn { background: var(--py-dark); color: white; border: none; padding: 20px; width: 100%; border-radius: 10px; font-size: 1.25rem; cursor: pointer; font-weight: bold; text-transform: uppercase; }
+        
+        #result-modal { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:999; justify-content:center; align-items:center; }
+        .modal-box { background:white; padding:40px; border-radius:20px; text-align:center; max-width:500px; width: 90%; }
+        .score-val { font-size: 4.5rem; color: var(--py-blue); font-weight: 900; margin: 10px 0; }
+    </style>
+</head>
+<body>
+
+<div class="quiz-container">
+    <div class="header">
+        <div>
+            <h1 style="margin:0;">M5: Python Programming</h1>
+            <p style="margin:5px 0 0; color: #7f8c8d;">Aug 2025 Syllabus • 40 Questions Per Set</p>
+        </div>
+        <a href="index.html" style="text-decoration:none; color:var(--py-dark); font-weight:bold; border:2px solid var(--py-dark); padding:8px 15px; border-radius:5px;">← Home</a>
+    </div>
+
+    <div class="set-nav">
+        <a href="?set=1" class="set-btn" id="btn-1">Set 1: Syntax & Control</a>
+        <a href="?set=2" class="set-btn" id="btn-2">Set 2: Strings & Dictionaries</a>
+        <a href="?set=3" class="set-btn" id="btn-3">Set 3: Lists & Functions</a>
+        <a href="?set=4" class="set-btn" id="btn-4">Set 4: Files & OOPs</a>
+        <a href="?set=5" class="set-btn" id="btn-5">Set 5: Exceptions & Libs</a>
+    </div>
+
+    <form id="quiz-form">
+        <div id="questions-area"></div>
+        <button type="button" class="submit-btn" id="main-submit" onclick="validateAndScore()">Submit Set Results</button>
+    </form>
+</div>
+
+<div id="result-modal">
+    <div class="modal-box">
+        <h2 id="result-title">Set Complete!</h2>
+        <div class="score-val" id="score-display">0%</div>
+        <p id="stats-summary" style="font-size: 1.3rem; margin-bottom:25px;"></p>
+        <button onclick="location.reload()" style="padding:12px 25px; background:var(--py-blue); color:white; border:none; border-radius:8px; cursor:pointer; font-weight:bold;">Retake Test</button>
+        <button onclick="closeModal()" style="padding:12px 25px; margin-left:10px; cursor:pointer; background: #eee; border: none; border-radius: 8px;">Review Answers</button>
+    </div>
+</div>
+
+<script>
+const quizData = {
+    "1": [
+        { q: "Who developed the Python programming language?", o: ["Dennis Ritchie", "Guido van Rossum", "Bjarne Stroustrup", "James Gosling"], a: 1 },
+        { q: "Python is which type of language?", o: ["Compiled", "Interpreted", "Machine Level", "Assembly"], a: 1 },
+        { q: "Which of the following is a valid variable name?", o: ["1_var", "_var", "var-name", "var name"], a: 1 },
+        { q: "What is the correct way to declare a variable in Python?", o: ["int x = 5", "x = 5", "declare x = 5", "var x = 5"], a: 1 },
+        { q: "Which function is used to take input from the user?", o: ["read()", "scanf()", "input()", "get()"], a: 2 },
+        { q: "What is the result of 3 ** 2?", o: ["6", "9", "5", "8"], a: 1 },
+        { q: "Which operator is used for floor division?", o: ["/", "//", "%", "\\"], a: 1 },
+        { q: "Which data type is used to store a single character in Python?", o: ["char", "character", "string", "None"], a: 2 },
+        { q: "What is the output of print(type(10.5))?", o: ["int", "float", "double", "number"], a: 1 },
+        { q: "What is the keyword used for 'modules' in Python branching?", o: ["import", "module", "from", "None"], a: 0 },
+        { q: "How is a block of code defined in Python?", o: ["Parentheses", "Curly braces", "Indentation", "Semicolons"], a: 2 },
+        { q: "Which statement is used for a multi-way branch?", o: ["if", "else", "elif", "switch"], a: 2 },
+        { q: "Which loop is used to iterate over a sequence?", o: ["for", "while", "do-while", "repeat"], a: 0 },
+        { q: "What is the use of the 'break' keyword?", o: ["Skip the current iteration", "Exit the loop entirely", "Pause the program", "Stop the script"], a: 1 },
+        { q: "What is the use of the 'continue' keyword?", o: ["Exit the loop", "Skip the rest of the current iteration", "Restart the loop", "None"], a: 1 },
+        { q: "What will range(5) produce in a loop?", o: ["1,2,3,4,5", "0,1,2,3,4", "0,1,2,3,4,5", "1,2,3,4"], a: 1 },
+        { q: "Is Python case-sensitive?", o: ["Yes", "No", "Depends on OS", "Only for strings"], a: 0 },
+        { q: "What is the output of 10 % 3?", o: ["3.33", "1", "3", "0"], a: 1 },
+        { q: "Which of these is NOT a comparison operator?", o: ["==", "!=", ">=", "="], a: 3 },
+        { q: "What is the correct syntax for a while loop?", o: ["while x < 5 {", "while (x < 5):", "while x < 5:", "while x < 5 do:"], a: 2 },
+        { q: "Which keyword is used for 'nothing' or an empty block?", o: ["null", "void", "pass", "empty"], a: 2 },
+        { q: "In Python, true and false are written as:", o: ["true, false", "True, False", "1, 0", "T, F"], a: 1 },
+        { q: "What is the output of 'Hello' + 'World'?", o: ["Hello World", "HelloWorld", "Hello+World", "Error"], a: 1 },
+        { q: "Which operator has higher precedence?", o: ["+", "*", "-", "/"], a: 1 },
+        { q: "How do you start a comment in Python?", o: ["//", "/*", "#", "--"], a: 2 },
+        { q: "Which of the following is an assignment operator?", o: ["==", "=", "===", "is"], a: 1 },
+        { q: "What does the 'and' operator return if both operands are true?", o: ["False", "True", "None", "1"], a: 1 },
+        { q: "What will bool(0) return?", o: ["True", "False", "None", "Error"], a: 1 },
+        { q: "What is the purpose of 'Nested if-else'?", o: ["To loop code", "To check multiple conditions hierarchically", "To speed up code", "None"], a: 1 },
+        { q: "Which function converts a string to an integer?", o: ["str()", "int()", "float()", "convert()"], a: 1 },
+        { q: "What is the output of 2 + 3 * 4?", o: ["20", "14", "24", "12"], a: 1 },
+        { q: "What does input() always return?", o: ["Integer", "Float", "String", "Boolean"], a: 2 },
+        { q: "Which of these is a membership operator?", o: ["in", "is", "at", "has"], a: 0 },
+        { q: "What is the result of '2' * 3?", o: ["6", "'222'", "Error", "'2,2,2'"], a: 1 },
+        { q: "Which statement is used to define a constant in Python?", o: ["const X = 10", "X = 10 (by convention)", "final X = 10", "static X = 10"], a: 1 },
+        { q: "What is the default value of a variable in Python?", o: ["0", "None", "Empty string", "Variables must be initialized"], a: 3 },
+        { q: "Which operator checks if two variables point to the same object?", o: ["==", "is", "in", "equals"], a: 1 },
+        { q: "What is the output of 'not True'?", o: ["False", "None", "Error", "0"], a: 0 },
+        { q: "Can we use 'else' with a 'for' loop?", o: ["No", "Yes, it runs if loop completes without break", "Yes, but only in Python 2", "None"], a: 1 },
+        { q: "Which function returns the length of a string?", o: ["length()", "len()", "size()", "count()"], a: 1 }
+    ],
+    "2": [
+        { q: "Are strings in Python mutable?", o: ["Yes", "No", "Only if declared as list", "None"], a: 1 },
+        { q: "How do you access the first character of a string 's'?", o: ["s(0)", "s[1]", "s[0]", "s.first()"], a: 2 },
+        { q: "What is string slicing syntax?", o: ["s[start:stop]", "s[start-stop]", "s(start,stop)", "s{start:stop}"], a: 0 },
+        { q: "What does s[-1] return?", o: ["First character", "Last character", "Error", "None"], a: 1 },
+        { q: "Which method converts a string to uppercase?", o: ["upper()", "toUpper()", "UPPER()", "capitalize()"], a: 0 },
+        { q: "How do you concatenate two strings?", o: ["s1 . s2", "s1 + s2", "s1 & s2", "s1 and s2"], a: 1 },
+        { q: "Which method removes whitespace from the beginning and end of a string?", o: ["trim()", "strip()", "clean()", "remove()"], a: 1 },
+        { q: "What is the output of 'python'[1:4]?", o: ["'pyt'", "'yth'", "'ytho'", "'pyth'"], a: 1 },
+        { q: "Tuples are defined using which brackets?", o: ["[]", "{}", "()", "<>"], a: 2 },
+        { q: "Are tuples mutable?", o: ["Yes", "No", "Depends", "None"], a: 1 },
+        { q: "How do you create a tuple with one item?", o: ["(1)", "(1,)", "[1]", "{1}"], a: 1 },
+        { q: "Which method is used to find the index of an element in a tuple?", o: ["find()", "index()", "search()", "locate()"], a: 1 },
+        { q: "Can a tuple contain different data types?", o: ["No", "Yes", "Only strings and ints", "None"], a: 1 },
+        { q: "What is 'unpacking' a tuple?", o: ["Deleting the tuple", "Assigning tuple values to multiple variables", "Converting it to a list", "None"], a: 1 },
+        { q: "Dictionaries store data in which format?", o: ["Ordered List", "Key-Value Pairs", "Indexed Array", "None"], a: 1 },
+        { q: "Which brackets are used to define a dictionary?", o: ["[]", "{}", "()", "//"], a: 1 },
+        { q: "How do you access the value associated with key 'k' in dictionary 'd'?", o: ["d(k)", "d[k]", "d.k", "d{k}"], a: 1 },
+        { q: "Which method returns all keys of a dictionary?", o: ["all_keys()", "keys()", "get_keys()", "list_keys()"], a: 1 },
+        { q: "Can dictionary keys be mutable (like lists)?", o: ["Yes", "No", "Only if converted", "None"], a: 1 },
+        { q: "How do you delete an item from a dictionary?", o: ["remove()", "del", "discard()", "erase"], a: 1 },
+        { q: "Which method returns all values of a dictionary?", o: ["get_values()", "values()", "items()", "list()"], a: 1 },
+        { q: "What does the items() method return?", o: ["Keys only", "Values only", "List of key-value tuples", "None"], a: 2 },
+        { q: "How do you check if a key exists in a dictionary?", o: ["exists()", "has_key()", "in operator", "find()"], a: 2 },
+        { q: "What is the result of dict.get('key', 0) if 'key' is missing?", o: ["Error", "None", "0", "False"], a: 2 },
+        { q: "Which method removes all items from a dictionary?", o: ["delete()", "clear()", "reset()", "remove_all()"], a: 1 },
+        { q: "Can a dictionary have duplicate keys?", o: ["Yes", "No (overwrites existing)", "Yes if values are different", "None"], a: 1 },
+        { q: "What is the output of len({'a':1, 'b':2})?", o: ["1", "2", "4", "Error"], a: 1 },
+        { q: "Which string method replaces a substring?", o: ["sub()", "replace()", "change()", "swap()"], a: 1 },
+        { q: "What does 'string formatting' (f-strings) do?", o: ["Colors the text", "Embeds expressions inside string literals", "Boldens text", "None"], a: 1 },
+        { q: "What is the output of 'a' in 'apple'?", o: ["True", "False", "1", "Error"], a: 0 },
+        { q: "Which function converts a list to a tuple?", o: ["tuple()", "to_tuple()", "convert()", "cast()"], a: 0 },
+        { q: "Which method adds all items from one dictionary to another?", o: ["add()", "update()", "append()", "extend()"], a: 1 },
+        { q: "What happens if you try to change a tuple element?", o: ["It changes", "TypeError", "It creates a new tuple", "None"], a: 1 },
+        { q: "Which method checks if a string starts with a specific prefix?", o: ["starts()", "startswith()", "prefix()", "isstart()"], a: 1 },
+        { q: "What is the output of '123'.isdigit()?", o: ["True", "False", "None", "Error"], a: 0 },
+        { q: "How do you join a list of strings into one string?", o: ["join()", "concat()", "merge()", "link()"], a: 0 },
+        { q: "Which method finds the last occurrence of a value in a string?", o: ["find()", "rfind()", "last()", "search()"], a: 1 },
+        { q: "What is the character limit for a Python string?", o: ["256", "1024", "Limited by memory", "None"], a: 2 },
+        { q: "Which escape character is used for a new line?", o: ["\\t", "\\n", "\\r", "\\b"], a: 1 },
+        { q: "How do you copy a dictionary?", o: ["d1 = d2", "d1 = d2.copy()", "d1 = dict(d2)", "Both B and C"], a: 3 }
+    ],
+    "3": [
+        { q: "Lists are defined using which brackets?", o: ["[]", "{}", "()", "<>"], a: 0 },
+        { q: "Are lists mutable?", o: ["Yes", "No", "Only for strings", "None"], a: 0 },
+        { q: "Which method adds an element to the end of a list?", o: ["add()", "push()", "append()", "insert()"], a: 2 },
+        { q: "Which method removes the last element from a list?", o: ["delete()", "pop()", "remove()", "discard()"], a: 1 },
+        { q: "What is the difference between append() and extend()?", o: ["No difference", "append adds one item, extend adds items from an iterable", "extend is faster", "None"], a: 1 },
+        { q: "Which method sorts a list in place?", o: ["sort()", "sorted()", "order()", "arrange()"], a: 0 },
+        { q: "What does the reverse() method do?", o: ["Sorts descending", "Reverses the list in place", "Returns a reversed copy", "None"], a: 1 },
+        { q: "Which keyword is used to define a function?", o: ["func", "def", "function", "define"], a: 1 },
+        { q: "What is a 'parameter' in a function?", o: ["The returned value", "Variables listed in the function definition", "The function name", "None"], a: 1 },
+        { q: "What is an 'argument' in a function?", o: ["The variable name", "The value sent to the function when calling it", "A syntax error", "None"], a: 1 },
+        { q: "Which keyword is used to return a value from a function?", o: ["send", "back", "return", "output"], a: 2 },
+        { q: "What is an 'Anonymous function' in Python called?", o: ["def", "lambda", "ghost", "inline"], a: 1 },
+        { q: "What is the scope of a variable defined inside a function?", o: ["Global", "Local", "Enclosing", "None"], a: 1 },
+        { q: "Which keyword is used to modify a global variable inside a function?", o: ["ext", "global", "outside", "static"], a: 1 },
+        { q: "What are 'Optional arguments'?", o: ["Arguments that are never used", "Arguments with default values", "Required arguments", "None"], a: 1 },
+        { q: "Which function returns a list of all names in the current scope?", o: ["names()", "dir()", "scope()", "list()"], a: 1 },
+        { q: "What is recursion?", o: ["A loop", "A function calling itself", "A type of list", "None"], a: 1 },
+        { q: "Which built-in function returns the type of an object?", o: ["kind()", "type()", "class()", "get()"], a: 1 },
+        { q: "What does the map() function do?", o: ["Creates a map of the city", "Applies a function to all items in an input list", "Locates a variable", "None"], a: 1 },
+        { q: "Which operator is used to concatenate two lists?", o: ["+", "&", ".", "append"], a: 0 },
+        { q: "How do you insert an item at a specific index in a list?", o: ["add(index, val)", "insert(index, val)", "push(index, val)", "None"], a: 1 },
+        { q: "What does 'list slicing' [::2] do?", o: ["Returns every second element", "Returns first two elements", "Errors", "None"], a: 0 },
+        { q: "Which method removes the first occurrence of a specific value from a list?", o: ["pop()", "remove()", "del", "discard()"], a: 1 },
+        { q: "What is the output of [1, 2] * 2?", o: ["[2, 4]", "[1, 2, 1, 2]", "[1, 2, 2, 4]", "Error"], a: 1 },
+        { q: "Which keyword is used to create a generator function?", o: ["return", "yield", "gen", "produce"], a: 1 },
+        { q: "Can a function return multiple values?", o: ["No", "Yes (as a tuple)", "Only in Python 2", "None"], a: 1 },
+        { q: "What are *args used for?", o: ["Pointer arithmetic", "Passing a variable number of non-keyword arguments", "Multiplying arguments", "None"], a: 1 },
+        { q: "What are **kwargs used for?", o: ["Passing a variable number of keyword arguments", "Squaring arguments", "Double pointers", "None"], a: 0 },
+        { q: "Which function converts an object to a string?", o: ["str()", "text()", "to_str()", "convert()"], a: 0 },
+        { q: "What does list comprehension do?", o: ["Deletes a list", "Short syntax for creating a new list based on an existing one", "Checks list size", "None"], a: 1 },
+        { q: "What is the result of len([])?", o: ["0", "None", "1", "Error"], a: 0 },
+        { q: "Which function returns the smallest number in a list?", o: ["small()", "min()", "least()", "get_min()"], a: 1 },
+        { q: "How do you check if 'apple' is in a list?", o: ["list.has('apple')", "'apple' in list", "list.contains('apple')", "None"], a: 1 },
+        { q: "What is the default return value of a function if no return is specified?", o: ["0", "False", "None", "Error"], a: 2 },
+        { q: "Which function creates a list of numbers?", o: ["num_list()", "range()", "sequence()", "None"], a: 1 },
+        { q: "What is the index of the last element in a list of length N?", o: ["N", "N-1", "0", "-1 (both B and D)"], a: 3 },
+        { q: "Which method clears all elements from a list?", o: ["empty()", "clear()", "reset()", "delete_all()"], a: 1 },
+        { q: "What does sorted([3, 1, 2]) return?", o: ["[3, 2, 1]", "[1, 2, 3]", "None", "Error"], a: 1 },
+        { q: "Which built-in function returns the absolute value?", o: ["abs()", "val()", "pos()", "None"], a: 0 },
+        { q: "Can a list contain another list?", o: ["No", "Yes (Nested lists)", "Only if small", "None"], a: 1 }
+    ],
+    "4": [
+        { q: "Which function is used to open a file?", o: ["read()", "open()", "load()", "file()"], a: 1 },
+        { q: "What is the default mode for opening a file?", o: ["'w'", "'a'", "'r'", "'x'"], a: 2 },
+        { q: "Which mode opens a file for writing (overwriting)?", o: ["'r'", "'a'", "'w'", "'r+'"], a: 2 },
+        { q: "Which mode opens a file for appending?", o: ["'r'", "'a'", "'w'", "'x'"], a: 1 },
+        { q: "What is the 'with' statement used for in file handling?", o: ["To speed up writing", "Automatic closing of files", "Encrypting files", "None"], a: 1 },
+        { q: "Which method reads the entire content of a file?", o: ["readline()", "readlines()", "read()", "get()"], a: 2 },
+        { q: "Which method reads a file line by line?", o: ["read()", "readline()", "get_line()", "None"], a: 1 },
+        { q: "What is an 'Object'?", o: ["A function", "An instance of a class", "A variable type", "None"], a: 1 },
+        { q: "Which keyword is used to create a class?", o: ["object", "define", "class", "struct"], a: 2 },
+        { q: "What is the constructor method in a Python class?", o: ["init()", "__init__()", "new()", "constructor()"], a: 1 },
+        { q: "What does 'self' represent in a class method?", o: ["The class itself", "The current instance of the object", "A global variable", "None"], a: 1 },
+        { q: "What is 'Inheritance'?", o: ["Deleting a class", "A class deriving properties from another class", "Copying an object", "None"], a: 1 },
+        { q: "Which concept hides internal details and shows only functionality?", o: ["Inheritance", "Encapsulation / Data Hiding", "Polymorphism", "None"], a: 1 },
+        { q: "What is 'Overriding'?", o: ["A child class providing a specific implementation of a parent method", "Changing a variable value", "Closing a file", "None"], a: 0 },
+        { q: "What is 'Overloading' (in a general OOP sense)?", o: ["Methods with same name but different parameters", "Too many objects", "Crashing the system", "None"], a: 0 },
+        { q: "Does Python support traditional method overloading?", o: ["Yes", "No (last defined method wins)", "Only for constructors", "None"], a: 1 },
+        { q: "Which method is called when an object is printed?", o: ["__init__()", "__str__()", "__print__()", "__del__()"], a: 1 },
+        { q: "What is an 'attribute'?", o: ["A function", "A variable belonging to an object/class", "A syntax rule", "None"], a: 1 },
+        { q: "Which method closes a file?", o: ["end()", "close()", "stop()", "quit()"], a: 1 },
+        { q: "What is a 'Native Data Type'?", o: ["Built-in types like int, str, list", "User-defined classes", "Imported modules", "None"], a: 0 },
+        { q: "Which module is used for regular expressions?", o: ["regex", "re", "exp", "search"], a: 1 },
+        { q: "What does re.search() do?", o: ["Replaces text", "Scans through a string for a location where the pattern matches", "Splits a string", "None"], a: 1 },
+        { q: "Which regex symbol matches any single character except newline?", o: ["*", "+", ".", "?"], a: 2 },
+        { q: "Which regex symbol matches whitespace?", o: ["\\w", "\\s", "\\d", "\\b"], a: 1 },
+        { q: "Which regex symbol matches a word character?", o: ["\\w", "\\s", "\\d", "\\b"], a: 0 },
+        { q: "What does the 'a+' mode do?", o: ["Append only", "Append and Read", "Write only", "Error"], a: 1 },
+        { q: "What is 'Object-Oriented Linux Environment' (per syllabus)?", o: ["A new OS", "Interacting with system via Python objects", "GUI design", "None"], a: 1 },
+        { q: "How do you define a private attribute in Python?", o: ["private x", "self.x", "self.__x", "static x"], a: 2 },
+        { q: "What is polymorphism?", o: ["One interface, multiple implementations", "One class, one object", "Deleting objects", "None"], a: 0 },
+        { q: "Which method checks if an object is an instance of a class?", o: ["isinstance()", "check()", "type()", "instanceof()"], a: 0 },
+        { q: "Which function is used to write a string to a file?", o: ["print()", "write()", "put()", "send()"], a: 1 },
+        { q: "What is the purpose of __del__()?", o: ["Delete a file", "Destructor method called when object is destroyed", "Empty a list", "None"], a: 1 },
+        { q: "How do you inherit ClassB from ClassA?", o: ["class ClassB(ClassA):", "class ClassB inherits ClassA:", "class ClassB from ClassA:", "None"], a: 0 },
+        { q: "What is a 'class variable'?", o: ["Variable shared by all instances of a class", "Local variable", "Global variable", "None"], a: 0 },
+        { q: "What is an 'instance variable'?", o: ["Variable shared by all", "Variable unique to each object", "A constant", "None"], a: 1 },
+        { q: "Which regex symbol matches 0 or more occurrences?", o: ["+", "*", "?", "{}"], a: 1 },
+        { q: "Which regex symbol matches 1 or more occurrences?", o: ["+", "*", "?", "{}"], a: 0 },
+        { q: "What does re.match() do?", o: ["Search anywhere", "Check for a match only at the beginning of the string", "Replace text", "None"], a: 1 },
+        { q: "How do you read 10 characters from a file?", o: ["f.read(10)", "f.get(10)", "f.readline(10)", "None"], a: 0 },
+        { q: "What is 'Indenting Code' importance in OOP?", o: ["Visual appeal", "Required for defining method and class blocks", "Speed", "None"], a: 1 }
+    ],
+    "5": [
+        { q: "What is an 'Exception'?", o: ["A logic error", "An event during execution that disrupts normal flow", "A syntax error", "None"], a: 1 },
+        { q: "Which block is used to catch an exception?", o: ["catch", "except", "error", "rescue"], a: 1 },
+        { q: "Which block is used to test a block of code for errors?", o: ["try", "test", "check", "do"], a: 0 },
+        { q: "Which block runs regardless of whether an exception occurred?", o: ["finally", "else", "always", "end"], a: 0 },
+        { q: "Can we have multiple 'except' clauses for one 'try'?", o: ["No", "Yes", "Only in Python 2", "None"], a: 1 },
+        { q: "What is the 'raise' keyword used for?", o: ["To stop an exception", "To manually trigger an exception", "To lift a variable", "None"], a: 1 },
+        { q: "What are 'User-Defined Exceptions'?", o: ["Standard errors", "Custom exception classes created by the programmer", "Syntax errors", "None"], a: 1 },
+        { q: "Which module is commonly used for numerical operations?", o: ["math", "numpy", "numbers", "science"], a: 1 },
+        { q: "What does NumPy stand for?", o: ["Number Python", "Numerical Python", "Null Python", "None"], a: 1 },
+        { q: "What is the primary object in NumPy?", o: ["List", "ndarray", "Dictionary", "Tuple"], a: 1 },
+        { q: "Which keyword is used for 'Automation Process' scripting?", o: ["auto", "script", "os / subprocess modules", "None"], a: 2 },
+        { q: "What is 'Exploit analysis Automation' (per syllabus)?", o: ["Writing viruses", "Automating security testing using Python", "Hacking servers", "None"], a: 1 },
+        { q: "What is 'Debugging'?", o: ["Adding bugs", "Finding and resolving defects in code", "Cleaning the computer", "None"], a: 1 },
+        { q: "What is 'Server and Client Arch' in Python?", o: ["Building PCs", "Network programming using sockets", "Ordering hardware", "None"], a: 1 },
+        { q: "Which block runs if no exceptions were raised in the try block?", o: ["finally", "else", "then", "None"], a: 1 },
+        { q: "Which exception is raised when a number is divided by zero?", o: ["ZeroError", "ZeroDivisionError", "MathError", "None"], a: 1 },
+        { q: "Which exception is raised when a variable is not defined?", o: ["VariableError", "NameError", "ValueError", "TypeError"], a: 1 },
+        { q: "Which exception is raised when a function receives an argument of the wrong type?", o: ["ValueError", "TypeError", "ArgError", "None"], a: 1 },
+        { q: "How do you catch all exceptions?", o: ["except All:", "except Exception:", "catch *:", "error:"], a: 1 },
+        { q: "What is the use of 'Writing plugins in Python'?", o: ["To break software", "To extend the functionality of an existing application", "To create a GUI", "None"], a: 1 },
+        { q: "What is a NumPy array compared to a Python list?", o: ["Slower", "More memory efficient and faster for math", "Same", "None"], a: 1 },
+        { q: "How do you create a NumPy array?", o: ["numpy.array([1,2])", "numpy.list([1,2])", "new Array()", "None"], a: 0 },
+        { q: "What is 'Machine Learning packages' mention in syllabus?", o: ["Tensorflow", "NumPy (basics)", "PyTorch", "All of these"], a: 1 },
+        { q: "Which module is used for system-level automation?", o: ["sys", "os", "platform", "All of these"], a: 3 },
+        { q: "What does 'Automation scripts' mean?", o: ["Manual work", "Scripts that perform repetitive tasks without human intervention", "Video editing", "None"], a: 1 },
+        { q: "What is the purpose of 'try-finally' clause?", o: ["To ignore errors", "To ensure cleanup actions are performed", "To retry code", "None"], a: 1 },
+        { q: "Which exception is raised when an index is out of range?", o: ["RangeError", "IndexError", "ListError", "None"], a: 1 },
+        { q: "Which exception is raised when a key is not found in a dictionary?", o: ["DictError", "KeyError", "MissingError", "None"], a: 1 },
+        { q: "What does np.zeros(5) do in NumPy?", o: ["Creates an array of five 0s", "Deletes 5 items", "Resets the system", "None"], a: 0 },
+        { q: "What does np.ones(3) do?", o: ["Creates an array of three 1s", "Adds 1 to items", "None", "Error"], a: 0 },
+        { q: "What is 'Client-Server' communication protocol usually used in Python?", o: ["HTTP", "TCP/UDP via Sockets", "FTP", "None"], a: 1 },
+        { q: "Which module helps in debugging Python code?", o: ["pdb", "debug", "bug_fix", "None"], a: 0 },
+        { q: "How do you define a custom exception?", o: ["class MyError(Exception):", "def MyError():", "error MyError:", "None"], a: 0 },
+        { q: "What is the 'else' block in try-except?", o: ["Runs if error occurs", "Runs if no error occurs", "Always runs", "None"], a: 1 },
+        { q: "Which function allows executing shell commands from Python?", o: ["os.system()", "subprocess.run()", "Both A and B", "None"], a: 2 },
+        { q: "What is the purpose of NumPy's shape attribute?", o: ["Draws a shape", "Returns the dimensions of the array", "Changes size", "None"], a: 1 },
+        { q: "What is 'Plugin' architecture?", o: ["Hardware card", "Modularity allowing third-party extensions", "A type of loop", "None"], a: 1 },
+        { q: "Which error is raised for indentation issues?", o: ["IndentationError", "SpaceError", "TabError", "SyntaxError"], a: 0 },
+        { q: "What does np.arange(5) return?", o: ["[0, 1, 2, 3, 4]", "[1, 2, 3, 4, 5]", "[0, 5]", "None"], a: 0 },
+        { q: "Python scripts typically have which extension?", o: [".pt", ".py", ".pyt", ".exe"], a: 1 }
+    ]
+};
+
+// --- RENDER & LOGIC ---
+const urlParams = new URLSearchParams(window.location.search);
+const setId = urlParams.get('set') || "1";
+const activeQs = quizData[setId] || quizData["1"];
+
+document.getElementById(`btn-${setId}`).classList.add('active');
+
+const area = document.getElementById('questions-area');
+activeQs.forEach((item, idx) => {
+    let html = `
+        <div class="question" id="q-block-${idx}">
+            <span class="q-text">${idx+1}. ${item.q}</span>
+            <div class="options-group">`;
+    item.o.forEach((opt, i) => {
+        html += `
+            <label class="option" id="opt-${idx}-${i}">
+                <input type="radio" name="q${idx}" value="${i}"> ${opt}
+            </label>`;
+    });
+    html += `</div></div>`;
+    area.innerHTML += html;
+});
+
+function validateAndScore() {
+    let unans = 0;
+    activeQs.forEach((_, i) => {
+        if(!document.querySelector(`input[name="q${i}"]:checked`)) unans++;
+    });
+
+    if(unans > 0) {
+        alert(`Please complete all questions! ${unans} remaining.`);
+        return;
+    }
+
+    let correctCount = 0;
+    activeQs.forEach((item, idx) => {
+        const selected = document.querySelector(`input[name="q${idx}"]:checked`).value;
+        const correctIdx = item.a;
+
+        const allOpts = document.querySelectorAll(`#q-block-${idx} .option`);
+        allOpts.forEach(o => o.classList.remove('opt-correct', 'opt-wrong'));
+
+        if (parseInt(selected) === correctIdx) {
+            correctCount++;
+            document.getElementById(`opt-${idx}-${selected}`).classList.add('opt-correct');
+        } else {
+            document.getElementById(`opt-${idx}-${selected}`).classList.add('opt-wrong');
+            document.getElementById(`opt-${idx}-${correctIdx}`).classList.add('opt-correct');
+        }
+    });
+
+    const perc = ((correctCount / activeQs.length) * 100).toFixed(1);
+    document.getElementById('score-display').innerText = perc + "%";
+    document.getElementById('stats-summary').innerText = `Score: ${correctCount} / 40`;
+    document.getElementById('result-modal').style.display = 'flex';
+}
+
+function closeModal() {
+    document.getElementById('result-modal').style.display = 'none';
+    window.scrollTo({top: 0, behavior: 'smooth'});
+    document.querySelectorAll('input').forEach(i => i.disabled = true);
+    document.getElementById('main-submit').style.display = 'none';
+}
+</script>
+</body>
+</html>

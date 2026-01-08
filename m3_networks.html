@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>M3: Networking & Management - 200 Q Bank</title>
+    <style>
+        :root { --net-blue: #2980b9; --net-dark: #2c3e50; --bg: #f1f2f6; --success: #27ae60; --wrong: #e74c3c; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); margin: 0; padding: 20px; }
+        .quiz-container { max-width: 1100px; margin: auto; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        .header { border-bottom: 5px solid var(--net-blue); padding-bottom: 15px; margin-bottom: 25px; display: flex; justify-content: space-between; align-items: center; }
+        
+        .set-nav { margin-bottom: 25px; display: flex; gap: 10px; flex-wrap: wrap; }
+        .set-btn { padding: 12px 20px; background: #dfe6e9; border: none; border-radius: 6px; cursor: pointer; text-decoration: none; color: #2d3436; font-weight: bold; transition: 0.3s; }
+        .set-btn.active { background: var(--net-blue); color: white; }
+        .set-btn:hover:not(.active) { background: #b2bec3; }
+
+        .question { margin-bottom: 25px; padding: 20px; border: 1px solid #dcdde1; border-radius: 10px; background: #fff; }
+        .q-text { font-weight: bold; font-size: 1.15rem; display: block; margin-bottom: 15px; color: var(--net-dark); }
+        
+        .option { display: block; padding: 14px; background: #f8f9fa; border: 2px solid #f1f2f6; margin: 8px 0; border-radius: 8px; cursor: pointer; transition: 0.2s; position: relative; }
+        .option:hover { background: #edf2f7; border-color: #d1d8e0; }
+        
+        input[type="radio"] { margin-right: 10px; transform: scale(1.2); }
+
+        .opt-correct { background: #d4edda !important; border-color: #28a745 !important; color: #155724; font-weight: bold; }
+        .opt-wrong { background: #f8d7da !important; border-color: #dc3545 !important; color: #721c24; }
+        
+        .submit-btn { background: var(--net-dark); color: white; border: none; padding: 20px; width: 100%; border-radius: 10px; font-size: 1.25rem; cursor: pointer; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; }
+        .submit-btn:hover { background: #1a252f; }
+
+        #result-modal { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:999; justify-content:center; align-items:center; }
+        .modal-box { background:white; padding:40px; border-radius:20px; text-align:center; max-width:500px; width: 90%; }
+        .score-val { font-size: 4.5rem; color: var(--net-blue); font-weight: 900; margin: 10px 0; }
+    </style>
+</head>
+<body>
+
+<div class="quiz-container">
+    <div class="header">
+        <div>
+            <h1 style="margin:0;">M3: Computer Network & Management</h1>
+            <p style="margin:5px 0 0; color: #7f8c8d;">40 Questions Per Set • Full CDAC Syllabus</p>
+        </div>
+        <a href="index.html" style="text-decoration:none; color:var(--net-dark); font-weight:bold; border:2px solid var(--net-dark); padding:8px 15px; border-radius:5px;">← Home</a>
+    </div>
+
+    <div class="set-nav">
+        <a href="?set=1" class="set-btn" id="btn-1">Set 1: Foundations</a>
+        <a href="?set=2" class="set-btn" id="btn-2">Set 2: App & Transport</a>
+        <a href="?set=3" class="set-btn" id="btn-3">Set 3: Network Layer</a>
+        <a href="?set=4" class="set-btn" id="btn-4">Set 4: Devices & Subnets</a>
+        <a href="?set=5" class="set-btn" id="btn-5">Set 5: HPC & Routing</a>
+    </div>
+
+    <form id="quiz-form">
+        <div id="questions-area"></div>
+        <button type="button" class="submit-btn" id="main-submit" onclick="validateAndScore()">Submit Set Results</button>
+    </form>
+</div>
+
+<div id="result-modal">
+    <div class="modal-box">
+        <h2 id="result-title">Set Complete!</h2>
+        <div class="score-val" id="score-display">0%</div>
+        <p id="stats-summary" style="font-size: 1.3rem; margin-bottom:25px;"></p>
+        <button onclick="location.reload()" style="padding:12px 25px; background:var(--net-blue); color:white; border:none; border-radius:8px; cursor:pointer; font-weight:bold;">Retake Test</button>
+        <button onclick="closeModal()" style="padding:12px 25px; margin-left:10px; cursor:pointer; background: #eee; border: none; border-radius: 8px;">Review Answers</button>
+    </div>
+</div>
+
+<script>
+const quizData = {
+    "1": [
+        { q: "Which OSI layer is responsible for translating data into a format the application can understand?", o: ["Application", "Presentation", "Session", "Transport"], a: 1 },
+        { q: "What is the primary function of the Physical Layer?", o: ["Routing", "Framing", "Bit synchronization and transmission", "Process-to-process delivery"], a: 2 },
+        { q: "The process of moving data from the Application layer to the Physical layer is called:", o: ["Decapsulation", "Encapsulation", "Modulation", "Demultiplexing"], a: 1 },
+        { q: "Which model was developed by the Department of Defense (DoD)?", o: ["OSI Model", "TCP/IP Model", "ISO Model", "IEEE Model"], a: 1 },
+        { q: "How many layers are in the TCP/IP model as per the original RFC?", o: ["7", "5", "4", "3"], a: 2 },
+        { q: "A collision on a network occurs at which OSI layer?", o: ["Network", "Data Link", "Physical", "Transport"], a: 2 },
+        { q: "Which layer handles 'Flow Control' and 'Error Correction' globally?", o: ["Network", "Transport", "Data Link", "Physical"], a: 1 },
+        { q: "Which of the following is a 'Peer-to-Peer' layer relationship?", o: ["Transport to Transport", "Network to Physical", "Application to Session", "None"], a: 0 },
+        { q: "Data at the Transport layer is known as:", o: ["Packets", "Bits", "Segments", "Frames"], a: 2 },
+        { q: "What is 'Bandwidth' in a communication system?", o: ["The speed of light", "The maximum data transfer rate of a network", "The length of the cable", "The number of users"], a: 1 },
+        { q: "Which topology requires a multipoint connection?", o: ["Mesh", "Star", "Bus", "Ring"], a: 2 },
+        { q: "Which layer is responsible for logical addressing (IP)?", o: ["Data Link", "Network", "Transport", "Session"], a: 1 },
+        { q: "The OSI model was introduced by which organization?", o: ["IEEE", "IETF", "ISO", "ITU-T"], a: 2 },
+        { q: "Which layer provides 'Node-to-Node' delivery?", o: ["Physical", "Data Link", "Network", "Transport"], a: 1 },
+        { q: "In the TCP/IP model, the 'Link Layer' combines which OSI layers?", o: ["Network and Transport", "Data Link and Physical", "Session and Presentation", "None"], a: 1 },
+        { q: "What is the main purpose of the Session Layer?", o: ["Data compression", "Dialog control and synchronization", "Routing", "Encryption"], a: 1 },
+        { q: "Which layer uses MAC addresses?", o: ["Layer 1", "Layer 2", "Layer 3", "Layer 4"], a: 1 },
+        { q: "What does 'Simplex' communication mean?", o: ["Both directions at once", "One direction only", "Both directions, but one at a time", "None"], a: 1 },
+        { q: "Which of these is a 'Reliability' issue in networking?", o: ["Packet loss", "Throughput", "Distance", "Cable color"], a: 0 },
+        { q: "Full-Duplex communication is like a:", o: ["Walkie-talkie", "Telephone", "Radio broadcast", "Pager"], a: 1 },
+        { q: "Which layer manages the electrical and mechanical specifications?", o: ["Network", "Transport", "Physical", "Data Link"], a: 2 },
+        { q: "The unit of data at the Network layer is:", o: ["Frame", "Bit", "Packet", "Segment"], a: 2 },
+        { q: "Which layer ensures the message is received in the correct order?", o: ["Network", "Physical", "Transport", "Data Link"], a: 2 },
+        { q: "Error detection in the Data Link layer is primarily done via:", o: ["TTL", "CRC (Cyclic Redundancy Check)", "Checksum", "Parity Bit"], a: 1 },
+        { q: "A 'Multiplexer' combines several signals into:", o: ["Zero signals", "One signal", "Many signals", "Binary code"], a: 1 },
+        { q: "Which layer deals with user login and logoff?", o: ["Application", "Session", "Transport", "Network"], a: 1 },
+        { q: "The 'Presentation Layer' is also known as the:", o: ["Logical Layer", "Syntax Layer", "User Layer", "Media Layer"], a: 1 },
+        { q: "Which layer is closest to the transmission medium?", o: ["Application", "Network", "Data Link", "Physical"], a: 3 },
+        { q: "What is 'Jitter'?", o: ["Data speed", "Variation in packet delay", "Data volume", "Network security"], a: 1 },
+        { q: "A Wide Area Network (WAN) usually covers:", o: ["A room", "A building", "A city or country", "A desk"], a: 2 },
+        { q: "Which OSI layer adds a 'Trailer' as well as a 'Header'?", o: ["Network", "Transport", "Data Link", "Physical"], a: 2 },
+        { q: "The Internet is an example of a:", o: ["LAN", "MAN", "PAN", "WAN"], a: 3 },
+        { q: "In which layer are 'Bridges' found?", o: ["Physical", "Data Link", "Network", "Transport"], a: 1 },
+        { q: "Which type of switching is used by the Internet?", o: ["Circuit Switching", "Packet Switching", "Message Switching", "None"], a: 1 },
+        { q: "What does 'Half-Duplex' mean?", o: ["One way only", "Two ways, but not simultaneously", "Two ways simultaneously", "None"], a: 1 },
+        { q: "The Protocol Data Unit (PDU) for Layer 1 is:", o: ["Segment", "Packet", "Frame", "Bits"], a: 3 },
+        { q: "Which layer performs routing of packets across multiple networks?", o: ["Data Link", "Network", "Transport", "Session"], a: 1 },
+        { q: "The term 'End-to-End' refers to which layer?", o: ["Network", "Data Link", "Transport", "Physical"], a: 2 },
+        { q: "Transmission media are part of which layer?", o: ["Data Link", "Physical", "Network", "It is below Layer 1"], a: 1 },
+        { q: "What is the purpose of the 'Application Layer'?", o: ["Cable connection", "User interface and network services", "MAC addressing", "Routing"], a: 1 }
+    ],
+    "2": [
+        { q: "Which protocol is used for securely logging into a remote server?", o: ["Telnet", "FTP", "SSH", "HTTP"], a: 2 },
+        { q: "HTTP functions at which layer of the OSI model?", o: ["Transport", "Network", "Application", "Presentation"], a: 2 },
+        { q: "Which protocol is 'connection-oriented'?", o: ["UDP", "IP", "TCP", "ICMP"], a: 2 },
+        { q: "The '3-way handshake' involves which flags in order?", o: ["SYN, SYN-ACK, ACK", "ACK, SYN, SYN-ACK", "SYN, ACK, FIN", "SYN, SYN, ACK"], a: 0 },
+        { q: "Which port does SMTP use by default?", o: ["21", "25", "80", "110"], a: 1 },
+        { q: "Which protocol is used to resolve a domain name (google.com) to an IP?", o: ["ARP", "DHCP", "DNS", "HTTP"], a: 2 },
+        { q: "UDP is often used for:", o: ["File transfer", "Email", "Streaming media/VoIP", "Web browsing"], a: 2 },
+        { q: "What is the standard port for HTTPS?", o: ["80", "8080", "443", "22"], a: 2 },
+        { q: "Which TCP flag is used to abruptly close a connection?", o: ["FIN", "RST", "PSH", "URG"], a: 1 },
+        { q: "FTP requires how many connections to function?", o: ["1", "2", "3", "0"], a: 1 },
+        { q: "Which protocol is used by an email client to retrieve mail from a server?", o: ["SMTP", "SNMP", "IMAP", "FTP"], a: 2 },
+        { q: "The Transport layer uses what to identify specific processes?", o: ["IP Address", "MAC Address", "Port Number", "Sequence Number"], a: 2 },
+        { q: "What is 'Windowing' in TCP?", o: ["Designing GUIs", "Flow control to regulate data sent before an ACK", "Segmentation", "Error checking"], a: 1 },
+        { q: "Which protocol is used for transferring files between a client and server?", o: ["HTTP", "SMTP", "FTP", "DNS"], a: 2 },
+        { q: "DNS uses which transport protocol for most queries?", o: ["TCP", "UDP", "SCTP", "ICMP"], a: 1 },
+        { q: "Which port is used by Telnet?", o: ["20", "21", "22", "23"], a: 3 },
+        { q: "A 'Stateful' protocol like TCP:", o: ["Doesn't care about previous packets", "Keeps track of the connection state", "Is very fast", "None"], a: 1 },
+        { q: "HTTP 1.1 uses 'Persistent Connections' by default. What does this mean?", o: ["One TCP connection for multiple requests", "Connections never close", "It uses UDP", "None"], a: 0 },
+        { q: "Which protocol is used to manage and monitor network devices?", o: ["SMTP", "SNMP", "IMAP", "SSH"], a: 1 },
+        { q: "What does the 'ACK' flag stand for in TCP?", o: ["Action", "Acknowledgment", "Active", "Access"], a: 1 },
+        { q: "In a URL 'https://acts.cdac.in', 'acts.cdac.in' is the:", o: ["Protocol", "Resource", "Domain Name", "Path"], a: 2 },
+        { q: "Which transport protocol does NOT guarantee delivery?", o: ["TCP", "UDP", "SCTP", "HTTP"], a: 1 },
+        { q: "What is the port for DNS?", o: ["25", "53", "67", "68"], a: 1 },
+        { q: "The 'sliding window' mechanism is found in:", o: ["IP", "TCP", "UDP", "ARP"], a: 1 },
+        { q: "Which protocol allows a user to download mail and delete it from the server?", o: ["IMAP", "POP3", "SMTP", "DNS"], a: 1 },
+        { q: "Which layer handles end-to-end congestion control?", o: ["Application", "Network", "Transport", "Data Link"], a: 2 },
+        { q: "What is a 'Well-known' port range?", o: ["0 - 255", "0 - 1023", "1024 - 49151", "49152 - 65535"], a: 1 },
+        { q: "HTTP Status Code 404 means:", o: ["OK", "Internal Server Error", "Not Found", "Forbidden"], a: 2 },
+        { q: "Which protocol provides a connectionless, unreliable transport service?", o: ["TCP", "UDP", "HTTP", "FTP"], a: 1 },
+        { q: "The 'FIN' flag is used to:", o: ["Finish the boot process", "Terminate a TCP connection", "Find a host", "None"], a: 1 },
+        { q: "DHCP uses which port for the server?", o: ["53", "67", "68", "80"], a: 1 },
+        { q: "In TCP, sequence numbers are used to:", o: ["Identify ports", "Reassemble segments in order", "Find the IP", "None"], a: 1 },
+        { q: "Which protocol is used for time synchronization in a network?", o: ["NTP", "FTP", "SMTP", "SNMP"], a: 0 },
+        { q: "What is the size of a TCP header (minimum)?", o: ["8 bytes", "16 bytes", "20 bytes", "32 bytes"], a: 2 },
+        { q: "Which layer is responsible for encryption/decryption in the modern TCP/IP stack (conceptually)?", o: ["Network", "Transport", "Application (via TLS/SSL)", "Physical"], a: 2 },
+        { q: "UDP header size is always:", o: ["8 bytes", "20 bytes", "40 bytes", "Depends on data"], a: 0 },
+        { q: "The process of using a single IP for multiple processes via port numbers is:", o: ["Multiplexing", "Routing", "Switching", "Bridging"], a: 0 },
+        { q: "Which protocol is used for 'Ping' operations?", o: ["TCP", "UDP", "ICMP", "ARP"], a: 2 },
+        { q: "Which port does SSH use?", o: ["21", "22", "23", "25"], a: 1 },
+        { q: "What does URL stand for?", o: ["Unified Resource Locator", "Uniform Resource Locator", "Universal Resource Link", "None"], a: 1 }
+    ],
+    "3": [
+        { q: "What is the primary protocol of the Network Layer?", o: ["TCP", "IP", "UDP", "HTTP"], a: 1 },
+        { q: "Which protocol is used to find the MAC address given an IP address?", o: ["RARP", "ARP", "DHCP", "ICMP"], a: 1 },
+        { q: "IPv4 addresses are how many bits long?", o: ["16", "32", "64", "128"], a: 1 },
+        { q: "Which protocol is used for error and control messages at the network layer?", o: ["TCP", "IP", "ICMP", "IGMP"], a: 2 },
+        { q: "How many octets are in an IPv4 address?", o: ["2", "4", "8", "16"], a: 1 },
+        { q: "An IPv6 address consists of how many bits?", o: ["32", "64", "128", "256"], a: 2 },
+        { q: "Which protocol automatically assigns IP addresses to hosts?", o: ["DNS", "DHCP", "ARP", "NAT"], a: 1 },
+        { q: "Which of these is a private IP address?", o: ["172.16.0.1", "8.8.8.8", "192.169.1.1", "12.0.0.1"], a: 0 },
+        { q: "What is the range for a Class A IP address (first octet)?", o: ["1-126", "128-191", "192-223", "224-239"], a: 0 },
+        { q: "The loopback address for IPv4 is:", o: ["0.0.0.0", "127.0.0.1", "255.255.255.255", "192.168.1.1"], a: 1 },
+        { q: "Which field in the IP header prevents a packet from looping indefinitely?", o: ["Checksum", "TTL (Time To Live)", "Version", "Protocol"], a: 1 },
+        { q: "Class C addresses are designed for:", o: ["Large networks", "Medium networks", "Small networks", "Multicasting"], a: 2 },
+        { q: "IPv6 uses which format for its addresses?", o: ["Dotted Decimal", "Binary", "Hexadecimal", "Octal"], a: 2 },
+        { q: "What is the default subnet mask for Class B?", o: ["255.0.0.0", "255.255.0.0", "255.255.255.0", "None"], a: 1 },
+        { q: "Which class of IP is used for Multicasting?", o: ["Class B", "Class C", "Class D", "Class E"], a: 2 },
+        { q: "The 'ping' command uses which ICMP message type for the request?", o: ["Echo Request", "Echo Reply", "Destination Unreachable", "Source Quench"], a: 0 },
+        { q: "What does NAT stand for?", o: ["Network Address Translation", "Network Access Tier", "Network Advanced Transfer", "None"], a: 0 },
+        { q: "Which protocol is used to find an IP address given a MAC address?", o: ["ARP", "RARP", "ICMP", "DNS"], a: 1 },
+        { q: "In IPv6, the loopback address is written as:", o: ["127.0.0.1", "::1", "0:0:0:1", "::0"], a: 1 },
+        { q: "Which layer is responsible for fragmentation and reassembly of packets?", o: ["Data Link", "Network", "Transport", "Session"], a: 1 },
+        { q: "What is the size of an IPv4 header (minimum)?", o: ["8 bytes", "20 bytes", "40 bytes", "60 bytes"], a: 1 },
+        { q: "Which protocol is used to join a multicast group?", o: ["ICMP", "IGMP", "ARP", "BGP"], a: 1 },
+        { q: "A Class C network can have a maximum of how many usable hosts?", o: ["254", "255", "256", "128"], a: 0 },
+        { q: "The IP address 169.254.x.x is an example of:", o: ["Static IP", "Public IP", "APIPA (Link-Local)", "Broadcast"], a: 2 },
+        { q: "Which IPv6 address type is equivalent to a public IPv4 address?", o: ["Link-local", "Unique-local", "Global Unicast", "Multicast"], a: 2 },
+        { q: "What happens to the TTL value as it passes through each router?", o: ["Increases by 1", "Decreases by 1", "Stays the same", "Reset to zero"], a: 1 },
+        { q: "Which device operates at the Network Layer?", o: ["Hub", "Switch", "Router", "Bridge"], a: 2 },
+        { q: "What is the broadcast address for the network 192.168.1.0/24?", o: ["192.168.1.0", "192.168.1.1", "192.168.1.254", "192.168.1.255"], a: 3 },
+        { q: "Which of the following is NOT a routing protocol?", o: ["RIP", "OSPF", "BGP", "DHCP"], a: 3 },
+        { q: "IPv6 was developed primarily to:", o: ["Increase speed", "Address IPv4 exhaustion", "Add encryption", "None"], a: 1 },
+        { q: "The 'Traceroute' utility uses which protocol and field to find routers?", o: ["ICMP and TTL", "TCP and Port", "UDP and Checksum", "ARP and MAC"], a: 0 },
+        { q: "Which IPv4 octet defines a Class B address range?", o: ["1-126", "128-191", "192-223", "224-239"], a: 1 },
+        { q: "A 'Default Gateway' is usually the IP of:", o: ["Your own PC", "The nearest Switch", "The local Router's interface", "The DNS server"], a: 2 },
+        { q: "What is the Network ID for the IP 10.5.2.1/8?", o: ["10.5.2.0", "10.5.0.0", "10.0.0.0", "10.5.2.1"], a: 2 },
+        { q: "Which layer does the ARP protocol belong to conceptually?", o: ["Physical", "Data Link", "Network", "Transport"], a: 1 },
+        { q: "How many bits are in an IPv4 subnet mask?", o: ["8", "16", "24", "32"], a: 3 },
+        { q: "Multicast addresses start with which bits in the first octet?", o: ["110 (192-223)", "1110 (224-239)", "10 (128-191)", "0 (1-126)"], a: 1 },
+        { q: "Which protocol is used for inter-domain routing on the Internet?", o: ["RIP", "OSPF", "BGP", "EIGRP"], a: 2 },
+        { q: "In the IP header, the 'Protocol' field identifies:", o: ["Source IP", "The next header (TCP/UDP/ICMP)", "IP version", "Priority"], a: 1 },
+        { q: "What is 'Anycast' in IPv6?", o: ["One to all", "One to one", "One to nearest", "Many to many"], a: 2 }
+    ],
+    "4": [
+        { q: "Which device works only at the Physical layer (Layer 1)?", o: ["Switch", "Router", "Hub", "Bridge"], a: 2 },
+        { q: "A Layer 2 Switch makes forwarding decisions based on:", o: ["IP addresses", "MAC addresses", "Port numbers", "Logical names"], a: 1 },
+        { q: "Which device creates a single broadcast domain but multiple collision domains?", o: ["Hub", "Switch", "Repeater", "Modem"], a: 1 },
+        { q: "What is the purpose of Subnetting?", o: ["Increase host addresses", "Decrease network traffic and improve efficiency", "Hide the network", "Speed up hardware"], a: 1 },
+        { q: "Which device is used to connect two different network architectures (Layer 3)?", o: ["Switch", "Bridge", "Router", "Hub"], a: 2 },
+        { q: "FLSM stands for:", o: ["Fixed Length Subnet Mask", "Fast Logic Subnet Mask", "Full Level Subnet Mode", "None"], a: 0 },
+        { q: "What does VLSM allow?", o: ["Only one mask per network", "Different subnet masks for different subnets", "Automatic IP allocation", "None"], a: 1 },
+        { q: "A /24 subnet mask is the same as:", o: ["255.0.0.0", "255.255.0.0", "255.255.255.0", "255.255.255.255"], a: 2 },
+        { q: "How many usable hosts are in a /30 subnet?", o: ["4", "2", "6", "1"], a: 1 },
+        { q: "Which device is considered 'Dumb' because it broadcasts all incoming data?", o: ["Switch", "Router", "Hub", "Gateway"], a: 2 },
+        { q: "The command 'enable' on a Cisco router enters which mode?", o: ["User mode", "Privileged EXEC mode", "Global Configuration mode", "Setup mode"], a: 1 },
+        { q: "What is a 'Collision Domain'?", o: ["The whole Internet", "A segment where data packets can collide", "A single host", "None"], a: 1 },
+        { q: "In a network with 4 Hubs connected together, how many collision domains exist?", o: ["1", "4", "5", "8"], a: 0 },
+        { q: "Which mask would you use for a subnet requiring 100 hosts?", o: ["/24", "/25", "/26", "/27"], a: 1 },
+        { q: "A 'Bridge' connects two segments based on:", o: ["IP", "MAC", "Ports", "Cable type"], a: 1 },
+        { q: "What is 'Cisco IOS'?", o: ["An iPhone OS", "Internetwork Operating System", "Intelligent Output System", "None"], a: 1 },
+        { q: "How many subnets are created by subnetting a Class C network with a /26 mask?", o: ["2", "4", "8", "16"], a: 1 },
+        { q: "A 'Modem' is used for:", o: ["Routing", "Modulation and Demodulation", "Switching", "Filtering"], a: 1 },
+        { q: "Which device can break up broadcast domains?", o: ["Switch", "Router", "Hub", "Bridge"], a: 1 },
+        { q: "The 'config t' command on a router enters:", o: ["Privileged mode", "Global Configuration mode", "Interface mode", "VLAN mode"], a: 1 },
+        { q: "What is the broadcast address of a /30 network starting at 10.0.0.0?", o: ["10.0.0.1", "10.0.0.2", "10.0.0.3", "10.0.0.255"], a: 2 },
+        { q: "Which device is used to extend the length of a network by amplifying the signal?", o: ["Router", "Repeater", "Gateway", "Switch"], a: 1 },
+        { q: "A Layer 3 Switch is essentially a Switch with:", o: ["More ports", "Routing capabilities", "Wireless access", "None"], a: 1 },
+        { q: "In VLSM, which subnet mask is best for a point-to-point link?", o: ["/24", "/28", "/30", "/32"], a: 2 },
+        { q: "What does the 'show ip route' command do?", o: ["Displays the MAC table", "Displays the routing table", "Shows IP configuration", "None"], a: 1 },
+        { q: "How many bits are borrowed from the host portion to create 8 subnets?", o: ["2", "3", "4", "8"], a: 1 },
+        { q: "Which device is used to connect a LAN to the Internet?", o: ["Hub", "Switch", "Router", "Repeater"], a: 2 },
+        { q: "A 'VLAN' is used to:", o: ["Create physical networks", "Logically segment a switch into multiple broadcast domains", "Increase speed", "None"], a: 1 },
+        { q: "What is the binary equivalent of 255.255.255.0?", o: ["24 ones followed by 8 zeros", "16 ones followed by 16 zeros", "8 ones followed by 24 zeros", "All ones"], a: 0 },
+        { q: "Which device operates at all 7 layers of the OSI model conceptually?", o: ["Hub", "Switch", "Router", "Gateway"], a: 3 },
+        { q: "What is the network address for 192.168.1.50/26?", o: ["192.168.1.0", "192.168.1.32", "192.168.1.48", "192.168.1.64"], a: 0 },
+        { q: "Which protocol is used for console access to a Cisco device over a network?", o: ["SSH", "HTTP", "FTP", "ICMP"], a: 0 },
+        { q: "How many bits are in a MAC address?", o: ["32", "48", "64", "128"], a: 1 },
+        { q: "The first half of a MAC address (OUI) identifies the:", o: ["Device model", "Manufacturer", "Network speed", "Owner"], a: 1 },
+        { q: "Which command saves the configuration on a Cisco router?", o: ["save config", "write memory / copy run start", "store config", "exit"], a: 1 },
+        { q: "What is the effect of 'Switching' compared to 'Hubbing'?", o: ["More collisions", "Dedicated bandwidth per port", "Higher latency", "Lower security"], a: 1 },
+        { q: "Subnetting 192.168.1.0/24 into /25 results in how many usable hosts per subnet?", o: ["128", "126", "64", "62"], a: 1 },
+        { q: "Which device is a multi-port bridge?", o: ["Hub", "Switch", "Router", "Modem"], a: 1 },
+        { q: "Which layer 2 protocol prevents loops in a switched network?", o: ["IP", "STP (Spanning Tree Protocol)", "ARP", "UDP"], a: 1 },
+        { q: "What is a 'Trunk' port in switching?", o: ["A port for one user", "A port that carries multiple VLANs", "A dead port", "None"], a: 1 }
+    ],
+    "5": [
+        { q: "Which routing protocol uses Hop Count as its primary metric?", o: ["OSPF", "EIGRP", "RIP", "BGP"], a: 2 },
+        { q: "What is the 'Administrative Distance' of a Directly Connected route?", o: ["0", "1", "90", "110"], a: 0 },
+        { q: "Which interconnect technology is famous for its 'Zero-Copy' and 'Kernel Bypass' capabilities?", o: ["Ethernet", "InfiniBand", "Token Ring", "FDDI"], a: 1 },
+        { q: "RDMA stands for:", o: ["Remote Direct Memory Access", "Random Data Management Area", "Routing Data Management Access", "None"], a: 0 },
+        { q: "Which routing protocol is categorized as 'Link-State'?", o: ["RIP", "EIGRP", "OSPF", "BGP"], a: 2 },
+        { q: "What is the maximum hop count for RIP v2?", o: ["10", "15", "16", "255"], a: 1 },
+        { q: "Which advanced interconnect architecture was developed by Intel for HPC?", o: ["InfiniBand", "Omni-Path (OPA)", "RoCE", "Gigabit Ethernet"], a: 1 },
+        { q: "Routing between different Autonomous Systems is done via:", o: ["OSPF", "RIP", "BGP", "IS-IS"], a: 2 },
+        { q: "In InfiniBand, what is an 'HCA'?", o: ["High Capacity Area", "Host Channel Adapter", "Hub Control Access", "None"], a: 1 },
+        { q: "What is 'Convergence' in routing?", o: ["When all routers have the same network info", "When a router reboots", "When two cables are tied", "None"], a: 0 },
+        { q: "Which protocol allows RDMA over Ethernet networks?", o: ["RoCE", "HTTP", "TCP", "ICMP"], a: 0 },
+        { q: "What is the Administrative Distance of OSPF?", o: ["90", "100", "110", "120"], a: 2 },
+        { q: "Static routing is best suited for:", o: ["Large ISPs", "Small, stable networks", "The Internet", "None"], a: 1 },
+        { q: "Which metric does OSPF use?", o: ["Hop count", "Cost (based on bandwidth)", "Delay", "Reliability"], a: 1 },
+        { q: "InfiniBand uses which type of topology often?", o: ["Bus", "Fat Tree", "Ring", "Star"], a: 1 },
+        { q: "EIGRP is considered which type of protocol?", o: ["Distance Vector", "Link State", "Hybrid / Advanced Distance Vector", "None"], a: 2 },
+        { q: "Which protocol is used to exchange routing info within an Autonomous System?", o: ["EGP", "IGP", "BGP", "HTTP"], a: 1 },
+        { q: "What is a 'Metric' in routing?", o: ["The router's name", "A value used to choose the best path", "The serial number", "None"], a: 1 },
+        { q: "Which version of RIP supports VLSM?", o: ["RIP v1", "RIP v2", "Both", "Neither"], a: 1 },
+        { q: "The 'D' in RDMA signifies that data goes from one memory to another without:", o: ["Cables", "Involving the CPU of the remote host", "Encryption", "IP addresses"], a: 1 },
+        { q: "What is the AD of EIGRP?", o: ["90", "110", "120", "1"], a: 0 },
+        { q: "Which routing protocol uses the Dijkstra algorithm?", o: ["RIP", "OSPF", "BGP", "EIGRP"], a: 1 },
+        { q: "Gigabit Ethernet supports a data rate of:", o: ["100 Mbps", "1000 Mbps", "10 Gbps", "1 Mbps"], a: 1 },
+        { q: "In routing, a 'Static Route' is:", o: ["Automatically learned", "Manually configured", "Always changing", "None"], a: 1 },
+        { q: "What is an 'Autonomous System' (AS)?", o: ["A single router", "A collection of networks under a single administration", "A robot", "None"], a: 1 },
+        { q: "Which interconnect is specialized for Storage Area Networks (SANs)?", o: ["Ethernet", "Fibre Channel (FC)", "InfiniBand", "WiFi"], a: 1 },
+        { q: "InfiniBand 'Subnet Manager' is responsible for:", o: ["Assigning IPs", "Configuring and managing the IB fabric", "Browsing web", "None"], a: 1 },
+        { q: "Which command shows the EIGRP neighbors on a Cisco router?", o: ["show ip eigrp neighbors", "show route", "show neighbors", "get eigrp"], a: 0 },
+        { q: "The 'Bellman-Ford' algorithm is used by:", o: ["OSPF", "RIP", "Static", "None"], a: 1 },
+        { q: "What is 'Poison Reverse' in routing?", o: ["A virus", "A method to prevent routing loops", "A hardware failure", "None"], a: 1 },
+        { q: "Which protocol is the standard for the Internet's 'Global Routing Table'?", o: ["OSPF", "BGP", "RIP", "IS-IS"], a: 1 },
+        { q: "OSPF sends updates via:", o: ["Broadcast", "Multicast", "Unicast", "None"], a: 1 },
+        { q: "HPC stands for:", o: ["Home Personal Computer", "High Performance Computing", "High Protocol Control", "None"], a: 1 },
+        { q: "Which technology reduces CPU overhead during data transfer?", o: ["Hubs", "RDMA", "NAT", "Paging"], a: 1 },
+        { q: "A 'Default Route' is represented as:", o: ["0.0.0.0 0.0.0.0", "255.255.255.255", "127.0.0.1", "None"], a: 0 },
+        { q: "The 'Cost' in OSPF is calculated as:", o: ["10^8 / Bandwidth", "Hop count * 10", "Fixed at 1", "None"], a: 0 },
+        { q: "Which interconnect provides the lowest latency for MPI applications?", o: ["10G Ethernet", "InfiniBand", "WiFi", "USB"], a: 1 },
+        { q: "Omni-Path Architecture was primarily designed for:", o: ["Mobile phones", "Supercomputers and HPC clusters", "Printers", "None"], a: 1 },
+        { q: "The 'Wildcard Mask' for a /24 network is:", o: ["0.0.0.255", "255.255.255.0", "0.0.0.0", "None"], a: 0 },
+        { q: "A router chooses a path with the lowest:", o: ["Metric", "AD (if protocols are different)", "Both A and B depending on context", "None"], a: 2 }
+    ]
+};
+
+// --- LOGIC ---
+const urlParams = new URLSearchParams(window.location.search);
+const setId = urlParams.get('set') || "1";
+const activeQs = quizData[setId] || quizData["1"];
+
+document.getElementById(`btn-${setId}`).classList.add('active');
+
+const area = document.getElementById('questions-area');
+activeQs.forEach((item, idx) => {
+    let html = `
+        <div class="question" id="q-block-${idx}">
+            <span class="q-text">${idx+1}. ${item.q}</span>
+            <div class="options-group">`;
+    item.o.forEach((opt, i) => {
+        html += `
+            <label class="option" id="opt-${idx}-${i}">
+                <input type="radio" name="q${idx}" value="${i}"> ${opt}
+            </label>`;
+    });
+    html += `</div></div>`;
+    area.innerHTML += html;
+});
+
+function validateAndScore() {
+    let unans = 0;
+    activeQs.forEach((_, i) => {
+        if(!document.querySelector(`input[name="q${i}"]:checked`)) unans++;
+    });
+
+    if(unans > 0) {
+        alert(`You missed ${unans} questions. Please complete all before submitting.`);
+        return;
+    }
+
+    let correctCount = 0;
+    activeQs.forEach((item, idx) => {
+        const selected = document.querySelector(`input[name="q${idx}"]:checked`).value;
+        const correctIdx = item.a;
+
+        const allOpts = document.querySelectorAll(`#q-block-${idx} .option`);
+        allOpts.forEach(o => o.classList.remove('opt-correct', 'opt-wrong'));
+
+        if (parseInt(selected) === correctIdx) {
+            correctCount++;
+            document.getElementById(`opt-${idx}-${selected}`).classList.add('opt-correct');
+        } else {
+            document.getElementById(`opt-${idx}-${selected}`).classList.add('opt-wrong');
+            document.getElementById(`opt-${idx}-${correctIdx}`).classList.add('opt-correct');
+        }
+    });
+
+    const perc = ((correctCount / activeQs.length) * 100).toFixed(1);
+    document.getElementById('score-display').innerText = perc + "%";
+    document.getElementById('stats-summary').innerText = `You got ${correctCount} out of 40 questions correct!`;
+    document.getElementById('result-modal').style.display = 'flex';
+}
+
+function closeModal() {
+    document.getElementById('result-modal').style.display = 'none';
+    window.scrollTo({top: 0, behavior: 'smooth'});
+    document.querySelectorAll('input').forEach(i => i.disabled = true);
+    document.getElementById('main-submit').style.display = 'none';
+}
+</script>
+</body>
+</html>
