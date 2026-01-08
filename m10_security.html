@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Module 10: Security & Traffic Management - Master Quiz</title>
+    <style>
+        :root { --hpc-red: #d63031; --hpc-dark: #2d3436; --bg: #f5f6fa; --success: #27ae60; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--bg); color: var(--hpc-dark); padding: 20px; }
+        .quiz-container { max-width: 1000px; margin: auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+        .header { border-bottom: 4px solid var(--hpc-red); padding-bottom: 15px; margin-bottom: 25px; display: flex; justify-content: space-between; align-items: center; }
+        .back-link { text-decoration: none; color: var(--hpc-red); font-weight: bold; border: 2px solid var(--hpc-red); padding: 8px 18px; border-radius: 6px; }
+        
+        .set-nav { margin-bottom: 25px; display: flex; gap: 10px; }
+        .set-btn { padding: 10px 20px; background: #dfe6e9; border: none; border-radius: 5px; cursor: pointer; text-decoration: none; color: black; font-weight: bold; }
+        .set-btn.active { background: var(--hpc-red); color: white; }
+
+        .question { margin-bottom: 25px; padding: 20px; border: 1px solid #ddd; border-radius: 8px; position: relative; }
+        .question.unanswered { border-left: 8px solid var(--hpc-red); background: #fff5f5; }
+        .q-text { font-weight: bold; font-size: 1.1rem; display: block; margin-bottom: 15px; }
+        .option { display: block; padding: 12px; background: #f9f9f9; border: 1px solid #eee; margin: 8px 0; border-radius: 6px; cursor: pointer; }
+        .option:hover { background: #f1f2f6; border-color: var(--hpc-red); }
+        
+        .submit-btn { background: var(--success); color: white; border: none; padding: 20px; width: 100%; border-radius: 8px; font-size: 1.3rem; cursor: pointer; font-weight: bold; }
+        
+        #result-modal { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:999; justify-content:center; align-items:center; }
+        .modal-box { background:white; padding:40px; border-radius:15px; text-align:center; max-width:450px; }
+        .score-val { font-size: 4rem; color: var(--hpc-red); font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div class="quiz-container">
+    <div class="header">
+        <div>
+            <h1 style="margin:0;">Security & Traffic Management</h1>
+            <p style="margin:5px 0 0; color: #636e72;">Module 10: Firewalls, IDS, VPN, and Network Security</p>
+        </div>
+        <a href="index.html" class="back-link">← Dashboard</a>
+    </div>
+
+    <div class="set-nav">
+        <a href="?set=1" class="set-btn" id="btn-1">Set 1</a>
+        <a href="?set=2" class="set-btn" id="btn-2">Set 2</a>
+        <a href="?set=3" class="set-btn" id="btn-3">Set 3</a>
+        <a href="?set=4" class="set-btn" id="btn-4">Set 4</a>
+        <a href="?set=5" class="set-btn" id="btn-5">Set 5</a>
+    </div>
+
+    <form id="quiz-form">
+        <div id="questions-area"></div>
+        <button type="button" class="submit-btn" onclick="validateQuiz()">Validate & Submit Set</button>
+    </form>
+</div>
+
+<div id="result-modal">
+    <div class="modal-box">
+        <h2>Module 10 Results</h2>
+        <div class="score-val" id="score-display">0%</div>
+        <div id="stats-summary" style="margin-bottom:20px;"></div>
+        <button onclick="location.reload()" style="padding:10px 20px; background:var(--hpc-red); color:white; border:none; border-radius:5px; cursor:pointer;">Retry Set</button>
+        <button onclick="closeModal()" style="padding:10px 20px; margin-left:10px; cursor:pointer;">Review</button>
+    </div>
+</div>
+
+<script>
+const quizData = {
+    "1": [
+        { q: "What is the primary function of a Firewall?", o: ["Speed up internet", "Monitor and control incoming/outgoing network traffic", "Delete viruses", "Store backups"], a: 1 },
+        { q: "Which Linux tool is used to manage IPv4 packet filtering and NAT?", o: ["iptables", "ifconfig", "top", "ls"], a: 0 },
+        { q: "What does 'IDS' stand for?", o: ["Internal Data Storage", "Intrusion Detection System", "Internet Device Security", "Input Delivery System"], a: 1 },
+        { q: "In iptables, which table is used for Network Address Translation?", o: ["Filter", "Mangle", "NAT", "Raw"], a: 2 },
+        { q: "What is a 'DMZ' in networking?", o: ["Dynamic Mobile Zone", "Demilitarized Zone", "Data Management Zone", "None"], a: 1 },
+        { q: "Which protocol is primarily used for secure remote login?", o: ["Telnet", "HTTP", "SSH", "FTP"], a: 2 },
+        { q: "What is the default port for SSH?", o: ["21", "22", "23", "80"], a: 1 },
+        { q: "Which tool is a famous open-source Network Intrusion Detection System (NIDS)?", o: ["Slurm", "Snort", "Nagios", "Apache"], a: 1 },
+        { q: "What is the purpose of a VPN?", o: ["To increase RAM", "To create a secure encrypted connection over a public network", "To host websites", "None"], a: 1 },
+        { q: "In iptables, the 'DROP' target does what?", o: ["Sends an error message to sender", "Silently discards the packet", "Accepts the packet", "Logs the packet only"], a: 1 },
+        { q: "What does 'REJECT' do in iptables unlike 'DROP'?", o: ["Discard silently", "Sends a 'destination unreachable' packet back", "Saves the packet to disk", "None"], a: 1 },
+        { q: "Which layer of the OSI model does a 'Circuit-level Gateway' operate at?", o: ["Data Link", "Session", "Physical", "Application"], a: 1 },
+        { q: "What is 'Packet Sniffing'?", o: ["Deleting packets", "Capturing and inspecting data packets across a network", "Speeding up packets", "None"], a: 1 },
+        { q: "Which tool is widely used for packet analysis and sniffing?", o: ["Wireshark", "GIMP", "VLC", "Notepad"], a: 0 },
+        { q: "What is 'DDoS'?", o: ["Distributed Data of Service", "Distributed Denial of Service", "Direct Disk operating System", "None"], a: 1 },
+        { q: "Which iptables chain handles packets that are destined for the local server?", o: ["FORWARD", "OUTPUT", "INPUT", "PREROUTING"], a: 2 },
+        { q: "Which iptables chain handles packets originating from the local server?", o: ["INPUT", "OUTPUT", "FORWARD", "POSTROUTING"], a: 1 },
+        { q: "What is 'Port Scanning'?", o: ["Cleaning hardware ports", "Probing a server to find open ports/services", "Upgrading firmware", "None"], a: 1 },
+        { q: "Which command-line tool is used for port scanning and network exploration?", o: ["Nmap", "NFS", "Nice", "Nslookup"], a: 0 },
+        { q: "What is 'Stateful Inspection' in firewalls?", o: ["Checking the country of origin", "Tracking the state of active connections", "Checking the server's power state", "None"], a: 1 },
+        { q: "What is 'IP Spoofing'?", o: ["Changing a password", "Creating IP packets with a false source IP address", "Buying new IP addresses", "None"], a: 1 },
+        { q: "Which file contains the list of allowed hosts for SSH in some configurations?", o: ["/etc/hosts.allow", "/etc/passwd", "/etc/fstab", "/etc/shadow"], a: 0 },
+        { q: "What does SSL stand for?", o: ["Secure Sockets Layer", "System Security Level", "Super Speed Link", "None"], a: 0 },
+        { q: "What is 'Brute Force Attack'?", o: ["Hitting the server", "Trial-and-error method to guess passwords", "A type of firewall", "None"], a: 1 },
+        { q: "Which service is used to map human-friendly domain names to IP addresses?", o: ["DHCP", "DNS", "FTP", "SNMP"], a: 1 },
+        { q: "What is 'SSL Hijacking'?", o: ["Speeding up SSL", "Interacting with a secure session to steal data", "Updating SSL certificates", "None"], a: 1 },
+        { q: "Which iptables table is used for specialized packet alterations like TTL or TOS?", o: ["Filter", "NAT", "Mangle", "Raw"], a: 2 },
+        { q: "What is the primary difference between IDS and IPS?", o: ["IPS only logs", "IPS can actively block a threat, IDS only detects/alerts", "IDS is hardware, IPS is software", "None"], a: 1 },
+        { q: "What is 'Proxy Server'?", o: ["A backup server", "An intermediary between a client and a destination server", "A fast router", "None"], a: 1 },
+        { q: "In VPN, what is 'Tunneling'?", o: ["Digging under the data center", "Encapsulating one packet inside another for secure transport", "Deleting data", "None"], a: 1 },
+        { q: "Which command shows current iptables rules with line numbers?", o: ["iptables -L", "iptables -L --line-numbers", "iptables -S", "iptables -show"], a: 1 },
+        { q: "What is 'Honeypot'?", o: ["A jar of honey", "A decoy system set up to attract and study hackers", "A type of virus", "None"], a: 1 },
+        { q: "Which flag in iptables is used to append a rule?", o: ["-D", "-A", "-I", "-P"], a: 1 },
+        { q: "Which flag in iptables is used to delete a rule?", o: ["-A", "-L", "-D", "-F"], a: 2 },
+        { q: "What is 'Firewalld'?", o: ["A hardware firewall", "A dynamic firewall manager used in modern Linux distros (RHEL/CentOS)", "A web browser", "None"], a: 1 },
+        { q: "In firewalld, what is a 'Zone'?", o: ["A physical location", "A level of trust for network connections", "A type of CPU", "None"], a: 1 },
+        { q: "What is the command to make firewalld rules permanent?", o: ["--save", "--permanent", "--fix", "--store"], a: 1 },
+        { q: "Which protocol is used by 'ping' to test connectivity?", o: ["TCP", "UDP", "ICMP", "IGMP"], a: 2 },
+        { q: "What is 'Man-in-the-Middle' (MitM) attack?", o: ["A person sitting between two servers", "An attacker secretly intercepting communication between two parties", "A hardware failure", "None"], a: 1 },
+        { q: "What is 'Fail2Ban'?", o: ["A game", "Software that protects against brute-force attacks by banning IPs", "A backup tool", "None"], a: 1 }
+    ],
+    "2": [
+        { q: "Which directory stores Snort configuration files?", o: ["/etc/snort", "/var/log/snort", "/bin/snort", "/home/snort"], a: 0 },
+        { q: "What is 'Traffic Shaping'?", o: ["Changing the size of a router", "Controlling network traffic to optimize performance/bandwidth", "Deleting old packets", "None"], a: 1 },
+        { q: "What is 'NAT'?", o: ["Network Access Table", "Network Address Translation", "New Account Transfer", "None"], a: 1 },
+        { q: "What does 'Source NAT' (SNAT) do?", o: ["Changes the destination IP", "Changes the source IP of a packet", "Encrypts the packet", "None"], a: 1 },
+        { q: "What does 'Destination NAT' (DNAT) do?", o: ["Changes the source IP", "Changes the destination IP (used for Port Forwarding)", "Blocks the packet", "None"], a: 1 },
+        { q: "What is 'Port Forwarding'?", o: ["Moving a port to another PC", "Redirecting a request from one address/port to another", "Closing a port", "None"], a: 1 },
+        { q: "Which tool is used to monitor network bandwidth in real-time?", o: ["iptraf / iftop", "ls", "top", "df"], a: 0 },
+        { q: "What is 'Zero Day' vulnerability?", o: ["A vulnerability with no days left", "A security hole unknown to the vendor/public", "A virus that lasts 0 days", "None"], a: 1 },
+        { q: "Which iptables target is used to send a packet to a user-defined chain?", o: ["JUMP", "-j <chain_name>", "-g", "--to-chain"], a: 1 },
+        { q: "What is 'Hardening' a system?", o: ["Putting it in a case", "Securing a system by reducing its surface of vulnerability", "Overclocking", "None"], a: 1 },
+        { q: "Which Linux command displays all active network connections?", o: ["netstat or ss", "ls", "ps", "route"], a: 0 },
+        { q: "What is 'IPsec'?", o: ["IP Security protocol suite for encrypting traffic", "A type of IP address", "An internet provider", "None"], a: 0 },
+        { q: "Which port does HTTPS use by default?", o: ["80", "8080", "443", "21"], a: 2 },
+        { q: "What is 'Phishing'?", o: ["Catching fish", "Attempting to acquire sensitive info by masquerading as a trustworthy entity", "A network bug", "None"], a: 1 },
+        { q: "What does the command 'nmap -sS' do?", o: ["Aggressive scan", "TCP SYN scan (Stealthy)", "UDP scan", "Scan everything"], a: 1 },
+        { q: "Which Snort mode only captures packets and displays them on console?", o: ["IDS mode", "Sniffer mode", "Packet Logger mode", "Inline mode"], a: 1 },
+        { q: "In Snort, what is a 'Rule'?", o: ["A law", "A pattern definition used to identify malicious traffic", "A user password", "None"], a: 1 },
+        { q: "What is 'SQL Injection'?", o: ["Adding SQL to a database", "Injecting malicious SQL code into input fields to manipulate databases", "A database backup", "None"], a: 1 },
+        { q: "What is 'XSS'?", o: ["Cross-Site Scripting", "Extra Secure System", "X-linked Security Service", "None"], a: 0 },
+        { q: "Which file is used to configure SSH server settings?", o: ["/etc/ssh/ssh_config", "/etc/ssh/sshd_config", "/etc/passwd", "/etc/hosts"], a: 1 },
+        { q: "What is 'Rootkit'?", o: ["The root of a tree", "Malicious software designed to hide its presence on a system", "A system admin tool", "None"], a: 1 },
+        { q: "What is 'Packet Filtering'?", o: ["Selecting good packets", "Controlling network access by analyzing IP/Port in headers", "A search engine", "None"], a: 1 },
+        { q: "Which iptables command flushes all rules?", o: ["iptables -F", "iptables -D", "iptables -X", "iptables -Z"], a: 0 },
+        { q: "What is 'Air Gap'?", o: ["A fan", "A network security measure where a computer is physically isolated from unsecured networks", "A wireless signal", "None"], a: 1 },
+        { q: "Which VPN protocol is considered highly secure and open source?", o: ["PPTP", "OpenVPN", "L2TP", "Telnet"], a: 1 },
+        { q: "What is 'Two-Factor Authentication' (2FA)?", o: ["Two passwords", "Requiring two forms of identification to access an account", "Two users on one PC", "None"], a: 1 },
+        { q: "In Snort, what does the 'alert' keyword do?", o: ["Blocks the packet", "Generates an alert message and logs the packet", "Ignores the packet", "None"], a: 1 },
+        { q: "What is 'Encryption'?", o: ["Deleting data", "Converting info into a secret code to prevent unauthorized access", "Compressing data", "None"], a: 1 },
+        { q: "What is 'Decryption'?", o: ["Encoding", "The process of converting encrypted data back to its original form", "Scanning", "None"], a: 1 },
+        { q: "Which tool can be used to perform 'ARP Poisoning' for testing?", o: ["Ettercap", "Snort", "Vim", "Apache"], a: 0 },
+        { q: "What is 'ARP Spoofing'?", o: ["Changing a MAC address", "Sending false ARP messages to associate an attacker's MAC with a legitimate IP", "Speeding up ARP", "None"], a: 1 },
+        { q: "What is 'SIEM'?", o: ["Security Information and Event Management", "System Internal Error Monitor", "Security Internet Entry Method", "None"], a: 0 },
+        { q: "Which iptables policy is 'Default Deny'?", o: ["Accept everything", "Block everything except what is explicitly allowed", "Allow everything except what is blocked", "None"], a: 1 },
+        { q: "In firewalld, how do you add port 80/tcp to the public zone?", o: ["firewall-cmd --zone=public --add-port=80/tcp", "iptables -A INPUT -p tcp --dport 80", "systemctl start httpd", "None"], a: 0 },
+        { q: "What is 'Symmetric Encryption'?", o: ["Two different keys", "Using the same key for both encryption and decryption", "No keys", "None"], a: 1 },
+        { q: "What is 'Asymmetric Encryption'?", o: ["Using the same key", "Using a pair of public and private keys", "No encryption", "None"], a: 1 },
+        { q: "What is 'Public Key'?", o: ["A key kept secret", "A key shared with everyone to encrypt messages for the owner", "A key for the office", "None"], a: 1 },
+        { q: "What is 'Private Key'?", o: ["A key shared with everyone", "A key kept secret by the owner to decrypt messages", "A key for a car", "None"], a: 1 },
+        { q: "Which command shows the routing table in Linux?", o: ["route -n or ip route", "ls", "netstat -r", "Both A and C"], a: 3 },
+        { q: "What is 'Wi-Fi Encryption' (WPA2/WPA3)?", o: ["Securing wireless networks from unauthorized access", "Increasing Wi-Fi speed", "Naming a Wi-Fi", "None"], a: 0 }
+    ],
+    "3": [
+        { q: "What does the 'established' state in iptables matching refer to?", o: ["New connections", "Packets that are part of an existing connection", "Closed connections", "None"], a: 1 },
+        { q: "Which protocol does 'Tcpdump' use to capture packets?", o: ["HTTP", "libpcap", "FTP", "SMTP"], a: 1 },
+        { q: "What is 'Banner Grabbing'?", o: ["Taking a banner from a site", "Collecting info about a service (version, OS) from its welcome message", "A graphic design term", "None"], a: 1 },
+        { q: "In VPN, what is 'Split Tunneling'?", o: ["Two VPNs", "Routing only some traffic through the VPN while other traffic goes directly to internet", "Cutting a cable", "None"], a: 1 },
+        { q: "What is 'Bastion Host'?", o: ["A regular desktop", "A special-purpose computer on a network specifically designed to withstand attacks", "A printer", "None"], a: 1 },
+        { q: "What is the purpose of 'Tripwire'?", o: ["Monitoring network speed", "Detecting changes to files (Integrity checking)", "Blocking ports", "None"], a: 1 },
+        { q: "What is 'Social Engineering'?", o: ["Programming social media", "Manipulating people into giving up confidential info", "Building a society", "None"], a: 1 },
+        { q: "What is 'Keylogger'?", o: ["A software to unlock keys", "Software or hardware that records every keystroke made on a computer", "A type of keyboard", "None"], a: 1 },
+        { q: "Which iptables module is used to limit the rate of matching packets (prevents DoS)?", o: ["limit", "state", "tcp", "udp"], a: 0 },
+        { q: "What is the command to stop the firewalld service?", o: ["systemctl stop firewalld", "firewall-cmd --stop", "stop firewall", "service firewalld off"], a: 0 },
+        { q: "What is 'Content Filtering'?", o: ["Sorting files", "Blocking access to specific websites or types of web content", "Editing a video", "None"], a: 1 },
+        { q: "Which file contains the Snort rules?", o: ["snort.conf", "rules.conf", "local.rules (and others in rules directory)", "etc/passwd"], a: 2 },
+        { q: "What is 'Stealth Scan' in Nmap?", o: ["A loud scan", "A scan that tries to avoid detection by security systems", "A scan that uses 100% CPU", "None"], a: 1 },
+        { q: "Which port is used for DNS zone transfers?", o: ["53 (UDP)", "53 (TCP)", "80", "22"], a: 1 },
+        { q: "Which port is used for standard DNS queries?", o: ["53 (UDP)", "53 (TCP)", "443", "25"], a: 0 },
+        { q: "What is 'Botnet'?", o: ["A fast network", "A network of private computers infected with malicious software and controlled as a group", "A robotic arm", "None"], a: 1 },
+        { q: "What is 'Adware'?", o: ["Free software", "Software that automatically displays or downloads advertising material", "A virus that deletes ads", "None"], a: 1 },
+        { q: "What is 'Spyware'?", o: ["Watching a movie", "Software that enables a user to obtain covert info about another's computer activities", "A type of camera", "None"], a: 1 },
+        { q: "What is 'Ransomware'?", o: ["Software for free", "Malicious software that threatens to publish or block access to data unless a ransom is paid", "A backup service", "None"], a: 1 },
+        { q: "Which flag in iptables inserts a rule at a specific position?", o: ["-A", "-I", "-D", "-P"], a: 1 },
+        { q: "What is 'Network Hardening'?", o: ["Using metal cables", "Securing network devices and protocols against unauthorized access", "Upgrading to 10G", "None"], a: 1 },
+        { q: "What is 'VLAN'?", o: ["Virtual Local Area Network", "Very Large Area Network", "Virtual Link Access Node", "None"], a: 0 },
+        { q: "What is the benefit of a VLAN for security?", o: ["Increases speed", "Isolates sensitive traffic from the rest of the network", "Reduces cost", "None"], a: 1 },
+        { q: "Which tool is used to generate network traffic for testing firewalls?", o: ["Iperf / Hping", "Word", "Excel", "Ping"], a: 0 },
+        { q: "What is 'Checksum'?", o: ["Checking a bank check", "A value used to verify the integrity of a file or data packet", "A math game", "None"], a: 1 },
+        { q: "What is 'Packet Fragmenting'?", o: ["Deleting packets", "Breaking a packet into smaller pieces to pass through networks with smaller MTU", "Encrypting packets", "None"], a: 1 },
+        { q: "How can attackers use packet fragmentation?", o: ["To speed up attacks", "To bypass simple packet-filtering firewalls", "To hide their IP", "None"], a: 1 },
+        { q: "Which Snort output plugin stores alerts in a database?", o: ["alert_syslog", "alert_unified2", "database", "log_tcpdump"], a: 2 },
+        { q: "What is 'IDS False Positive'?", o: ["An actual attack", "Alerting on legitimate traffic as if it were malicious", "Missing a real attack", "None"], a: 1 },
+        { q: "What is 'IDS False Negative'?", o: ["Missing an actual attack", "Alerting on good traffic", "Detecting a virus correctly", "None"], a: 0 },
+        { q: "Which protocol is used for sending emails?", o: ["POP3", "SMTP", "IMAP", "HTTP"], a: 1 },
+        { q: "What is the default port for SMTP?", o: ["25", "110", "143", "443"], a: 0 },
+        { q: "What is 'Digital Signature'?", o: ["A scanned signature", "A mathematical scheme for demonstrating the authenticity of digital messages", "A touch screen feature", "None"], a: 1 },
+        { q: "Which command lists all zones in firewalld?", o: ["firewall-cmd --get-zones", "firewall-cmd --list-all-zones", "ls /etc/firewalld/zones", "Both A and B"], a: 3 },
+        { q: "What is 'IP Whitelisting'?", o: ["Using white cables", "Allowing access only to a specific list of trusted IP addresses", "Blocking all IPs", "None"], a: 1 },
+        { q: "What is 'IP Blacklisting'?", o: ["Blocking specific malicious IP addresses", "Allowing all IPs", "Formatting a disk", "None"], a: 0 },
+        { q: "Which iptables chain handles traffic that is passing through the server (routing)?", o: ["INPUT", "OUTPUT", "FORWARD", "PREROUTING"], a: 2 },
+        { q: "What is 'Worm'?", o: ["A bug", "A self-replicating malware that spreads across networks", "A backup script", "None"], a: 1 },
+        { q: "What is 'Trojan Horse'?", o: ["A fast computer", "Malware that misleads users of its true intent by appearing as a legitimate program", "A hardware firewall", "None"], a: 1 },
+        { q: "Which tool is used for 'Stress Testing' a web server?", o: ["Apache JMeter / AB", "Nagios", "Slurm", "Wireshark"], a: 0 }
+    ],
+    "4": [
+        { q: "What is the purpose of 'GnuPG' (GPG)?", o: ["Graphic design", "Encryption and signing of data and communications", "Monitoring clusters", "None"], a: 1 },
+        { q: "What is 'Buffer Overflow'?", o: ["Too much water", "An anomaly where a program writes data beyond the boundary of a buffer, potentially executing malicious code", "RAM upgrade", "None"], a: 1 },
+        { q: "Which Linux directory contains system log files?", o: ["/etc/logs", "/var/log", "/usr/bin", "/tmp"], a: 1 },
+        { q: "What is 'Log Rotation'?", o: ["Spinning a log", "The process of archiving old logs and starting new ones to save space", "Deleting all logs", "None"], a: 1 },
+        { q: "Which tool manages log rotation in Linux?", o: ["logrotate", "cron", "systemd", "iptables"], a: 0 },
+        { q: "What is 'Sandboxing'?", o: ["Playing in sand", "Running a program in an isolated environment to limit its access to the system", "A backup method", "None"], a: 1 },
+        { q: "What is 'SELinux'?", o: ["A game", "Security-Enhanced Linux (provides access control security policies)", "A Linux distribution", "None"], a: 1 },
+        { q: "In SELinux, what does 'Enforcing' mode do?", o: ["Only logs violations", "Blocks and logs policy violations", "Disables SELinux", "None"], a: 1 },
+        { q: "In SELinux, what does 'Permissive' mode do?", o: ["Blocks violations", "Only logs violations without blocking them", "Makes the system faster", "None"], a: 1 },
+        { q: "Which command shows the current SELinux status?", o: ["sestatus", "ls -Z", "getenforce", "Both A and C"], a: 3 },
+        { q: "What is 'AppArmor'?", o: ["A clothing brand", "A Linux security module similar to SELinux used in Ubuntu/Debian", "A firewall", "None"], a: 1 },
+        { q: "What is 'Privilege Escalation'?", o: ["Getting a promotion", "The act of exploiting a bug to gain elevated access to resources (e.g., getting root)", "Updating software", "None"], a: 1 },
+        { q: "What is 'Kernel Hardening'?", o: ["Replacing the kernel", "Applying security patches and configuration to the OS kernel", "Deleting the kernel", "None"], a: 1 },
+        { q: "Which protocol is used for secure file transfer?", o: ["FTP", "SFTP (SSH File Transfer Protocol)", "HTTP", "Telnet"], a: 1 },
+        { q: "What is 'Chroot Jail'?", o: ["A prison for users", "An operation that changes the apparent root directory for a process, isolating it", "Deleting the root user", "None"], a: 1 },
+        { q: "What is 'Auditd'?", o: ["A music player", "The Linux Auditing System (collects security-related events)", "A virus scanner", "None"], a: 1 },
+        { q: "Which file stores local user passwords in an encrypted format?", o: ["/etc/passwd", "/etc/shadow", "/etc/group", "/etc/security"], a: 1 },
+        { q: "What is 'Password Salting'?", o: ["Adding salt to a PC", "Adding random data to a password before hashing to protect against rainbow table attacks", "Changing a password daily", "None"], a: 1 },
+        { q: "What is 'Dictionary Attack'?", o: ["Reading a book", "Attempting to crack a password by trying words from a pre-defined list", "A typo", "None"], a: 1 },
+        { q: "What is 'Rainbow Table'?", o: ["A colorful table", "A precomputed table for reversing cryptographic hash functions (usually for cracking passwords)", "A network diagram", "None"], a: 1 },
+        { q: "What does 'HTTPS' stand for?", o: ["Hypertext Transfer Protocol Secure", "High Tech Power System", "Hyper Text Private System", "None"], a: 0 },
+        { q: "Which organization issues SSL/TLS certificates?", o: ["ISP", "Certificate Authority (CA)", "Google", "The User"], a: 1 },
+        { q: "What is 'Self-Signed Certificate'?", o: ["A certificate from a CA", "A certificate signed by the person who created it, not a trusted CA", "A fake certificate", "None"], a: 1 },
+        { q: "Which command generates an SSH key pair?", o: ["ssh-keygen", "ssh-add", "ssh-copy-id", "make-key"], a: 0 },
+        { q: "What is 'SSH Agent'?", o: ["A person who installs SSH", "A helper program that stores private keys for public-key authentication", "A firewall", "None"], a: 1 },
+        { q: "Which command transfers your public key to a remote server for passwordless login?", o: ["ssh-copy-id", "scp", "ftp", "ssh-add"], a: 0 },
+        { q: "What is 'Packet Capture'?", o: ["Deleting packets", "Intercepting data packets for analysis", "Saving a web page", "None"], a: 1 },
+        { q: "Which flag in tcpdump is used to save captured packets to a file?", o: ["-v", "-w", "-r", "-n"], a: 1 },
+        { q: "Which flag in tcpdump is used to read packets from a saved file?", o: ["-w", "-r", "-i", "-X"], a: 1 },
+        { q: "What is 'ICMP Flood'?", o: ["A network error", "A type of DoS attack where the attacker sends many ICMP echo requests (pings)", "A flood in the data center", "None"], a: 1 },
+        { q: "What is 'SYN Flood'?", o: ["A flood of data", "A DoS attack that exploits the TCP three-way handshake", "A fast internet connection", "None"], a: 1 },
+        { q: "What is 'TCP Three-Way Handshake'?", o: ["SYN, SYN-ACK, ACK", "HI, HELLO, BYE", "SEND, RECEIVE, STOP", "None"], a: 0 },
+        { q: "What is 'Port' in networking?", o: ["A physical hole", "A logical endpoint for communication in an OS", "A type of computer", "None"], a: 1 },
+        { q: "How many ports are available in total for TCP/UDP?", o: ["1024", "80", "65535", "Infinite"], a: 2 },
+        { q: "What are 'Well-known Ports'?", o: ["Ports 0 to 1023", "Ports 1024 to 49151", "Ports above 49152", "None"], a: 0 },
+        { q: "What is 'Standard Firewall Policy'?", o: ["Accept All", "Deny All / Allow explicitly", "Random", "None"], a: 1 },
+        { q: "What is 'Host-based Firewall'?", o: ["A firewall for the whole building", "A firewall running on an individual computer", "A router", "None"], a: 1 },
+        { q: "What is 'Network-based Firewall'?", o: ["A firewall on an individual PC", "A device that filters traffic for an entire network", "A software on a server", "None"], a: 1 },
+        { q: "Which tool is used to monitor log files in real-time?", o: ["tail -f", "ls", "cat", "grep"], a: 0 },
+        { q: "What is 'Hard Drive Encryption' (LUKS)?", o: ["Putting a lock on the server rack", "Encrypting the entire contents of a disk to protect data at rest", "A fast SSD", "None"], a: 1 }
+    ],
+    "5": [
+        { q: "What is the primary goal of the 'Security & Traffic Management' module?", o: ["To build a cluster", "To protect cluster resources and manage network flow", "To write Python code", "None"], a: 1 },
+        { q: "Which iptables chain is used to modify packets before they are routed?", o: ["PREROUTING", "POSTROUTING", "INPUT", "FORWARD"], a: 0 },
+        { q: "Which iptables chain is used to modify packets after they are routed?", o: ["PREROUTING", "POSTROUTING", "OUTPUT", "FORWARD"], a: 1 },
+        { q: "What is 'Masquerading' in Linux?", o: ["Hiding a server", "A form of NAT where multiple internal machines share one public IP", "A type of attack", "None"], a: 1 },
+        { q: "What is the command to list current rules in firewalld for the default zone?", o: ["firewall-cmd --list-all", "iptables -L", "show firewall", "ls /etc/firewall"], a: 0 },
+        { q: "What is 'IDS Signature'?", o: ["A digital signature", "A unique pattern associated with a known threat used by IDS", "A user's login", "None"], a: 1 },
+        { q: "What is 'Anomaly-based detection' in IDS?", o: ["Searching for known viruses", "Detecting behavior that deviates from a normal baseline", "Deleting old data", "None"], a: 1 },
+        { q: "What is 'IPS'?", o: ["Intrusion Prevention System", "Internal Power Supply", "Internet Protocol System", "None"], a: 0 },
+        { q: "Which port is used by 'Telnet'?", o: ["22", "23", "25", "80"], a: 1 },
+        { q: "Why is Telnet considered insecure compared to SSH?", o: ["It is slower", "It transmits data (including passwords) in plain text", "It doesn't support Linux", "None"], a: 1 },
+        { q: "What is 'Public Key Infrastructure' (PKI)?", o: ["Building a server room", "A set of roles/policies to manage digital certificates and public-key encryption", "A type of network", "None"], a: 1 },
+        { q: "What is 'OS Hardening'?", o: ["Putting the OS on a CD", "Securing the operating system by removing unnecessary services and users", "Overclocking the OS", "None"], a: 1 },
+        { q: "What is 'Vulnerability Scanning'?", o: ["Looking for a job", "Automatically identifying security weaknesses in a system/network", "A virus scan", "None"], a: 1 },
+        { q: "Which tool is a famous vulnerability scanner?", o: ["Nessus / OpenVAS", "VLC", "Notepad", "Apache"], a: 0 },
+        { q: "What is 'Zero-Trust Security'?", o: ["Trusting everyone", "A security model where no one is trusted by default, even inside the network", "A system with no passwords", "None"], a: 1 },
+        { q: "What is 'Multi-homed Host'?", o: ["A computer with two CPUs", "A computer with multiple network interfaces connected to different networks", "A computer with two users", "None"], a: 1 },
+        { q: "What is 'Traffic Policing'?", o: ["Giving tickets to packets", "Dropping packets that exceed a certain rate", "Monitoring speed", "None"], a: 1 },
+        { q: "What is 'Quality of Service' (QoS) in networking?", o: ["A high-quality cable", "Prioritizing certain types of traffic (e.g., VoIP) over others", "Speeding up the internet", "None"], a: 1 },
+        { q: "What is 'VPN Concentrator'?", o: ["A small VPN", "A dedicated hardware device for managing many VPN tunnels", "A type of router", "None"], a: 1 },
+        { q: "Which iptables command resets the packet counters to zero?", o: ["iptables -F", "iptables -Z", "iptables -X", "iptables -L"], a: 1 },
+        { q: "What is 'Port Knocking'?", o: ["Hitting a server", "A method of opening ports by sending a specific sequence of packets to closed ports", "A type of attack", "None"], a: 1 },
+        { q: "What is 'In-band Management'?", o: ["Managing via a separate network", "Managing a device through the same network it uses for data traffic", "Using a serial cable", "None"], a: 1 },
+        { q: "What is 'Out-of-band Management'?", o: ["Managing via the data network", "Managing a device through a dedicated separate management network (e.g., IPMI)", "None", "Both A and B"], a: 1 },
+        { q: "What is 'IPMI'?", o: ["Intelligent Platform Management Interface (allows remote power/console control)", "Internet Protocol Management Interface", "A type of router", "None"], a: 0 },
+        { q: "In a cluster, the 'Head Node' should be:", o: ["The least secure", "The most secure and act as a gateway", "Isolated from everything", "None"], a: 1 },
+        { q: "What is 'Security Audit'?", o: ["A financial check", "A systematic evaluation of the security of a company's information system", "A virus scan", "None"], a: 1 },
+        { q: "What is 'Compliance' in security?", o: ["Following a leader", "Meeting specific security standards and regulations (e.g., ISO 27001)", "Writing code", "None"], a: 1 },
+        { q: "What is 'Asset' in security?", o: ["A person", "Any data, device, or other component of the environment that supports information-related activities", "Money", "None"], a: 1 },
+        { q: "What is 'Threat'?", o: ["A friendly user", "A potential cause of an unwanted incident", "A backup failure", "None"], a: 1 },
+        { q: "What is 'Risk'?", o: ["The probability of a threat exploiting a vulnerability", "A virus", "A hacker", "None"], a: 0 },
+        { q: "What is 'Impact'?", o: ["A crash", "The result of an unwanted incident (e.g., data loss, financial loss)", "A network speed", "None"], a: 1 },
+        { q: "What is 'Disaster Recovery Plan' (DRP)?", o: ["A plan for a fire", "A documented process to recover and protect IT infrastructure in the event of a disaster", "Deleting old data", "None"], a: 1 },
+        { q: "Which tool can be used to monitor Wi-Fi traffic (if interface is in monitor mode)?", o: ["Airodump-ng / Wireshark", "Ping", "Nmap", "Vim"], a: 0 },
+        { q: "What is 'Monitor Mode' on a network card?", o: ["Watching a monitor", "A mode that allows a card to capture packets without being associated with an AP", "A high-speed mode", "None"], a: 1 },
+        { q: "What is 'Promiscuous Mode'?", o: ["A fast mode", "A mode that allows a network card to pass all traffic it receives to the CPU (not just for its MAC)", "A security mode", "None"], a: 1 },
+        { q: "What is the result of 'iptables -P INPUT DROP'?", o: ["Accepts all incoming packets", "Sets the default policy for the INPUT chain to discard all packets", "Flushes all rules", "None"], a: 1 },
+        { q: "Which command restarts the firewalld service?", o: ["systemctl restart firewalld", "firewall-cmd --restart", "start firewall", "None"], a: 0 },
+        { q: "What is 'Encryption at Rest'?", o: ["Encrypting data being sent", "Protecting data that is stored on physical media (disks, tapes)", "No encryption", "None"], a: 1 },
+        { q: "What is 'Encryption in Transit'?", o: ["Protecting data while it is moving across a network", "Protecting data on a disk", "Deleting data", "None"], a: 0 },
+        { q: "The 'S' in HTTPS stands for:", o: ["System", "Secure", "Storage", "Service"], a: 1 }
+    ]
+};
+
+// Logic for rendering and validation
+const urlParams = new URLSearchParams(window.location.search);
+const setId = urlParams.get('set') || "1";
+document.querySelectorAll('.set-btn').forEach(b => b.classList.remove('active'));
+if(document.getElementById(`btn-${setId}`)) document.getElementById(`btn-${setId}`).classList.add('active');
+
+const area = document.getElementById('questions-area');
+const activeQs = quizData[setId] || quizData["1"];
+
+activeQs.forEach((item, idx) => {
+    let html = `<div class="question" id="q-block-${idx}"><span class="q-text">${idx+1}. ${item.q}</span>`;
+    item.o.forEach((opt, i) => {
+        html += `<label class="option"><input type="radio" name="q${idx}" value="${i}" onclick="clearMark(${idx})"> ${opt}</label>`;
+    });
+    html += `</div>`;
+    area.innerHTML += html;
+});
+
+function clearMark(idx) { document.getElementById(`q-block-${idx}`).classList.remove('unanswered'); }
+
+function validateQuiz() {
+    let unans = 0;
+    activeQs.forEach((_, i) => {
+        if(!document.querySelector(`input[name="q${i}"]:checked`)) {
+            document.getElementById(`q-block-${i}`).classList.add('unanswered');
+            unans++;
+        }
+    });
+    if(unans > 0) alert(`Answer all questions! ${unans} remaining.`);
+    else calculate();
+}
+
+function calculate() {
+    let score = 0, correct = 0;
+    activeQs.forEach((item, i) => {
+        const val = document.querySelector(`input[name="q${i}"]:checked`).value;
+        if(parseInt(val) === item.a) { score += 3; correct++; } else { score -= 1; }
+    });
+    const perc = ((correct / activeQs.length)*100).toFixed(1);
+    document.getElementById('score-display').innerText = perc + "%";
+    document.getElementById('stats-summary').innerHTML = `<p>Correct: ${correct} | Total Points: ${score}</p>`;
+    document.getElementById('result-modal').style.display = 'flex';
+}
+
+function closeModal() { document.getElementById('result-modal').style.display = 'none'; }
+</script>
+</body>
+</html>

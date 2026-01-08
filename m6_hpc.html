@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Module 6: High Performance Computing - Master Quiz</title>
+    <style>
+        :root { --blue: #003366; --orange: #ff9933; --green: #28a745; --red: #dc3545; --bg: #f0f4f8; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); padding: 20px; color: #333; }
+        .quiz-container { max-width: 950px; margin: auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 5px 25px rgba(0,0,0,0.1); }
+        .header { border-bottom: 3px solid var(--blue); padding-bottom: 15px; margin-bottom: 25px; display: flex; justify-content: space-between; align-items: center; }
+        .back-link { text-decoration: none; color: var(--blue); font-weight: bold; padding: 10px 20px; border: 2px solid var(--blue); border-radius: 6px; transition: 0.3s; }
+        .back-link:hover { background: var(--blue); color: white; }
+        
+        .question { margin-bottom: 25px; padding: 20px; border-radius: 8px; border: 1px solid #e0e0e0; position: relative; }
+        .question.unanswered { border-left: 6px solid var(--red); background: #fff5f5; }
+        .q-text { font-size: 1.1rem; font-weight: 600; margin-bottom: 15px; color: #222; }
+        .option { display: block; padding: 12px; background: #f8f9fa; margin: 8px 0; border: 1px solid #ddd; border-radius: 6px; cursor: pointer; transition: 0.2s; }
+        .option:hover { background: #e9ecef; border-color: var(--blue); }
+        
+        .btn-submit { background: var(--blue); color: white; border: none; padding: 20px; border-radius: 8px; cursor: pointer; font-size: 1.2rem; font-weight: bold; width: 100%; transition: 0.3s; }
+        .btn-submit:hover { background: #002244; transform: translateY(-2px); }
+
+        #result-modal { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.8); z-index: 1000; justify-content: center; align-items: center; }
+        .modal-content { background: white; padding: 40px; border-radius: 15px; text-align: center; width: 90%; max-width: 500px; }
+        .percentage { font-size: 3.5rem; font-weight: bold; color: var(--blue); margin: 20px 0; }
+        .stat-line { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #eee; }
+    </style>
+</head>
+<body>
+
+<div class="quiz-container">
+    <div class="header">
+        <div>
+            <h2 style="margin:0;">High Performance Computing (HPC)</h2>
+            <span id="set-info" style="color: var(--orange); font-weight: bold; font-size: 1.1rem;">Loading Set...</span>
+        </div>
+        <a href="index.html" class="back-link">← Dashboard</a>
+    </div>
+
+    
+
+    <form id="quiz-form">
+        <div id="questions-area"></div>
+        <button type="button" class="btn-submit" onclick="validateForm()">Finish & Calculate Score</button>
+    </form>
+</div>
+
+<div id="result-modal">
+    <div class="modal-content">
+        <h2>Quiz Report</h2>
+        <div class="percentage" id="perc-display">0%</div>
+        <div id="stats-area"></div>
+        <button onclick="location.reload()" style="background: var(--blue); color: white; border: none; padding: 12px 25px; border-radius: 5px; cursor: pointer; margin-top: 20px;">Retake Quiz</button>
+        <button onclick="closeModal()" style="background: #666; color: white; border: none; padding: 12px 25px; border-radius: 5px; cursor: pointer; margin-top: 20px;">Review Answers</button>
+    </div>
+</div>
+
+<script>
+const quizData = {
+    "1": [
+        { q: "What does HPC stand for?", o: ["High Power Computing", "High Performance Computing", "Highly Parallel Computing", "Hyper Processing Center"], a: 1 },
+        { q: "Which law defines the speedup of a program with a fixed sequential part?", o: ["Moore's Law", "Amdahl's Law", "Gustafson's Law", "Metcalfe's Law"], a: 1 },
+        { q: "According to Flynn's Taxonomy, modern multi-core computers are usually:", o: ["SISD", "SIMD", "MISD", "MIMD"], a: 3 },
+        { q: "What is the primary communication library used in distributed memory systems?", o: ["OpenMP", "MPI", "CUDA", "Pthreads"], a: 1 },
+        { q: "What does SIMD stand for?", o: ["Single Instruction Multi Data", "Simple Input Multi Data", "System Integrated Multi Data", "Shared Instruction Multi Data"], a: 0 },
+        { q: "Which metric is calculated as Speedup divided by the number of processors?", o: ["Efficiency", "Throughput", "Latency", "Scalability"], a: 0 },
+        { q: "OpenMP is primarily used for:", o: ["Distributed Memory Programming", "Shared Memory Programming", "GPU Programming", "Network Security"], a: 1 },
+        { q: "In MPI, what does 'Communicator' define?", o: ["The network speed", "A group of processes that can communicate", "The CPU type", "The OS version"], a: 1 },
+        { q: "Which type of parallelism does a GPU focus on?", o: ["Task Parallelism", "Data Parallelism", "Instruction Parallelism", "None"], a: 1 },
+        { q: "What is the standard unit to measure HPC performance?", o: ["MIPS", "FLOPS", "MHz", "GBPS"], a: 1 },
+        { q: "What is a 'Cluster' in HPC?", o: ["A single supercomputer", "A group of interconnected computers working together", "A hard drive partition", "A software bug"], a: 1 },
+        { q: "Which MPI function is used to initialize the MPI environment?", o: ["MPI_Start()", "MPI_Init()", "MPI_Begin()", "MPI_Setup()"], a: 1 },
+        { q: "What is the purpose of a 'Barrier' in parallel programming?", o: ["To stop the program", "To synchronize all processes at a specific point", "To increase memory", "To divide data"], a: 1 },
+        { q: "Which of the following is a distributed memory architecture?", o: ["SMP", "Cluster", "Multi-core CPU", "UMA"], a: 1 },
+        { q: "What does 'Scalability' refer to in HPC?", o: ["Screen resolution", "The ability to handle increasing workloads by adding resources", "Data compression", "Network latency"], a: 1 },
+        { q: "What is a 'Node' in an HPC cluster?", o: ["A network cable", "An individual computer/server in the cluster", "A line of code", "A user account"], a: 1 },
+        { q: "Which MPI function is used to find the total number of processes?", o: ["MPI_Comm_size()", "MPI_Comm_rank()", "MPI_Count()", "MPI_Total()"], a: 0 },
+        { q: "In OpenMP, which directive is used to parallelize a 'for' loop?", o: ["#pragma omp loop", "#pragma omp for", "#pragma omp parallel for", "#pragma omp execute"], a: 2 },
+        { q: "What is 'Shared Memory'?", o: ["Memory accessed by multiple processors", "Memory on a USB drive", "Network storage", "Cloud storage"], a: 0 },
+        { q: "What is the main bottleneck in distributed computing?", o: ["CPU speed", "Network Latency/Communication Overhead", "Disk space", "RAM size"], a: 1 },
+        { q: "Which of the following is a popular HPC job scheduler?", o: ["Slurm", "Windows Task Manager", "Excel", "Apache"], a: 0 },
+        { q: "What does GPGPU stand for?", o: ["General Purpose Graphics Processing Unit", "Global Processing GPU", "General Parallel GPU", "None"], a: 0 },
+        { q: "Which law focuses on the speedup when the problem size increases with the number of processors?", o: ["Amdahl's", "Gustafson's", "Moore's", "Newton's"], a: 1 },
+        { q: "What is 'Race Condition'?", o: ["A fast network", "When two threads access shared data simultaneously causing errors", "A CPU benchmark", "None"], a: 1 },
+        { q: "Which MPI function is used to send a message to another process?", o: ["MPI_Send()", "MPI_Push()", "MPI_Transfer()", "MPI_Output()"], a: 0 },
+        { q: "What is the 'Top500' list?", o: ["List of 500 richest people", "List of the 500 most powerful supercomputers", "500 fastest websites", "None"], a: 1 },
+        { q: "Which architecture has a single address space for all processors?", o: ["Distributed Memory", "Shared Memory", "Hybrid", "Cluster"], a: 1 },
+        { q: "What is 'Cache Coherency'?", o: ["Deleting cache", "Consistency of shared data stored in local caches", "Increasing cache size", "None"], a: 1 },
+        { q: "Which MPI function is used to gracefully shut down the MPI environment?", o: ["MPI_End()", "MPI_Close()", "MPI_Finalize()", "MPI_Stop()"], a: 2 },
+        { q: "What is 'False Sharing' in parallel computing?", o: ["Sharing wrong data", "Performance degradation due to threads accessing different data on same cache line", "Network error", "None"], a: 1 },
+        { q: "Which NVIDIA platform is used for GPU programming?", o: ["DirectX", "CUDA", "OpenGL", "Vulkan"], a: 1 },
+        { q: "What is 'Deadlock'?", o: ["A finished program", "A state where processes are stuck waiting for each other", "A fast process", "None"], a: 1 },
+        { q: "In MPI, 'Rank' refers to:", o: ["Process speed", "Unique ID assigned to each process", "Importance of process", "CPU number"], a: 1 },
+        { q: "Which OpenMP clause makes a variable local to each thread?", o: ["shared", "private", "local", "static"], a: 1 },
+        { q: "What is a 'Fat Tree'?", o: ["A large server", "A network topology used in clusters", "A database structure", "None"], a: 1 },
+        { q: "Which MPI function collects data from all processes to one process?", o: ["MPI_Gather()", "MPI_Scatter()", "MPI_Reduce()", "MPI_Bcast()"], a: 0 },
+        { q: "What is 'Hyper-threading'?", o: ["Multiple physical CPUs", "A technology allowing one CPU core to act as two logical cores", "Faster RAM", "None"], a: 1 },
+        { q: "What does Petaflops represent?", o: ["10^12 FLOPS", "10^15 FLOPS", "10^18 FLOPS", "10^9 FLOPS"], a: 1 },
+        { q: "Which type of parallelism is exploited at the hardware level inside a single core?", o: ["Instruction Level Parallelism (ILP)", "Task Parallelism", "Grid Parallelism", "None"], a: 0 },
+        { q: "What is 'Load Balancing'?", o: ["Weight of the computer", "Distributing work evenly across all processors", "Power supply management", "None"], a: 1 }
+    ],
+    "2": [
+        { q: "In HPC, what is 'Granularity'?", o: ["Size of the dust in CPU", "Ratio of computation to communication", "The number of bits in a word", "None"], a: 1 },
+        { q: "Which of the following is a collective communication in MPI?", o: ["MPI_Send", "MPI_Recv", "MPI_Bcast", "MPI_Isend"], a: 2 },
+        { q: "What is 'Embarrassingly Parallel'?", o: ["A program that cannot be parallelized", "A program where tasks are completely independent", "A slow program", "None"], a: 1 },
+        { q: "In CUDA, what is a 'Thread Block'?", o: ["A single thread", "A group of threads that execute on the same multiprocessor", "A memory unit", "None"], a: 1 },
+        { q: "Which interconnect is most common in HPC clusters?", o: ["Ethernet", "InfiniBand", "USB", "Firewire"], a: 1 },
+        { q: "What is 'Speedup'?", o: ["Clock frequency", "Ratio of sequential execution time to parallel execution time", "Data transfer speed", "None"], a: 1 },
+        { q: "What is 'Fine-grained' parallelism?", o: ["Small tasks with frequent communication", "Large tasks with rare communication", "No communication", "None"], a: 0 },
+        { q: "Which MPI function sends data from one process to all other processes?", o: ["MPI_Gather", "MPI_Scatter", "MPI_Bcast", "MPI_Reduce"], a: 2 },
+        { q: "In OpenMP, what is the 'Master Thread'?", o: ["The thread that creates other threads", "The fastest thread", "The only thread allowed to print", "None"], a: 0 },
+        { q: "What is a 'Supercomputer'?", o: ["A laptop with high RAM", "A system at the frontline of contemporary processing capacity", "Any computer with Linux", "None"], a: 1 },
+        { q: "Which MPI function is non-blocking?", o: ["MPI_Send", "MPI_Isend", "MPI_Ssend", "MPI_Bsend"], a: 1 },
+        { q: "What does 'UMA' stand for?", o: ["Unified Memory Access", "Uniform Memory Access", "User Memory Area", "Universal Memory Array"], a: 1 },
+        { q: "What is 'NUMA'?", o: ["Non-Uniform Memory Access", "New Universal Memory Access", "Network Unit Memory Access", "None"], a: 0 },
+        { q: "In CUDA, where is the 'Kernel' executed?", o: ["On the CPU (Host)", "On the GPU (Device)", "In the RAM", "On the Network"], a: 1 },
+        { q: "What is 'Strong Scaling'?", o: ["Fixing total problem size and increasing processors", "Increasing problem size with processors", "Fixed time scaling", "None"], a: 0 },
+        { q: "What is 'Weak Scaling'?", o: ["Fixing total problem size", "Fixing problem size per processor while increasing processors", "Fixed memory scaling", "None"], a: 1 },
+        { q: "Which of these is a shared-memory API?", o: ["MPI", "Pthreads", "HTTP", "TCP"], a: 1 },
+        { q: "What is the purpose of 'MPI_Reduce'?", o: ["Deletes processes", "Combines values from all processes using an operation (e.g., sum)", "Shortens the code", "None"], a: 1 },
+        { q: "In OpenMP, which clause handles the reduction of a variable?", o: ["combine", "sum", "reduction", "collect"], a: 2 },
+        { q: "What is 'Computation-to-Communication Ratio'?", o: ["Time spent calculating vs time spent moving data", "CPU vs RAM speed", "Input vs Output", "None"], a: 0 },
+        { q: "Which network topology connects every node to every other node?", o: ["Star", "Mesh", "Fully Connected", "Ring"], a: 2 },
+        { q: "What is 'Latency' in HPC networking?", o: ["Network bandwidth", "Time taken for a message to travel from source to destination", "Message size", "None"], a: 1 },
+        { q: "What does 'Bandwidth' represent?", o: ["Cable thickness", "The rate at which data can be transmitted", "Signal strength", "None"], a: 1 },
+        { q: "In CUDA, what is 'Global Memory'?", o: ["Memory shared across all blocks on the GPU", "Memory on the CPU", "The Internet", "None"], a: 0 },
+        { q: "Which MPI function divides data from one process among all processes?", o: ["MPI_Gather", "MPI_Scatter", "MPI_Bcast", "MPI_Reduce"], a: 1 },
+        { q: "What is 'Vector Processing'?", o: ["Drawing lines", "Processing multiple data elements with one instruction", "Increasing image resolution", "None"], a: 1 },
+        { q: "Which of the following is a multi-core processor?", o: ["Intel 8086", "Intel Core i7", "Pentium 4", "None"], a: 1 },
+        { q: "What is 'Task Parallelism'?", o: ["Executing same task on different data", "Executing different tasks on different data", "Sequential execution", "None"], a: 1 },
+        { q: "In OpenMP, what does '#pragma omp critical' do?", o: ["Deletes a variable", "Ensures only one thread executes the block at a time", "Speeds up the loop", "None"], a: 1 },
+        { q: "What is 'Shared Memory' bottleneck?", o: ["Too much RAM", "Contention for the memory bus by multiple processors", "Low battery", "None"], a: 1 },
+        { q: "Which of these is used for 'Profiling' HPC code?", o: ["gprof", "valgrind", "Both A and B", "None"], a: 2 },
+        { q: "In MPI, 'World' communicator is named:", o: ["MPI_WORLD", "MPI_COMM_WORLD", "MPI_ALL", "MPI_GROUP"], a: 1 },
+        { q: "What is 'Speedup' upper bound according to Amdahl's Law?", o: ["1 / (Sequential Fraction)", "Number of processors", "Infinity", "None"], a: 0 },
+        { q: "What is a 'Thread'?", o: ["A physical wire", "The smallest sequence of programmed instructions", "A large file", "None"], a: 1 },
+        { q: "Which MPI function synchronizes processes?", o: ["MPI_Sync", "MPI_Barrier", "MPI_Wait", "MPI_Hold"], a: 1 },
+        { q: "What is 'Data Decomposition'?", o: ["Deleting data", "Splitting data into chunks for parallel processing", "Compressing data", "None"], a: 1 },
+        { q: "Which CUDA memory is fastest but very small?", o: ["Global", "Registers", "Shared", "Constant"], a: 1 },
+        { q: "In HPC, 'Jitter' refers to:", o: ["Screen flicker", "Variability in network latency", "User error", "None"], a: 1 },
+        { q: "What is 'Coarse-grained' parallelism?", o: ["Frequent communication", "Infrequent communication and large tasks", "Low performance", "None"], a: 1 },
+        { q: "What is 'Heterogeneous Computing'?", o: ["Only using CPUs", "Using a mix of different processors (e.g., CPU + GPU)", "Using only one brand of hardware", "None"], a: 1 }
+    ],
+    "3": [
+        { q: "Which MPI function is used to wait for a non-blocking operation to finish?", o: ["MPI_Check", "MPI_Wait", "MPI_Status", "MPI_Stop"], a: 1 },
+        { q: "What is 'Pthreads'?", o: ["Parallel Threads", "POSIX Threads", "Python Threads", "None"], a: 1 },
+        { q: "In OpenMP, which clause makes variables shared across all threads?", o: ["all", "global", "shared", "common"], a: 2 },
+        { q: "What is the purpose of 'Atomic' operations?", o: ["Exploding code", "Uninterruptible operations to prevent race conditions", "Faster math", "None"], a: 1 },
+        { q: "Which metric measures the 'cost' of a parallel program as Processors * Time?", o: ["Efficiency", "Total Work", "Profit", "Scaling"], a: 1 },
+        { q: "In CUDA, 'Shared Memory' is shared within a:", o: ["Grid", "Block", "Warp", "Whole GPU"], a: 1 },
+        { q: "What is a 'Warp' in NVIDIA terminology?", o: ["A group of 32 threads", "A fast network", "A type of memory", "None"], a: 0 },
+        { q: "Which topology is often used in modern high-speed switches?", o: ["Bus", "Crossbar", "Ring", "Star"], a: 1 },
+        { q: "What is 'MPI_Allreduce'?", o: ["Same as Reduce but result is sent to all processes", "Deletes all variables", "Reduces all processes to one", "None"], a: 0 },
+        { q: "Which library is the base for OpenCL?", o: ["CUDA", "OpenMP", "OpenCL is independent", "MPI"], a: 2 },
+        { q: "What is 'Data Locality'?", o: ["Storing data in a local city", "Keeping data as close to the processor as possible", "Using local variables", "None"], a: 1 },
+        { q: "What is 'Instruction Level Parallelism' (ILP)?", o: ["Running multiple apps", "Executing multiple instructions from one stream simultaneously", "Parallel loops", "None"], a: 1 },
+        { q: "Which tool helps visualize MPI communication?", o: ["Excel", "Vampir", "Gimp", "VLC"], a: 1 },
+        { q: "In OpenMP, 'nowait' clause does what?", o: ["Stops threads", "Removes the implicit barrier at the end of a directive", "Speeds up CPU", "None"], a: 1 },
+        { q: "What is the 'Roofline Model' used for?", o: ["Architecture design", "Performance estimation and bottleneck identification", "Cooling systems", "None"], a: 1 },
+        { q: "Which MPI function identifies the ID of the current process?", o: ["MPI_Comm_rank", "MPI_Whoami", "MPI_Get_id", "MPI_Process_rank"], a: 0 },
+        { q: "What is 'Dynamic Scheduling' in OpenMP?", o: ["Fixed work per thread", "Tasks are assigned to threads at runtime", "Changing CPU speed", "None"], a: 1 },
+        { q: "What is 'Overhead' in parallel computing?", o: ["The extra work required to manage parallelism", "The height of the server", "The price of the GPU", "None"], a: 0 },
+        { q: "What does 'MIMD' mean?", o: ["Multiple Instruction Multiple Data", "Multi Input Multi Data", "Main Internal Multi Data", "None"], a: 0 },
+        { q: "Which architecture uses 'Message Passing'?", o: ["Shared Memory", "Distributed Memory", "Single CPU", "None"], a: 1 },
+        { q: "What is 'Bisection Bandwidth'?", o: ["Split bandwidth", "Bandwidth between two halves of a network", "Double bandwidth", "None"], a: 1 },
+        { q: "In CUDA, 'Host' refers to:", o: ["The GPU", "The CPU and its memory", "The Network", "None"], a: 1 },
+        { q: "In CUDA, 'Device' refers to:", o: ["The Mouse", "The GPU", "The Monitor", "The CPU"], a: 1 },
+        { q: "What is a 'Grid' in CUDA?", o: ["A cooling fan", "A collection of thread blocks", "A table of data", "None"], a: 1 },
+        { q: "Which MPI function is used for Broadcast?", o: ["MPI_Sendall", "MPI_Bcast", "MPI_Allsend", "MPI_Multicast"], a: 1 },
+        { q: "What is 'Speedup' S_p if T_1 is 10s and T_p is 2s?", o: ["2", "5", "12", "8"], a: 1 },
+        { q: "Which metric is 100% in a 'perfect' parallel system?", o: ["Latency", "Efficiency", "Overhead", "Throughput"], a: 1 },
+        { q: "What is 'False Sharing' solved by?", o: ["Deleting threads", "Padding/Alignment of data", "Faster network", "None"], a: 1 },
+        { q: "What is 'MPI_ANY_SOURCE' used for?", o: ["Sending to anyone", "Receiving from any process", "Checking any error", "None"], a: 1 },
+        { q: "Which directive in OpenMP creates a team of threads?", o: ["#pragma omp loop", "#pragma omp parallel", "#pragma omp team", "#pragma omp start"], a: 1 },
+        { q: "What is 'Point-to-Point' communication?", o: ["One to Many", "One to One", "Many to Many", "None"], a: 1 },
+        { q: "In HPC, what is 'Throughput'?", o: ["Weight of data", "Rate of successful task completion", "Cable speed", "None"], a: 1 },
+        { q: "What is 'Interconnect'?", o: ["A type of CPU", "The network connecting HPC nodes", "A software protocol", "None"], a: 1 },
+        { q: "What is 'Cache Line'?", o: ["The size of cache", "The unit of data transfer between RAM and Cache", "A row in a table", "None"], a: 1 },
+        { q: "Which MPI function provides the current timestamp?", o: ["MPI_Time", "MPI_Wtime", "MPI_Get_time", "MPI_Clock"], a: 1 },
+        { q: "What is 'SIMT' in GPU architecture?", o: ["Single Instruction Multi Thread", "Simple Input Multi Task", "Single Integrated Multi Tool", "None"], a: 0 },
+        { q: "In OpenMP, which clause specifies the variable scope?", o: ["default", "scope", "range", "area"], a: 0 },
+        { q: "What is 'Amdahl's Law' focused on?", o: ["Strong scaling", "Weak scaling", "Energy consumption", "None"], a: 0 },
+        { q: "What is 'Gustafson's Law' focused on?", o: ["Strong scaling", "Weak scaling", "Network speed", "None"], a: 1 },
+        { q: "What is 'LINPACK'?", o: ["A game", "A benchmark used to rank supercomputers", "A packing tool", "None"], a: 1 }
+    ],
+    "4": [
+        { q: "What is 'Data Parallelism'?", o: ["Different tasks on same data", "Same task on different parts of data", "Sequential data processing", "None"], a: 1 },
+        { q: "Which MPI function allows one process to receive data?", o: ["MPI_Input", "MPI_Recv", "MPI_Get", "MPI_Pull"], a: 1 },
+        { q: "What is 'Blocking' communication?", o: ["Stops the network", "The function returns only after the operation is complete", "Crashes the PC", "None"], a: 1 },
+        { q: "What is 'Non-blocking' communication?", o: ["The function returns immediately while the operation continues", "The network is open", "Faster CPU", "None"], a: 0 },
+        { q: "In OpenMP, what does 'master' directive do?", o: ["Makes a thread the boss", "Ensures only the master thread executes the block", "Increases priority", "None"], a: 1 },
+        { q: "What is 'Process' in OS terms?", o: ["A thread", "An instance of a running program", "A hardware component", "None"], a: 1 },
+        { q: "What is 'Inter-process Communication' (IPC)?", o: ["Talking to users", "Communication between different processes", "Communication between RAM and Disk", "None"], a: 1 },
+        { q: "Which of these is a popular MPI implementation?", o: ["MPICH", "OpenMPI", "Intel MPI", "All of these"], a: 3 },
+        { q: "What is 'Compute Node'?", o: ["The login node", "Node dedicated to running scientific calculations", "The storage node", "None"], a: 1 },
+        { q: "What is 'Login Node'?", o: ["Where calculations run", "Where users log in and submit jobs", "A node for games", "None"], a: 1 },
+        { q: "What is 'HPC Job'?", o: ["An employment in HPC", "A program submitted to the cluster for execution", "A hardware repair task", "None"], a: 1 },
+        { q: "What is 'Queue' in HPC scheduling?", o: ["A line for coffee", "The waiting list for jobs to run on nodes", "A data structure in code", "None"], a: 1 },
+        { q: "What does 'Wall Time' mean?", o: ["Time spent looking at walls", "The real-world time taken to run a job", "CPU clock cycles", "None"], a: 1 },
+        { q: "What is 'Multi-threading'?", o: ["Multiple CPUs", "Executing multiple threads within a single process", "Many processes", "None"], a: 1 },
+        { q: "What is 'Context Switch'?", o: ["Switching rooms", "The process of storing and restoring CPU state", "Changing OS", "None"], a: 1 },
+        { q: "What is 'Shared Memory Contention'?", o: ["Memory limit", "When multiple threads compete for the same memory resource", "Network error", "None"], a: 1 },
+        { q: "In CUDA, what is a 'Streaming Multiprocessor' (SM)?", o: ["A type of RAM", "The hardware unit that executes thread blocks", "A network router", "None"], a: 1 },
+        { q: "What is 'Register' in CPU?", o: ["Smallest, fastest memory inside the processor", "A list of users", "A software log", "None"], a: 0 },
+        { q: "What is 'L1 Cache'?", o: ["Slowest cache", "Fastest and smallest CPU cache level", "The main memory", "None"], a: 1 },
+        { q: "What is 'L3 Cache'?", o: ["Fastest cache", "Slowest but largest level of CPU cache", "Disk space", "None"], a: 1 },
+        { q: "What is 'Memory Bandwidth'?", o: ["Total RAM size", "The speed at which data can be read/written to memory", "Memory location", "None"], a: 1 },
+        { q: "What is 'Parallelism'?", o: ["Doing things one by one", "Doing multiple things at once", "Doing nothing", "None"], a: 1 },
+        { q: "What is 'Concurrency'?", o: ["Parallelism", "Managing multiple tasks at once (not necessarily simultaneously)", "Sequential execution", "None"], a: 1 },
+        { q: "What is 'Vectorization'?", o: ["Creating vectors", "Converting code to use SIMD instructions", "Removing loops", "None"], a: 1 },
+        { q: "What is 'MPI_Scatter' used for?", o: ["Collecting data", "Breaking an array into pieces and sending one piece to each process", "Randomizing data", "None"], a: 1 },
+        { q: "What is 'MPI_Gather' used for?", o: ["Splitting data", "Collecting pieces of data from all processes into one array", "Mixing data", "None"], a: 1 },
+        { q: "What is 'Collective Communication'?", o: ["Talking to one friend", "Communication involving all processes in a communicator", "Talking to a group", "None"], a: 1 },
+        { q: "What is 'Synchronization' in Parallelism?", o: ["Fast network", "Ensuring different threads/processes stay in sync", "A type of clock", "None"], a: 1 },
+        { q: "What is 'MPI_Reduce' with 'MPI_MAX'?", o: ["Calculates sum", "Finds the maximum value across all processes", "Calculates average", "None"], a: 1 },
+        { q: "In OpenMP, what does '#pragma omp single' do?", o: ["Stops threads", "Ensures only one thread in the team executes the block", "Deletes a variable", "None"], a: 1 },
+        { q: "What is 'Core'?", o: ["The case of a CPU", "The processing unit within a CPU", "The RAM", "None"], a: 1 },
+        { q: "What is 'Socket'?", o: ["A network port", "The physical connector on motherboard for a CPU", "A thread ID", "None"], a: 1 },
+        { q: "What is 'TDP' in processors?", o: ["Total Data Processing", "Thermal Design Power (Max heat dissipation)", "Task Distribution Process", "None"], a: 1 },
+        { q: "What is 'Floating Point'?", o: ["A decimal number representation", "A moving pointer", "A bug", "None"], a: 0 },
+        { q: "What is 'Double Precision'?", o: ["16-bit", "32-bit", "64-bit", "128-bit"], a: 2 },
+        { q: "What is 'Single Precision'?", o: ["16-bit", "32-bit", "64-bit", "None"], a: 1 },
+        { q: "In CUDA, '__global__' denotes:", o: ["A host function", "A kernel function called from host to run on device", "A shared variable", "None"], a: 1 },
+        { q: "In CUDA, '__device__' denotes:", o: ["A function that runs on host", "A function that runs on GPU and called from GPU", "A monitor", "None"], a: 1 },
+        { q: "What is 'CUDA Core'?", o: ["A whole CPU", "A simple processing unit on an NVIDIA GPU", "A software library", "None"], a: 1 },
+        { q: "What is 'NVIDIA NVLink'?", o: ["A gaming service", "High-speed interconnect between GPUs", "A type of RAM", "None"], a: 1 }
+    ],
+    "5": [
+        { q: "What is 'Accelerator' in HPC?", o: ["A fast car", "Hardware used to speed up specific tasks (e.g., GPU, FPGA)", "A software optimizer", "None"], a: 1 },
+        { q: "What is 'FPGA'?", o: ["Field Programmable Gate Array", "Fast Processing Grid Array", "Fixed Programming Global Array", "None"], a: 0 },
+        { q: "What is 'ASIC'?", o: ["Application Specific Integrated Circuit", "All System Integrated Circuit", "Advanced System IC", "None"], a: 0 },
+        { q: "What is 'Energy Efficiency' in HPC?", o: ["Performance per Watt", "Total power usage", "The weight of the system", "None"], a: 0 },
+        { q: "What is 'Green500'?", o: ["List of 500 plants", "List of the most energy-efficient supercomputers", "List of recycling centers", "None"], a: 1 },
+        { q: "What is 'Cold Aisle / Hot Aisle'?", o: ["A supermarket layout", "Data center cooling strategy", "A hardware component", "None"], a: 1 },
+        { q: "What is 'Check-pointing' in HPC?", o: ["A finish line", "Periodically saving program state to recover from failures", "A network check", "None"], a: 1 },
+        { q: "What is 'Parallel File System'?", o: ["NTFS", "File system that allows concurrent access from multiple nodes (e.g., Lustre, GPFS)", "FAT32", "None"], a: 1 },
+        { q: "What is 'Lustre'?", o: ["A shiny object", "A popular parallel file system for HPC", "A type of memory", "None"], a: 1 },
+        { q: "What is 'Metadata' in file systems?", o: ["Actual data", "Data about data (names, sizes, locations)", "Compressed data", "None"], a: 1 },
+        { q: "What is 'IOPS'?", o: ["Input/Output Operations Per Second", "Integrated OS Processing", "Input Output Power Supply", "None"], a: 0 },
+        { q: "What is 'Throughput' in I/O?", o: ["Total disk size", "The rate at which data is read from or written to disk", "Disk rotation speed", "None"], a: 1 },
+        { q: "What is 'Scratch Space'?", o: ["A bug in code", "Temporary storage for high-speed I/O during jobs", "A small hard drive", "None"], a: 1 },
+        { q: "What is 'RAID'?", o: ["A bug spray", "Redundant Array of Independent Disks", "Rapid Access Integrated Drive", "None"], a: 1 },
+        { q: "What is 'Parallel Loop'?", o: ["A loop that repeats", "A loop whose iterations can be executed simultaneously", "A recursive loop", "None"], a: 1 },
+        { q: "What is 'Speedup' S_p = T_1 / T_p? What is T_1?", o: ["Time on 1 processor", "Time on P processors", "The sequential fraction", "Total processors"], a: 0 },
+        { q: "What is 'Speedup' S_p = T_1 / T_p? What is T_p?", o: ["Time on 1 processor", "Time on P processors", "A constant", "None"], a: 1 },
+        { q: "In MPI, 'Comm' stands for:", o: ["Command", "Communicator", "Committee", "Computer"], a: 1 },
+        { q: "What is 'Message' in MPI?", o: ["A text email", "A block of data sent between processes", "An error alert", "None"], a: 1 },
+        { q: "What is 'Buffer' in communication?", o: ["A floor cleaner", "Temporary storage area for data being moved", "A network wall", "None"], a: 1 },
+        { q: "What is 'Standard MPI'?", o: ["MPI 1.0", "The common interface agreed upon by developers", "A brand of software", "None"], a: 1 },
+        { q: "What is 'Hybrid Programming'?", o: ["Mixing C++ and Java", "Combining different parallel models (e.g., MPI + OpenMP)", "Using two laptops", "None"], a: 1 },
+        { q: "What is 'MPI_COMM_SELF'?", o: ["Communicator for all nodes", "Communicator containing only the calling process", "A help menu", "None"], a: 1 },
+        { q: "In OpenMP, 'parallel' directive alone does what?", o: ["Creates a loop", "Starts a parallel region where threads execute the same code", "Deletes variables", "None"], a: 1 },
+        { q: "In OpenMP, 'sections' directive is used for:", o: ["Loop parallelism", "Task parallelism (different threads doing different things)", "Memory management", "None"], a: 1 },
+        { q: "What is 'Thread Safety'?", o: ["Keeping threads in a cage", "Code that functions correctly during simultaneous execution by multiple threads", "Encrypted threads", "None"], a: 1 },
+        { q: "What is 'Lock'?", o: ["A hardware key", "A synchronization mechanism for limiting access to a resource", "A frozen screen", "None"], a: 1 },
+        { q: "What is 'Spinlock'?", o: ["A spinning wheel", "A lock where a thread waits in a loop checking the lock status", "A network error", "None"], a: 1 },
+        { q: "What is 'Mutex'?", o: ["Mutual Exclusion object", "Multiple Execution tool", "Multi Task Exit", "None"], a: 0 },
+        { q: "What is 'Semaphore'?", o: ["A signal flag", "A variable used to control access to a common resource", "A hardware bus", "None"], a: 1 },
+        { q: "What is 'Condition Variable'?", o: ["An if statement", "A synchronization primitive to wait for a condition to be true", "A global variable", "None"], a: 1 },
+        { q: "What is 'Interconnect Latency'?", o: ["Network bandwidth", "The delay before a data transfer begins", "The cable length", "None"], a: 1 },
+        { q: "What is 'Tree Topology'?", o: ["Hierarchical network structure", "A ring of nodes", "No structure", "None"], a: 0 },
+        { q: "What is 'Torus Topology'?", o: ["A mesh with wrap-around connections", "A single bus", "A star network", "None"], a: 0 },
+        { q: "What is 'Hypercube Topology'?", o: ["A square", "An n-dimensional mesh", "A triangle", "None"], a: 1 },
+        { q: "What is 'Compute Bound'?", o: ["When performance is limited by RAM", "When performance is limited by CPU speed", "When disk is slow", "None"], a: 1 },
+        { q: "What is 'Memory Bound'?", o: ["When CPU is fast but RAM access is slow", "When CPU is slow", "When the monitor is small", "None"], a: 0 },
+        { q: "What is 'Communication Bound'?", o: ["When the network is the bottleneck", "When the CPU is the bottleneck", "When the user is slow", "None"], a: 0 },
+        { q: "What is 'I/O Bound'?", o: ["When disk access speed is the bottleneck", "When CPU is slow", "When network is fast", "None"], a: 0 },
+        { q: "The 'H' in HPC stands for:", o: ["Higher", "Hyper", "High", "Home"], a: 2 }
+    ]
+};
+
+const urlParams = new URLSearchParams(window.location.search);
+const setId = urlParams.get('set') || "1";
+document.getElementById('set-info').innerText = `CCE Practice Set: ${setId}`;
+
+const questionsArea = document.getElementById('questions-area');
+const activeQs = quizData[setId];
+
+if(activeQs) {
+    activeQs.forEach((item, idx) => {
+        let html = `<div class="question" id="q-block-${idx}">
+            <p class="q-text">${idx + 1}. ${item.q}</p>`;
+        item.o.forEach((opt, i) => {
+            html += `<label class="option">
+                <input type="radio" name="q${idx}" value="${i}" onclick="markAsAnswered(${idx})"> ${opt}
+            </label>`;
+        });
+        html += `</div>`;
+        questionsArea.innerHTML += html;
+    });
+}
+
+function markAsAnswered(idx) {
+    document.getElementById(`q-block-${idx}`).classList.remove('unanswered');
+}
+
+function validateForm() {
+    let unattemptedCount = 0;
+    activeQs.forEach((_, idx) => {
+        if (!document.querySelector(`input[name="q${idx}"]:checked`)) {
+            unattemptedCount++;
+            document.getElementById(`q-block-${idx}`).classList.add('unanswered');
+        }
+    });
+
+    if (unattemptedCount > 0) {
+        alert(`Attention: You missed ${unattemptedCount} questions.`);
+        document.querySelector('.unanswered').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    } else {
+        processResults();
+    }
+}
+
+function processResults() {
+    let score = 0, correct = 0, wrong = 0;
+    activeQs.forEach((item, idx) => {
+        const selected = document.querySelector(`input[name="q${idx}"]:checked`);
+        if (parseInt(selected.value) === item.a) { score += 3; correct++; } else { score -= 1; wrong++; }
+    });
+
+    const percentage = ((correct / activeQs.length) * 100).toFixed(2);
+    document.getElementById('perc-display').innerText = percentage + "%";
+    document.getElementById('stats-area').innerHTML = `
+        <div class="stat-line"><span>Questions:</span> <b>${activeQs.length}</b></div>
+        <div class="stat-line" style="color:green"><span>Correct:</span> <b>${correct}</b></div>
+        <div class="stat-line" style="color:red"><span>Incorrect:</span> <b>${wrong}</b></div>
+        <div class="stat-line" style="font-weight:bold; font-size:1.2rem; margin-top:10px;">
+            <span>Score: ${score} / ${activeQs.length * 3}</span>
+        </div>`;
+    document.getElementById('result-modal').style.display = "flex";
+}
+
+function closeModal() {
+    document.getElementById('result-modal').style.display = "none";
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+</script>
+</body>
+</html>

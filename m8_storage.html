@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Module 8: Storage Technologies - Master Quiz</title>
+    <style>
+        :root { --storage-blue: #2c3e50; --accent: #3498db; --green: #27ae60; --red: #e74c3c; --bg: #ecf0f1; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); padding: 20px; color: #2c3e50; }
+        .quiz-container { max-width: 950px; margin: auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+        .header { border-bottom: 4px solid var(--storage-blue); padding-bottom: 15px; margin-bottom: 25px; display: flex; justify-content: space-between; align-items: center; }
+        .back-link { text-decoration: none; color: var(--storage-blue); font-weight: bold; padding: 10px 20px; border: 2px solid var(--storage-blue); border-radius: 6px; transition: 0.3s; }
+        .back-link:hover { background: var(--storage-blue); color: white; }
+        
+        .question { margin-bottom: 25px; padding: 20px; border-radius: 8px; border: 1px solid #d1d8e0; background: #fff; position: relative; }
+        .question.unanswered { border-left: 6px solid var(--red); background: #fff5f5; }
+        .q-text { font-size: 1.1rem; font-weight: 600; margin-bottom: 15px; }
+        .option { display: block; padding: 12px; background: #f9f9f9; margin: 8px 0; border: 1px solid #ddd; border-radius: 6px; cursor: pointer; transition: 0.2s; }
+        .option:hover { background: #edf7ff; border-color: var(--accent); }
+        
+        .btn-submit { background: var(--storage-blue); color: white; border: none; padding: 20px; border-radius: 8px; cursor: pointer; font-size: 1.2rem; font-weight: bold; width: 100%; margin-top: 20px; }
+        .btn-submit:hover { background: #1a252f; }
+
+        #result-modal { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.85); z-index: 1000; justify-content: center; align-items: center; }
+        .modal-content { background: white; padding: 40px; border-radius: 15px; text-align: center; width: 90%; max-width: 500px; }
+        .percentage { font-size: 3.5rem; font-weight: bold; color: var(--accent); margin: 20px 0; }
+    </style>
+</head>
+<body>
+
+<div class="quiz-container">
+    <div class="header">
+        <div>
+            <h2 style="margin:0;">Storage Technology (SAN/NAS)</h2>
+            <span id="set-info" style="color: var(--accent); font-weight: bold;">Set Loading...</span>
+        </div>
+        <a href="index.html" class="back-link">← Dashboard</a>
+    </div>
+
+    
+
+    <form id="quiz-form">
+        <div id="questions-area"></div>
+        <button type="button" class="btn-submit" onclick="validateForm()">Submit Answers</button>
+    </form>
+</div>
+
+<div id="result-modal">
+    <div class="modal-content">
+        <h2>Performance Report</h2>
+        <div class="percentage" id="perc-display">0%</div>
+        <div id="stats-area"></div>
+        <button onclick="location.reload()" style="background: var(--storage-blue); color: white; border: none; padding: 12px 25px; border-radius: 5px; cursor: pointer; margin-top: 20px;">Retake Quiz</button>
+        <button onclick="closeModal()" style="background: #7f8c8d; color: white; border: none; padding: 12px 25px; border-radius: 5px; cursor: pointer; margin-top: 20px;">Review Results</button>
+    </div>
+</div>
+
+<script>
+const quizData = {
+    "1": [
+        { q: "What does DAS stand for?", o: ["Data Access System", "Direct Attached Storage", "Digital Array Storage", "None"], a: 1 },
+        { q: "Which RAID level provides striping without parity or mirroring?", o: ["RAID 0", "RAID 1", "RAID 5", "RAID 10"], a: 0 },
+        { q: "What is the primary characteristic of RAID 1?", o: ["Striping", "Mirroring", "Distributed Parity", "Double Parity"], a: 1 },
+        { q: "What is the minimum number of disks required for RAID 5?", o: ["2", "3", "4", "5"], a: 1 },
+        { q: "What does SAN stand for?", o: ["Storage Access Network", "Storage Area Network", "System Array Network", "None"], a: 1 },
+        { q: "Which storage type uses block-level access?", o: ["NAS", "DAS", "SAN", "Both DAS and SAN"], a: 3 },
+        { q: "What does NAS stand for?", o: ["Network Area Storage", "Network Attached Storage", "Node Access Storage", "None"], a: 1 },
+        { q: "Which protocol is commonly used in NAS for Linux environments?", o: ["CIFS", "NFS", "FC", "iSCSI"], a: 1 },
+        { q: "Which protocol is commonly used in NAS for Windows environments?", o: ["NFS", "CIFS/SMB", "FCoE", "HBA"], a: 1 },
+        { q: "What is a 'LUN' in storage?", o: ["Local Unit Network", "Logical Unit Number", "List User Node", "None"], a: 1 },
+        { q: "Fibre Channel (FC) usually operates at which layer?", o: ["Physical Layer", "Transport Layer", "Data Link Layer", "Application Layer"], a: 0 },
+        { q: "What is 'iSCSI'?", o: ["Internet Small Computer System Interface", "Integrated System Circuit", "Internet System Storage", "None"], a: 0 },
+        { q: "Which hardware component connects a server to a SAN?", o: ["NIC", "HBA (Host Bus Adapter)", "GPU", "USB Controller"], a: 1 },
+        { q: "What is 'Storage Virtualization'?", o: ["Buying new disks", "Abstracting physical storage into logical pools", "Deleting data", "None"], a: 1 },
+        { q: "In RAID 5, if two disks fail simultaneously, what happens?", o: ["Data is safe", "Data is lost", "Performance increases", "None"], a: 1 },
+        { q: "Which RAID level is known as 'Stripe of Mirrors'?", o: ["RAID 5", "RAID 6", "RAID 10", "RAID 01"], a: 2 },
+        { q: "What is the purpose of 'Hot Spare' in a storage array?", o: ["To cook data", "A standby drive to replace a failed drive automatically", "To increase speed", "None"], a: 1 },
+        { q: "Which storage architecture uses an existing IP network for block storage?", o: ["FC SAN", "iSCSI SAN", "DAS", "NAS"], a: 1 },
+        { q: "What is 'Fabric' in SAN terminology?", o: ["The cloth cover", "The network of switches and cables connecting nodes", "The OS", "None"], a: 1 },
+        { q: "Which RAID level uses double parity to survive two disk failures?", o: ["RAID 1", "RAID 5", "RAID 6", "RAID 0"], a: 2 },
+        { q: "What is 'Throughput' in storage?", o: ["Disk size", "Rate of data transfer (MB/s)", "Rotational speed", "None"], a: 1 },
+        { q: "What is 'IOPS'?", o: ["Input/Output Operations Per Second", "Integrated OS Processing", "Internal Output System", "None"], a: 0 },
+        { q: "What is 'Latency' in disk access?", o: ["The speed of data transfer", "The delay before a transfer begins", "The weight of the disk", "None"], a: 1 },
+        { q: "Which disk type is generally faster: HDD or SSD?", o: ["HDD", "SSD", "Both are same", "None"], a: 1 },
+        { q: "What is 'Zoning' in a SAN switch?", o: ["Labeling disks", "Partitioning the SAN into logical groups for security", "Formatting drives", "None"], a: 1 },
+        { q: "What is 'LUN Masking'?", o: ["Hiding a disk", "Controlling which host can see which LUN", "Changing LUN names", "None"], a: 1 },
+        { q: "What is 'Thin Provisioning'?", o: ["Using small disks", "Allocating storage on-demand rather than upfront", "Deleting unused files", "None"], a: 1 },
+        { q: "What is 'Deduplication'?", o: ["Copying data twice", "Eliminating redundant copies of data", "Increasing data size", "None"], a: 1 },
+        { q: "Which storage type is best for large-scale databases requiring high performance?", o: ["NAS", "SAN", "Cloud Storage", "Floppy Disk"], a: 1 },
+        { q: "What is 'JBOD'?", o: ["Just a Bunch of Disks", "Joint Backup of Data", "Just Block Object Data", "None"], a: 0 },
+        { q: "What is the standard connector for Fibre Channel?", o: ["RJ45", "LC Connector", "USB", "VGA"], a: 1 },
+        { q: "Which RAID level provides 50% capacity if you have 2 disks?", o: ["RAID 0", "RAID 1", "RAID 5", "RAID 6"], a: 1 },
+        { q: "What is 'Cache' in a storage controller?", o: ["Permanent storage", "Temporary high-speed memory for faster I/O", "A virus", "None"], a: 1 },
+        { q: "What is 'Snapshots' in storage?", o: ["A physical photo", "A point-in-time logical copy of data", "Moving data to a new disk", "None"], a: 1 },
+        { q: "Which RAID level is 'Mirroring of Stripes'?", o: ["RAID 10", "RAID 01", "RAID 50", "None"], a: 1 },
+        { q: "What is 'WWN' in Fibre Channel?", o: ["World Wide Name (Unique ID)", "Web Work Network", "World Wireless Node", "None"], a: 0 },
+        { q: "What does 'FCoE' stand for?", o: ["Fibre Channel over Ethernet", "Fibre Channel on Edge", "Fast Connection over Ethernet", "None"], a: 0 },
+        { q: "Which is a characteristic of NAS?", o: ["Block level", "File level access", "Dedicated hardware network", "None"], a: 1 },
+        { q: "What is 'Replication'?", o: ["Deleting data", "Copying data between two storage systems for DR", "Renaming files", "None"], a: 1 },
+        { q: "What is 'MTBF'?", o: ["Mean Time Between Failures", "Maximum Time Before Format", "Main Time Block File", "None"], a: 0 }
+    ],
+    "2": [
+        { q: "RAID 0 is also known as:", o: ["Mirroring", "Striping", "Parity", "Hamming Code"], a: 1 },
+        { q: "In RAID 5, how much storage is lost to parity?", o: ["100%", "50%", "Capacity of 1 disk", "Capacity of 2 disks"], a: 2 },
+        { q: "iSCSI uses which port by default?", o: ["80", "443", "3260", "22"], a: 2 },
+        { q: "What is an 'Initiator' in iSCSI?", o: ["The storage array", "The client/server requesting storage", "A switch", "None"], a: 1 },
+        { q: "What is a 'Target' in iSCSI?", o: ["The server", "The storage device/resource", "The user", "None"], a: 1 },
+        { q: "Which RAID level has the best write performance but no redundancy?", o: ["RAID 1", "RAID 5", "RAID 0", "RAID 6"], a: 2 },
+        { q: "What is 'Data Scrubbing'?", o: ["Deleting data", "Background process to check for and fix disk errors", "Cleaning the disk surface", "None"], a: 1 },
+        { q: "What is 'Write-through' cache?", o: ["Data is written to cache only", "Data is written to cache and disk simultaneously", "No cache is used", "None"], a: 1 },
+        { q: "What is 'Write-back' cache?", o: ["Data written to disk first", "Data written to cache and confirmed to host before disk write", "Deleting cache", "None"], a: 1 },
+        { q: "What is 'Tiered Storage'?", o: ["Using only one type of disk", "Moving data between different disk types based on usage", "A type of RAID", "None"], a: 1 },
+        { q: "Which device is used to connect FC SAN components?", o: ["Ethernet Switch", "FC Switch", "Router", "Modem"], a: 1 },
+        { q: "What is 'Direct Attached Storage' (DAS) limit?", o: ["Can be shared by hundreds of servers", "Usually connected to a single server", "Infinite distance", "None"], a: 1 },
+        { q: "What is 'Object Storage'?", o: ["Folders and files", "Storing data as objects with unique IDs and metadata", "Block level storage", "None"], a: 1 },
+        { q: "What is 'Cold Data'?", o: ["Data in a freezer", "Infrequently accessed data", "New data", "None"], a: 1 },
+        { q: "What is 'Hot Data'?", o: ["Dangerous data", "Frequently accessed data requiring high speed", "Old data", "None"], a: 1 },
+        { q: "Which RAID level requires at least 4 disks?", o: ["RAID 0", "RAID 1", "RAID 10", "RAID 5"], a: 2 },
+        { q: "What is 'Backup'?", o: ["A copy of data to recover from loss", "Deleting old files", "Moving data to a faster disk", "None"], a: 0 },
+        { q: "What is 'Archive'?", o: ["Daily backup", "Long-term storage of data not actively used", "A zip file", "None"], a: 1 },
+        { q: "What is 'RTO' (Recovery Time Objective)?", o: ["Target time to restore service after failure", "Target age of files to recover", "Rate of transfer", "None"], a: 0 },
+        { q: "What is 'RPO' (Recovery Point Objective)?", o: ["Target time to restore", "Maximum tolerable data loss measured in time", "A storage protocol", "None"], a: 1 },
+        { q: "Which file system is native to Windows for large disks?", o: ["EXT4", "NTFS", "FAT16", "XFS"], a: 1 },
+        { q: "Which file system is commonly used in modern Linux distributions?", o: ["NTFS", "EXT4", "FAT32", "HFS"], a: 1 },
+        { q: "What is 'Unified Storage'?", o: ["A single disk", "A system supporting both Block (SAN) and File (NAS) access", "Only cloud storage", "None"], a: 1 },
+        { q: "What is 'NVMe'?", o: ["New Video Memory", "Non-Volatile Memory Express (High speed SSD protocol)", "Network Virtual Memory", "None"], a: 1 },
+        { q: "What is 'SATA'?", o: ["Serial ATA (Common HDD/SSD interface)", "System Access Tool", "Storage Array Task", "None"], a: 0 },
+        { q: "What is 'SAS' (In storage hardware)?", o: ["Serial Attached SCSI", "Storage Access System", "Simple Array Storage", "None"], a: 0 },
+        { q: "Which is more reliable for enterprise: SATA or SAS?", o: ["SATA", "SAS", "Both are same", "None"], a: 1 },
+        { q: "What is 'Form Factor'?", o: ["Storage speed", "Physical size/shape of a drive (e.g., 2.5 or 3.5 inch)", "Data format", "None"], a: 1 },
+        { q: "What is 'Disk Controller'?", o: ["A software app", "Hardware that manages communication with disks", "A user", "None"], a: 1 },
+        { q: "What is 'Volume' in storage?", o: ["Sound level", "A single accessible storage area with a single file system", "The weight of disks", "None"], a: 1 },
+        { q: "What is 'Multi-pathing'?", o: ["Using one cable", "Creating multiple paths between server and storage for redundancy", "Deleting paths", "None"], a: 1 },
+        { q: "What is 'Storage Latency' measured in?", o: ["Seconds", "Milliseconds (ms) or Microseconds", "Ghz", "None"], a: 1 },
+        { q: "Which RAID provides the highest availability for 3 concurrent disk failures?", o: ["RAID 5", "RAID 6", "None of these (usually RAID 6 handles 2)", "RAID 1"], a: 2 },
+        { q: "What is 'Mirroring'?", o: ["Copying data to two disks simultaneously", "Splitting data across disks", "Parity check", "None"], a: 0 },
+        { q: "What is 'Full Backup'?", o: ["Copying only new files", "Copying every file on the system", "Copying half the files", "None"], a: 1 },
+        { q: "What is 'Incremental Backup'?", o: ["Copying everything", "Copying only data changed since the last backup", "Deleting files", "None"], a: 1 },
+        { q: "What is 'Differential Backup'?", o: ["Copying all data since the last FULL backup", "Copying changed data since last Incremental", "None", "None"], a: 0 },
+        { q: "What is 'Cloud Storage Gateway'?", o: ["A router", "Appliance connecting on-premise apps to cloud storage", "A firewall", "None"], a: 1 },
+        { q: "What is 'IO Size'?", o: ["Disk physical size", "The size of a single data request (e.g., 4KB, 64KB)", "Total storage capacity", "None"], a: 1 },
+        { q: "The 'A' in RAID stands for:", o: ["Access", "Array", "Area", "Advanced"], a: 1 }
+    ],
+    "3": [
+        { q: "Which RAID level is most cost-efficient for large capacity with redundancy?", o: ["RAID 1", "RAID 5", "RAID 10", "RAID 0"], a: 1 },
+        { q: "What is 'IQN'?", o: ["Internal Query Node", "iSCSI Qualified Name", "Integrated Quality Network", "None"], a: 1 },
+        { q: "What is 'Parity'?", o: ["Data mirroring", "Mathematical value used to rebuild data on disk failure", "Data deletion", "None"], a: 1 },
+        { q: "What is 'Striping'?", o: ["Copying data to two disks", "Spreading data across multiple disks to increase performance", "Backup method", "None"], a: 1 },
+        { q: "Which is a 'File-level' storage?", o: ["SAN", "NAS", "iSCSI", "FCoE"], a: 1 },
+        { q: "What is 'DAS' benefit?", o: ["Easy to share", "Simple and low cost", "High distance", "None"], a: 1 },
+        { q: "What is 'SAN' benefit?", o: ["Cheapest", "Highly scalable and high performance", "Slow", "None"], a: 1 },
+        { q: "What is 'Storage Tiering'?", o: ["RAID level", "Organizing data based on performance/cost needs", "Naming disks", "None"], a: 1 },
+        { q: "What is 'Compression'?", o: ["Deleting files", "Reducing data size to save space", "Copying files", "None"], a: 1 },
+        { q: "What is 'Offsite Backup'?", o: ["Storing backup in same room", "Storing backup in a different physical location", "No backup", "None"], a: 1 },
+        { q: "What is 'LTO'?", o: ["Linear Tape-Open (Standard for tape storage)", "Local Task Object", "Large Task Output", "None"], a: 0 },
+        { q: "Which storage media is best for extremely long-term archival?", o: ["SSD", "RAM", "Tape", "HDD"], a: 2 },
+        { q: "What is 'VTL'?", o: ["Virtual Tape Library", "Virtual Task List", "Verified Tape Level", "None"], a: 0 },
+        { q: "What is 'Metaspace'?", o: ["Storage for data", "Storage for information about storage", "Cloud", "None"], a: 1 },
+        { q: "What is 'Host' in storage context?", o: ["The storage box", "The server using the storage", "The cable", "None"], a: 1 },
+        { q: "What is 'Array Controller'?", o: ["User interface", "Hardware managing the RAID and logic of the disks", "A cooling fan", "None"], a: 1 },
+        { q: "What is 'Cache Hit'?", o: ["Cache is full", "Requested data is found in the cache", "Cache is empty", "None"], a: 1 },
+        { q: "What is 'Cache Miss'?", o: ["Requested data is NOT found in cache", "Data is deleted", "Cache is fast", "None"], a: 0 },
+        { q: "What is 'SSD' Wear Leveling?", o: ["Breaking the SSD", "Ensuring all memory cells are used evenly to extend life", "Deleting data", "None"], a: 1 },
+        { q: "What is 'TRIM' command?", o: ["Cutting cables", "OS telling SSD which blocks are no longer used", "Naming a disk", "None"], a: 1 },
+        { q: "What is 'ZFS'?", o: ["A type of CPU", "A high-end file system/logical volume manager", "A virus", "None"], a: 1 },
+        { q: "What is 'RAID 1+0'?", o: ["RAID 1", "RAID 10", "RAID 0", "None"], a: 1 },
+        { q: "How many disks are needed for RAID 6?", o: ["2", "3", "4", "None"], a: 2 },
+        { q: "What is 'Global Hot Spare'?", o: ["A spare for one RAID group", "A spare available for any failed disk in any RAID group", "A hot CPU", "None"], a: 1 },
+        { q: "What is 'Dedup' Ratio?", o: ["Speed of disk", "Amount of space saved by deduplication", "RAID speed", "None"], a: 1 },
+        { q: "What is 'Storage Pool'?", o: ["A physical disk", "Aggregated capacity of multiple disks to be carved into LUNs", "A swimming pool", "None"], a: 1 },
+        { q: "What is 'Volume Expansion'?", o: ["Shrinking storage", "Increasing the size of a volume without data loss", "Deleting a volume", "None"], a: 1 },
+        { q: "What is 'SAN Switch'?", o: ["A regular Ethernet switch", "A specialized switch for Fibre Channel or iSCSI", "A power switch", "None"], a: 1 },
+        { q: "What is 'ISL'?", o: ["Inter-Switch Link", "Internal System List", "Integrated Storage Level", "None"], a: 0 },
+        { q: "What is 'Fan-in'?", o: ["A cooling fan", "Connecting multiple hosts to one storage port", "One host to many ports", "None"], a: 1 },
+        { q: "What is 'Fan-out'?", o: ["Connecting one host to many storage ports", "Cooling", "Deleting hosts", "None"], a: 0 },
+        { q: "What is 'Storage Latency' bottleneck?", o: ["Fast network", "Slow mechanical disks or busy controllers", "Too much RAM", "None"], a: 1 },
+        { q: "What is 'Sequential I/O'?", o: ["Random data access", "Reading/writing data in a continuous stream (e.g., Video)", "No access", "None"], a: 1 },
+        { q: "What is 'Random I/O'?", o: ["Streaming data", "Accessing data from different parts of the disk (e.g., Database)", "Deleting data", "None"], a: 1 },
+        { q: "What is 'Write Amplification'?", o: ["Speeding up writes", "Background data movement in SSDs causing extra writes", "Using more power", "None"], a: 1 },
+        { q: "What is 'Metadata' in storage?", o: ["Main data", "Information about files like size, permissions, dates", "Deleted data", "None"], a: 1 },
+        { q: "Which protocol is usually faster: iSCSI or FC?", o: ["iSCSI", "FC", "Both same", "None"], a: 1 },
+        { q: "What is 'CIFS'?", o: ["Common Internet File System", "Central Integrated File System", "Cloud Information System", "None"], a: 0 },
+        { q: "What is 'SMB'?", o: ["Server Message Block", "System Main Block", "Storage Multi Backup", "None"], a: 0 },
+        { q: "The 'I' in iSCSI stands for:", o: ["Integrated", "Internet", "Internal", "Information"], a: 1 }
+    ],
+    "4": [
+        { q: "What is 'RAID 2'?", o: ["Striping with parity", "Bit-level striping using Hamming code", "Mirroring", "None"], a: 1 },
+        { q: "What is 'RAID 3'?", o: ["Byte-level striping with dedicated parity disk", "Mirroring", "Striping only", "None"], a: 0 },
+        { q: "What is 'RAID 4'?", o: ["Block-level striping with dedicated parity disk", "Mirroring", "Distributed parity", "None"], a: 0 },
+        { q: "What is the key difference between RAID 4 and RAID 5?", o: ["RAID 4 has mirroring", "RAID 4 uses a dedicated parity disk; RAID 5 distributes it", "No difference", "None"], a: 1 },
+        { q: "What is 'EBS' in AWS?", o: ["Elastic Block Store", "Every Backup Stored", "Electronic Binary System", "None"], a: 0 },
+        { q: "What is 'S3'?", o: ["Simple Storage Service (Object Storage)", "System System Storage", "Super Storage Service", "None"], a: 0 },
+        { q: "Which RAID is best for database 'Log' files?", o: ["RAID 5", "RAID 1", "RAID 0", "None"], a: 1 },
+        { q: "Which RAID is best for database 'Data' files?", o: ["RAID 1", "RAID 10", "RAID 6", "Any"], a: 1 },
+        { q: "What is 'Storage Node'?", o: ["A user", "A server providing storage capacity in a cluster", "A switch", "None"], a: 1 },
+        { q: "What is 'RAID Reconstruction'?", o: ["Deleting a RAID", "The process of rebuilding data on a new disk after failure", "Naming a RAID", "None"], a: 1 },
+        { q: "What is 'Storage Multipath' software?", o: ["A game", "Software ensuring seamless failover between paths", "Network driver", "None"], a: 1 },
+        { q: "What is 'FCP'?", o: ["Fibre Channel Protocol", "Fast Connection Protocol", "File Control Process", "None"], a: 0 },
+        { q: "What is 'ALUA' in storage?", o: ["Asymmetric Logical Unit Access", "All Logical User Access", "Advanced Level Unit Access", "None"], a: 0 },
+        { q: "What is 'Storage Controller Failover'?", o: ["Breaking the controller", "One controller taking over the work of a failed one", "Rebooting", "None"], a: 1 },
+        { q: "What is 'Head-at-the-Wall' limit?", o: ["Storage limit", "Network limit", "CPU limit", "None"], a: 0 },
+        { q: "What is 'SDS'?", o: ["Software Defined Storage", "System Data Storage", "Software Digital System", "None"], a: 0 },
+        { q: "What is 'Ceph'?", o: ["A brand of car", "A popular open-source distributed storage system", "A cloud provider", "None"], a: 1 },
+        { q: "What is 'GlusterFS'?", o: ["A game", "A scalable network file system", "A hardware disk", "None"], a: 1 },
+        { q: "What is 'Erasure Coding'?", o: ["Deleting code", "Method of data protection that breaks data into fragments and expands/encodes with redundant data", "Mirroring", "None"], a: 1 },
+        { q: "What is 'Hyper-converged Infrastructure' (HCI)?", o: ["Slow storage", "Integrating compute, storage, and networking into one system", "Cloud only", "None"], a: 1 },
+        { q: "What is 'Nutanix'?", o: ["A food", "A major HCI software provider", "A disk brand", "None"], a: 1 },
+        { q: "What is 'VMware vSAN'?", o: ["A hardware SAN", "Software-defined storage for VMware environments", "A switch", "None"], a: 1 },
+        { q: "What is 'File Locking'?", o: ["Protecting a disk", "Mechanism to prevent multiple users from editing the same file at once", "A password", "None"], a: 1 },
+        { q: "What is 'Quota' in NAS?", o: ["Speed limit", "Limit on the amount of storage a user/group can use", "Network limit", "None"], a: 1 },
+        { q: "What is 'Sparse File'?", o: ["A heavy file", "A file that takes up less space than its logical size", "A corrupted file", "None"], a: 1 },
+        { q: "What is 'Journaling' in file systems?", o: ["Writing a diary", "Recording changes in a log to recover from crashes", "Deleting data", "None"], a: 1 },
+        { q: "What is 'Defragmentation'?", o: ["Breaking a disk", "Reorganizing files to be contiguous for faster access (HDD)", "Adding files", "None"], a: 1 },
+        { q: "Do SSDs need defragmentation?", o: ["Yes", "No (it can actually harm them)", "Sometimes", "None"], a: 1 },
+        { q: "What is 'Wear Out' in SSDs?", o: ["Physical rust", "Limited number of write/erase cycles", "Battery dying", "None"], a: 1 },
+        { q: "What is 'Disk Latency' components?", o: ["Seek time + Rotational latency", "Network speed", "CPU speed", "None"], a: 0 },
+        { q: "What is 'Seek Time'?", o: ["Time to find a file in a list", "Time for the disk arm to move to the correct track", "Time to read data", "None"], a: 1 },
+        { q: "What is 'Rotational Latency'?", o: ["Time for the disk to spin to the correct sector", "Time to spin up from sleep", "Network delay", "None"], a: 0 },
+        { q: "What is 'S.M.A.R.T.'?", o: ["Self-Monitoring, Analysis and Reporting Technology", "System Management and Reporting Tool", "Storage Main Access", "None"], a: 0 },
+        { q: "What is 'HBA Queue Depth'?", o: ["Storage size", "The number of I/O requests an HBA can handle at once", "Cable length", "None"], a: 1 },
+        { q: "What is 'Jumbo Frames' in iSCSI?", o: ["Large disks", "Large Ethernet frames to improve network performance", "Big servers", "None"], a: 1 },
+        { q: "What is 'CHAP' in iSCSI?", o: ["A person", "Challenge-Handshake Authentication Protocol (Security)", "A network port", "None"], a: 1 },
+        { q: "What is 'Storage Fabric'?", o: ["A cloth", "The network infrastructure of a SAN", "The storage OS", "None"], a: 1 },
+        { q: "What is 'Disk Array'?", o: ["A single disk", "A group of multiple disk drives", "A software program", "None"], a: 1 },
+        { q: "What is 'Storage Management'?", o: ["Deleting files", "Monitoring and configuring storage resources", "Buying disks", "None"], a: 1 },
+        { q: "The 'N' in SAN stands for:", o: ["Node", "Network", "Native", "New"], a: 1 }
+    ],
+    "5": [
+        { q: "Which RAID level provides zero redundancy?", o: ["RAID 1", "RAID 0", "RAID 5", "RAID 6"], a: 1 },
+        { q: "Which RAID level provides 100% redundancy?", o: ["RAID 0", "RAID 1", "RAID 5", "RAID 6"], a: 1 },
+        { q: "What is the primary disadvantage of RAID 1?", o: ["Slow read", "High cost (50% capacity loss)", "Low reliability", "None"], a: 1 },
+        { q: "What is the primary disadvantage of RAID 5?", o: ["Slow read", "Slow write performance during recovery (Write Penalty)", "No redundancy", "None"], a: 1 },
+        { q: "In iSCSI, what carries the data?", o: ["Fibre cables", "Ethernet/IP packets", "USB cables", "None"], a: 1 },
+        { q: "What is 'Block' in storage?", o: ["A folder", "Fixed-size chunk of data (the smallest unit of storage access)", "A whole file", "None"], a: 1 },
+        { q: "What is 'Sector' in HDD?", o: ["A track", "The smallest physical storage unit on a disk platter", "A cable", "None"], a: 1 },
+        { q: "What is 'Cluster' in a file system?", o: ["A group of servers", "A group of sectors", "A single file", "None"], a: 1 },
+        { q: "What is 'Fragmentation'?", o: ["Joining files", "Files being stored in non-contiguous pieces", "Deleting files", "None"], a: 1 },
+        { q: "What is 'In-band' management?", o: ["Separate network", "Management traffic travels on the same data path", "No management", "None"], a: 1 },
+        { q: "What is 'Out-of-band' (OOB) management?", o: ["Same network", "Management traffic travels on a dedicated separate network", "Manual management", "None"], a: 1 },
+        { q: "What is 'Data Migration'?", o: ["Deleting data", "Moving data from one storage system to another", "Copying data", "None"], a: 1 },
+        { q: "What is 'Cold Standby'?", o: ["Running backup", "Backup system that is off and needs manual start", "Hot server", "None"], a: 1 },
+        { q: "What is 'Hot Standby'?", o: ["Broken system", "Backup system running and ready for immediate failover", "Cold server", "None"], a: 1 },
+        { q: "What is 'Business Continuity'?", o: ["Stopping business", "Ability to maintain operations during and after a disaster", "Deleting data", "None"], a: 1 },
+        { q: "What is 'Off-site Vaulting'?", o: ["Storing tapes in a secure off-site location", "Deleting tapes", "Storing tapes in the server room", "None"], a: 0 },
+        { q: "What is 'Cloud Storage'?", o: ["Storage in the sky", "Storage delivered over a network (usually Internet) as a service", "Local HDD", "None"], a: 1 },
+        { q: "Which is a major provider of SAN hardware?", o: ["Dell EMC", "NetApp", "HPE", "All of these"], a: 3 },
+        { q: "What is 'Storage Provisioning'?", o: ["Deleting disks", "Process of assigning storage to a host", "Buying disks", "None"], a: 1 },
+        { q: "What is 'Metadata Controller'?", o: ["User", "System that manages metadata in a distributed file system", "A disk", "None"], a: 1 },
+        { q: "What is 'Stripe Width'?", o: ["Disk physical width", "The number of disks in a RAID 0 or RAID 5 group", "Length of cable", "None"], a: 1 },
+        { q: "What is 'Disk Mirroring'?", o: ["RAID 0", "RAID 1", "RAID 5", "None"], a: 1 },
+        { q: "What is 'Write Penalty' in RAID 5?", o: ["Paying money", "Extra I/O required to calculate and write parity", "Slow CPU", "None"], a: 1 },
+        { q: "What is 'Direct I/O'?", o: ["Using cache", "Bypassing the OS cache to read/write directly to disk", "Manual I/O", "None"], a: 1 },
+        { q: "What is 'Asynchronous Replication'?", o: ["Immediate copy", "Copying data with a delay (not real-time)", "No copy", "None"], a: 1 },
+        { q: "What is 'Synchronous Replication'?", o: ["Real-time copy (host waits for confirmation from both)", "Delayed copy", "Deleting data", "None"], a: 0 },
+        { q: "What is 'Cascading' in SAN?", o: ["Connecting switches in a series", "Deleting switches", "A waterfall", "None"], a: 0 },
+        { q: "What is 'Point-to-Point' in FC?", o: ["Connecting two devices directly", "Connecting via switch", "Connecting via internet", "None"], a: 0 },
+        { q: "What is 'FC-AL'?", o: ["Fibre Channel Arbitrated Loop", "Fibre Channel Access Level", "Fast Connection All", "None"], a: 0 },
+        { q: "What is 'Fabric Login' (FLOGI)?", o: ["Logging into Windows", "A device logging into a SAN fabric to get an address", "Shutting down", "None"], a: 1 },
+        { q: "What is 'Payload' in a frame?", o: ["The header", "The actual data being transmitted", "The error code", "None"], a: 1 },
+        { q: "What is 'CRC'?", o: ["Cyclic Redundancy Check (Error detection)", "Central Resource Control", "Cloud Recovery Center", "None"], a: 0 },
+        { q: "What is 'HBA'?", o: ["Host Bus Adapter", "Hardware Backup Array", "High Bandwidth Access", "None"], a: 0 },
+        { q: "What is 'RAID Controller'?", o: ["A disk", "Processor that manages the RAID array", "A user", "None"], a: 1 },
+        { q: "What is 'Logical Volume'?", o: ["Physical disk", "A virtual disk that can span multiple physical disks", "A folder", "None"], a: 1 },
+        { q: "What is 'Data Integrity'?", o: ["Deleting data", "Accuracy and consistency of data over its lifecycle", "Naming data", "None"], a: 1 },
+        { q: "What is 'Silent Data Corruption'?", o: ["Deleting files", "Data being corrupted without the system noticing", "A loud error", "None"], a: 1 },
+        { q: "What is 'Bit Rot'?", o: ["Physical rust", "Slow decay of data on storage media over time", "A fast disk", "None"], a: 1 },
+        { q: "What is 'Tape Drive'?", o: ["A CD player", "Device that reads/writes data on magnetic tape", "A hard drive", "None"], a: 1 },
+        { q: "The 'S' in NAS stands for:", o: ["System", "Storage", "Service", "Secure"], a: 1 }
+    ]
+};
+
+const urlParams = new URLSearchParams(window.location.search);
+const setId = urlParams.get('set') || "1";
+document.getElementById('set-info').innerText = `CCE Practice Set: ${setId}`;
+
+const questionsArea = document.getElementById('questions-area');
+const activeQs = quizData[setId];
+
+if(activeQs) {
+    activeQs.forEach((item, idx) => {
+        let html = `<div class="question" id="q-block-${idx}">
+            <p class="q-text">${idx + 1}. ${item.q}</p>`;
+        item.o.forEach((opt, i) => {
+            html += `<label class="option">
+                <input type="radio" name="q${idx}" value="${i}" onclick="markAnswered(${idx})"> ${opt}
+            </label>`;
+        });
+        html += `</div>`;
+        questionsArea.innerHTML += html;
+    });
+}
+
+function markAnswered(idx) {
+    document.getElementById(`q-block-${idx}`).classList.remove('unanswered');
+}
+
+function validateForm() {
+    let missing = 0;
+    activeQs.forEach((_, idx) => {
+        if (!document.querySelector(`input[name="q${idx}"]:checked`)) {
+            missing++;
+            document.getElementById(`q-block-${idx}`).classList.add('unanswered');
+        }
+    });
+
+    if (missing > 0) {
+        alert("Wait! You missed " + missing + " questions.");
+        document.querySelector('.unanswered').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    } else {
+        processResults();
+    }
+}
+
+function processResults() {
+    let score = 0, correct = 0, wrong = 0;
+    activeQs.forEach((item, idx) => {
+        const selected = document.querySelector(`input[name="q${idx}"]:checked`);
+        if (parseInt(selected.value) === item.a) { score += 3; correct++; } else { score -= 1; wrong++; }
+    });
+
+    const percentage = ((correct / activeQs.length) * 100).toFixed(2);
+    document.getElementById('perc-display').innerText = percentage + "%";
+    document.getElementById('stats-area').innerHTML = `
+        <p>Correct: <b>${correct}</b> | Wrong: <b>${wrong}</b></p>
+        <p style="font-size: 1.2rem; font-weight: bold;">Score: ${score} / ${activeQs.length * 3}</p>
+    `;
+    document.getElementById('result-modal').style.display = "flex";
+}
+
+function closeModal() {
+    document.getElementById('result-modal').style.display = "none";
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+</script>
+</body>
+</html>

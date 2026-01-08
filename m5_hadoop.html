@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Module 5: Big Data & Hadoop - Master Quiz</title>
+    <style>
+        :root { --blue: #003366; --orange: #ff9933; --green: #28a745; --red: #dc3545; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f4f7f6; padding: 20px; color: #333; line-height: 1.6; }
+        .quiz-container { max-width: 900px; margin: auto; background: white; padding: 40px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+        .header { border-bottom: 4px solid var(--blue); padding-bottom: 20px; margin-bottom: 30px; display: flex; justify-content: space-between; align-items: center; }
+        .back-link { text-decoration: none; color: var(--blue); font-weight: bold; padding: 8px 15px; border: 1px solid var(--blue); border-radius: 5px; }
+        
+        .question { margin-bottom: 30px; padding: 20px; border-radius: 10px; background: #fff; border: 1px solid #eee; transition: 0.3s; }
+        .question.unanswered { border-left: 5px solid var(--red); background: #fff8f8; }
+        .q-text { font-size: 1.15rem; font-weight: 600; margin-bottom: 15px; color: var(--blue); }
+        .option { display: block; padding: 14px; background: #f9f9f9; margin: 10px 0; border: 1.5px solid #ddd; border-radius: 8px; cursor: pointer; }
+        .option:hover { background: #eef2f7; border-color: var(--blue); }
+        
+        .btn-submit { background: var(--blue); color: white; border: none; padding: 18px; border-radius: 8px; cursor: pointer; font-size: 1.2rem; font-weight: bold; width: 100%; margin-top: 20px; }
+
+        #result-modal { 
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: rgba(0,0,0,0.85); z-index: 1000; justify-content: center; align-items: center; 
+        }
+        .modal-content { 
+            background: white; padding: 30px; border-radius: 15px; text-align: center; 
+            max-width: 500px; width: 90%; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        .stat-line { font-size: 1.1rem; margin: 10px 0; display: flex; justify-content: space-between; border-bottom: 1px solid #eee; padding: 5px 0; }
+        .percentage { font-size: 3rem; font-weight: bold; color: var(--blue); margin: 15px 0; }
+    </style>
+</head>
+<body>
+
+<div class="quiz-container">
+    <div class="header">
+        <div>
+            <h2 style="margin:0;">Big Data & Hadoop</h2>
+            <span id="set-info" style="color: var(--orange); font-weight: bold;">Set Loading...</span>
+        </div>
+        <a href="index.html" class="back-link">Dashboard</a>
+    </div>
+
+    
+
+    <form id="quiz-form">
+        <div id="questions-area"></div>
+        <button type="button" class="btn-submit" onclick="checkSubmission()">Submit & View Detailed Result</button>
+    </form>
+</div>
+
+<div id="result-modal">
+    <div class="modal-content">
+        <h2 id="msg-text">Quiz Results</h2>
+        <div class="percentage" id="perc-display">0%</div>
+        <div id="stats-area"></div>
+        <button onclick="location.reload()" style="background: var(--blue); color: white; border: none; padding: 12px 25px; border-radius: 5px; cursor: pointer; margin-top: 20px;">Try Again</button>
+        <button onclick="closeModal()" style="background: #666; color: white; border: none; padding: 12px 25px; border-radius: 5px; cursor: pointer; margin-top: 20px;">Review Answers</button>
+    </div>
+</div>
+
+<script>
+const quizData = {
+    "1": [
+        { q: "Who is the primary creator of Apache Hadoop?", o: ["Doug Cutting", "Guido van Rossum", "James Gosling", "Dennis Ritchie"], a: 0 },
+        { q: "What are the 3 V's of Big Data?", o: ["Volume, Variety, Velocity", "Value, Variety, Virtual", "Volume, Velocity, Veracity", "Vastness, Volume, Variety"], a: 0 },
+        { q: "Hadoop is written in which language?", o: ["C++", "Python", "Java", "Scala"], a: 2 },
+        { q: "What is the default block size in Hadoop 2.x?", o: ["64 MB", "128 MB", "256 MB", "512 MB"], a: 1 },
+        { q: "Which daemon is known as the Master of HDFS?", o: ["DataNode", "NameNode", "TaskTracker", "NodeManager"], a: 1 },
+        { q: "What does HDFS stand for?", o: ["Hadoop Direct File System", "Hadoop Distributed File System", "High Data File System", "Hard Drive File System"], a: 1 },
+        { q: "The 'Map' function in MapReduce does what?", o: ["Reduces data", "Filters and sorts data", "Joins data", "Combines data"], a: 1 },
+        { q: "What is the role of Secondary NameNode?", o: ["Backup for NameNode", "Checkpointing", "Primary storage", "Monitoring"], a: 1 },
+        { q: "Which tool is used for importing data from RDBMS to HDFS?", o: ["Pig", "Hive", "Sqoop", "Flume"], a: 2 },
+        { q: "In YARN, what does the 'R' stand for?", o: ["Resource", "Remote", "Release", "Router"], a: 0 },
+        { q: "Which component of Hadoop is responsible for Resource Management?", o: ["HDFS", "MapReduce", "YARN", "Flume"], a: 2 },
+        { q: "What is the default replication factor in Hadoop?", o: ["1", "2", "3", "4"], a: 2 },
+        { q: "Which port is used for HDFS NameNode Web UI in Hadoop 3.x?", o: ["50070", "9870", "8088", "9000"], a: 1 },
+        { q: "HBase is a _____ database.", o: ["Row-oriented", "Column-oriented", "Key-value", "Graph"], a: 1 },
+        { q: "Which file format is a columnar storage format in Hadoop?", o: ["Avro", "Parquet", "Text", "SequenceFile"], a: 1 },
+        { q: "What is the main purpose of Apache Hive?", o: ["Data streaming", "Data warehousing and SQL-like queries", "Graph processing", "Machine Learning"], a: 1 },
+        { q: "Which tool is used for log data collection into HDFS?", o: ["Sqoop", "Flume", "Oozie", "Mahout"], a: 1 },
+        { q: "What does the JobTracker do in Hadoop 1.x?", o: ["Storage", "Resource Management and Job Scheduling", "Compression", "Data Cleaning"], a: 1 },
+        { q: "Which mode is used to run Hadoop on a single node (un-distributed)?", o: ["Pseudo-distributed", "Fully-distributed", "Standalone mode", "Local mode"], a: 2 },
+        { q: "What is 'Commodity Hardware'?", o: ["Supercomputers", "High-end servers", "Low-cost, standard hardware", "Mainframes"], a: 2 },
+        { q: "Which command is used to list files in HDFS?", o: ["hdfs dfs -ls", "hadoop ls", "hdfs list", "dfs -dir"], a: 0 },
+        { q: "What is the 'Shuffle and Sort' phase in MapReduce?", o: ["Before Map", "Between Map and Reduce", "After Reduce", "Only at the end"], a: 1 },
+        { q: "Apache Pig uses which language?", o: ["SQL", "Pig Latin", "Java", "Python"], a: 1 },
+        { q: "Which daemon runs on every DataNode to manage resources in YARN?", o: ["ResourceManager", "NodeManager", "AppMaster", "Container"], a: 1 },
+        { q: "What is 'Speculative Execution' in Hadoop?", o: ["Running a task again if it's slow", "Predicting errors", "Deleting data", "Compression"], a: 0 },
+        { q: "Zookeeper is used for:", o: ["Storage", "Coordination and Synchronization", "ETL", "Reporting"], a: 1 },
+        { q: "Which of the following is NOT part of Hadoop Ecosystem?", o: ["Hive", "Pig", "Spark", "Oracle"], a: 3 },
+        { q: "What happens if the NameNode fails in Hadoop 1.x?", o: ["Secondary NameNode takes over", "DataNodes become masters", "Cluster becomes unusable", "Nothing happens"], a: 2 },
+        { q: "What is a 'Heartbeat' in Hadoop?", o: ["A virus", "Signal from DataNode to NameNode", "Data transfer speed", "Memory usage"], a: 1 },
+        { q: "Which Hadoop version introduced YARN?", o: ["1.0", "2.0", "3.0", "0.20"], a: 1 },
+        { q: "What does the 'Reduce' function do?", o: ["Splits data", "Aggregates data", "Maps data", "Reads data"], a: 1 },
+        { q: "Which tool is used for workflow scheduling?", o: ["Mahout", "Oozie", "Sqoop", "Flume"], a: 1 },
+        { q: "HDFS is best suited for:", o: ["Many small files", "Few large files", "Random access", "Low latency"], a: 1 },
+        { q: "What is 'Rack Awareness'?", o: ["Knowing the location of data across racks", "Server cooling", "Network speed", "Disk space"], a: 0 },
+        { q: "Which format is used to exchange data between Pig and Hive?", o: ["JSON", "Avro", "XML", "HTML"], a: 1 },
+        { q: "What is the smallest unit of processing in YARN?", o: ["Job", "Task", "Container", "Node"], a: 2 },
+        { q: "In HDFS, metadata is stored in:", o: ["DataNodes", "NameNode", "Secondary NameNode", "Local disk"], a: 1 },
+        { q: "Which property in hdfs-site.xml defines replication?", o: ["dfs.replication", "hadoop.rep", "fs.rep", "dfs.factor"], a: 0 },
+        { q: "What is 'Big Data'?", o: ["Data that fits in Excel", "Data that cannot be processed by traditional systems", "A large USB drive", "None of these"], a: 1 },
+        { q: "Which of these is a NoSQL database?", o: ["MySQL", "HBase", "Oracle", "PostgreSQL"], a: 1 }
+    ],
+    "2": [
+        { q: "What is the primary objective of Hadoop?", o: ["Graphic design", "Distributed storage and processing", "Web hosting", "Gaming"], a: 1 },
+        { q: "What does 'YARN' stand for?", o: ["Yet Another Resource Negotiator", "Yielding All Resource Nodes", "Yellow Apache Resource Network", "None"], a: 0 },
+        { q: "Which HDFS daemon performs replication?", o: ["DataNode", "NameNode", "ResourceManager", "NodeManager"], a: 1 },
+        { q: "The command 'hdfs dfs -put' is used to:", o: ["Download file", "Upload file from local to HDFS", "Delete file", "Move file"], a: 1 },
+        { q: "In MapReduce, what are the intermediate key-value pairs created by?", o: ["Reducer", "Mapper", "Shuffler", "OutputFormat"], a: 1 },
+        { q: "Which framework is used for Machine Learning on Hadoop?", o: ["Mahout", "Sqoop", "Flume", "Hive"], a: 0 },
+        { q: "What is 'Data Locality'?", o: ["Moving data to code", "Moving code to where data resides", "Storing data in a local city", "None"], a: 1 },
+        { q: "Which of the following is an HDFS Federation feature?", o: ["Multiple NameNodes", "Single NameNode", "More DataNodes", "Faster RAM"], a: 0 },
+        { q: "Which Hive command lists tables?", o: ["ls tables;", "show tables;", "list tables;", "get tables;"], a: 1 },
+        { q: "What is the 'Safe Mode' in HDFS?", o: ["Read-only mode during startup", "Write-only mode", "Password protection", "Virus scan mode"], a: 0 },
+        { q: "In HBase, data is physically stored in:", o: ["MySQL", "HDFS", "Local Disk", "Oracle"], a: 1 },
+        { q: "Which tool is an alternative to MapReduce for scripting?", o: ["Pig", "Sqoop", "Flume", "Zookeeper"], a: 0 },
+        { q: "What is the role of AppMaster in YARN?", o: ["Managing a specific application lifecycle", "Managing all nodes", "Managing disks", "Managing users"], a: 0 },
+        { q: "Which HDFS command creates a directory?", o: ["-mkdir", "-create", "-new", "-dir"], a: 0 },
+        { q: "The HDFS block size is large to:", o: ["Increase storage", "Reduce seek time overhead", "Make copying easy", "None"], a: 1 },
+        { q: "What is the main advantage of Sqoop?", o: ["Streaming logs", "SQL to Hadoop transfer", "Data visualization", "Text processing"], a: 1 },
+        { q: "Which of these is a component of YARN?", o: ["TaskTracker", "ResourceManager", "JobTracker", "DataNode"], a: 1 },
+        { q: "HiveQL is similar to:", o: ["Python", "C++", "SQL", "Java"], a: 2 },
+        { q: "The 'EditLog' in HDFS contains:", o: ["System settings", "Recent changes to metadata", "User passwords", "Data block content"], a: 1 },
+        { q: "Which port is default for Hive?", o: ["10000", "50070", "8088", "2181"], a: 0 },
+        { q: "What does a 'Combiner' do?", o: ["A mini-reducer at the Map side", "A mini-mapper at the Reduce side", "Joins two tables", "None"], a: 0 },
+        { q: "Hadoop is inspired by which Google papers?", o: ["GFS and MapReduce", "BigTable and Spanner", "Search and Ads", "None"], a: 0 },
+        { q: "Which command checks HDFS file system health?", o: ["fsck", "health", "check", "verify"], a: 0 },
+        { q: "A 'Splittable' file format is important for:", o: ["Compression", "Parallel processing", "Security", "Encryption"], a: 1 },
+        { q: "What is the purpose of 'Oozie'?", o: ["File transfer", "Workflow scheduling", "Querying", "Storage"], a: 1 },
+        { q: "Which of the following is NOT a NoSQL type?", o: ["Document", "Key-Value", "Relational", "Graph"], a: 2 },
+        { q: "Which daemon replaces JobTracker in YARN?", o: ["ResourceManager", "NodeManager", "AppMaster", "None"], a: 0 },
+        { q: "In Pig, 'DUMP' operator is used to:", o: ["Delete data", "Store data", "Display output", "Join data"], a: 2 },
+        { q: "HDFS High Availability uses which component for shared storage?", o: ["Journal Nodes", "DataNodes", "Local Disk", "USB"], a: 0 },
+        { q: "Which command removes a file from HDFS?", o: ["-rm", "-del", "-remove", "-kill"], a: 0 },
+        { q: "What is the function of the 'FsImage' file?", o: ["Snapshot of metadata", "Actual data", "Logs", "User info"], a: 0 },
+        { q: "Which of the following is a stream processing tool?", o: ["Storm", "Sqoop", "Pig", "Oozie"], a: 0 },
+        { q: "The 'Partitioner' in MapReduce determines:", o: ["Input split", "Which reducer gets which key", "Block size", "Replication"], a: 1 },
+        { q: "Which of these is used for real-time random access in Hadoop?", o: ["HDFS", "HBase", "Hive", "Pig"], a: 1 },
+        { q: "What is a 'Daemon'?", o: ["A user", "A background process", "A physical server", "A data error"], a: 1 },
+        { q: "In Hive, external tables differ from managed tables because:", o: ["They are faster", "Data is not deleted when table is dropped", "They use more RAM", "None"], a: 1 },
+        { q: "Which HDFS command changes file permissions?", o: ["-chmod", "-chown", "-chgrp", "-perm"], a: 0 },
+        { q: "What is 'Schema on Read' in Hive?", o: ["Defining schema while inserting", "Defining schema while querying", "No schema needed", "None"], a: 1 },
+        { q: "Which component manages the 'Containers'?", o: ["NodeManager", "ResourceManager", "NameNode", "DataNode"], a: 0 },
+        { q: "Hadoop 3.x supports how many NameNodes for HA?", o: ["1", "2", "3 or more", "None"], a: 2 }
+    ],
+    "3": [
+        { q: "Which process creates HDFS Heartbeats?", o: ["NameNode", "DataNode", "JournalNode", "Secondary NameNode"], a: 1 },
+        { q: "What is the primary role of the JournalNode?", o: ["Store Actual Data", "Sync metadata between active/standby NameNode", "Run MapReduce", "Backup logs"], a: 1 },
+        { q: "In YARN, which component is per-cluster?", o: ["NodeManager", "ResourceManager", "ApplicationMaster", "TaskTracker"], a: 1 },
+        { q: "Which file system command checks the disk usage in HDFS?", o: ["-du", "-df", "-ls", "-check"], a: 0 },
+        { q: "What is 'HDFS Federation'?", o: ["Scaling HDFS via multiple NameNodes", "Connecting Hadoop to Spark", "Replicating data to cloud", "Backup service"], a: 0 },
+        { q: "What does the 'SequenceFile' format store?", o: ["Images only", "Binary key-value pairs", "CSV data", "SQL scripts"], a: 1 },
+        { q: "Which Hive command is used to load data from local disk?", o: ["IMPORT", "LOAD DATA LOCAL INPATH", "PUT", "INSERT LOCAL"], a: 1 },
+        { q: "What is the purpose of 'Apache Ambari'?", o: ["Machine Learning", "Provisioning, managing, and monitoring clusters", "NoSQL Database", "Log collection"], a: 1 },
+        { q: "In HBase, what is a 'RegionServer'?", o: ["Stores HDFS blocks", "Serves and manages data regions", "Backup of Master", "NameNode equivalent"], a: 1 },
+        { q: "Which language is used for Hive User Defined Functions (UDFs)?", o: ["SQL", "Java", "Python", "Both B and C"], a: 3 },
+        { q: "What is 'Apache Kafka' primarily used for?", o: ["Batch Processing", "Real-time stream data pipelining", "Metadata storage", "Workflow UI"], a: 1 },
+        { q: "The command 'hdfs dfs -get' is equivalent to:", o: ["-put", "-copyToLocal", "-moveToLocal", "-cat"], a: 1 },
+        { q: "What is the 'Metastore' in Hive?", o: ["HDFS storage", "Central repository of Hive metadata", "RAM cache", "None"], a: 1 },
+        { q: "Which port is used by Zookeeper by default?", o: ["2181", "8088", "9000", "50070"], a: 0 },
+        { q: "What is the purpose of 'Apache Spark' compared to MapReduce?", o: ["Slower processing", "In-memory data processing", "Hardware management", "Metadata sync"], a: 1 },
+        { q: "Which file in Hadoop configures the heap size?", o: ["core-site.xml", "hadoop-env.sh", "hdfs-site.xml", "yarn-site.xml"], a: 1 },
+        { q: "What happens during 'Checkpointing'?", o: ["Data is deleted", "FsImage and EditLogs are merged", "Node is rebooted", "Replication starts"], a: 1 },
+        { q: "In Pig, the 'FOREACH' operator is used for:", o: ["Filtering", "Transforming/Projecting data", "Grouping", "Sorting"], a: 1 },
+        { q: "What is a 'WAL' in HBase?", o: ["Write Ahead Log", "Wide Area Link", "Web Access Layer", "None"], a: 0 },
+        { q: "Which component triggers an automatic failover in NameNode HA?", o: ["DataNode", "ZKFailoverController (ZKFC)", "ResourceManager", "Secondary NameNode"], a: 1 },
+        { q: "The default HDFS block size for Hadoop 1.x was:", o: ["64 MB", "128 MB", "256 MB", "1 GB"], a: 0 },
+        { q: "What is 'Pre-advent of Big Data' storage?", o: ["NAS/SAN", "HDFS", "Cloud", "S3"], a: 0 },
+        { q: "Which Hadoop tool is best for Graph Analysis?", o: ["Hive", "Giraph", "Pig", "Sqoop"], a: 1 },
+        { q: "In HDFS, which node is responsible for block deletion?", o: ["DataNode", "NameNode", "NodeManager", "TaskTracker"], a: 1 },
+        { q: "What is 'Apache Storm'?", o: ["Storage system", "Real-time computation system", "SQL engine", "ETL tool"], a: 1 },
+        { q: "Which property in core-site.xml defines the NameNode URI?", o: ["fs.defaultFS", "dfs.name.dir", "yarn.resourcemanager", "mapred.job.tracker"], a: 0 },
+        { q: "What is the 'Mapper' output stored on?", o: ["HDFS", "Local Disk of the Mapper node", "RAM only", "Zookeeper"], a: 1 },
+        { q: "Which operator in Pig is used to remove duplicates?", o: ["UNIQUE", "DISTINCT", "FILTER", "CLEAN"], a: 1 },
+        { q: "What is a 'Thrift Server' in Hive?", o: ["Storage node", "Allows remote clients to execute queries", "Compiler", "Backup engine"], a: 1 },
+        { q: "The command 'hdfs dfs -tail' shows:", o: ["First 1KB of file", "Last 1KB of file", "File metadata", "File size"], a: 1 },
+        { q: "Which tool is used for interactive data exploration on Hadoop?", o: ["Flume", "Hue", "Sqoop", "Oozie"], a: 1 },
+        { q: "What does 'OLTP' stand for?", o: ["Online Logical Task Processing", "Online Transactional Processing", "Only Local Task Processing", "None"], a: 1 },
+        { q: "HDFS is written following which principle?", o: ["Write Once Read Many", "Write Many Read Many", "Read Once Write Many", "None"], a: 0 },
+        { q: "Which algorithm is used by Zookeeper for leader election?", o: ["Paxos/ZAB", "Dijkstra", "Round Robin", "First Come First Serve"], a: 0 },
+        { q: "What is 'Apache Drill'?", o: ["Columnar storage", "SQL query engine for Big Data", "Data compression tool", "Hardware tester"], a: 1 },
+        { q: "The 'Distributed Cache' in Hadoop is used to:", o: ["Cache metadata", "Share files/libraries across all nodes", "Store passwords", "Speed up HDFS"], a: 1 },
+        { q: "What is the main role of 'Apache Phoenix'?", o: ["SQL layer for HBase", "Replacement for Hive", "Logging tool", "UI for YARN"], a: 0 },
+        { q: "In YARN, 'Containers' are allocated by:", o: ["NodeManager", "ResourceManager", "ApplicationMaster", "NameNode"], a: 1 },
+        { q: "What is 'SerDe' in Hive?", o: ["Server Delivery", "Serializer/Deserializer", "Search Detail", "None"], a: 1 },
+        { q: "Which command lists all running Hadoop jobs?", o: ["hadoop job -list", "yarn application -list", "hdfs list", "Both A and B"], a: 3 }
+    ],
+    "4": [
+        { q: "What is 'Small File Problem' in HDFS?", o: ["Slow network", "NameNode memory exhaustion", "DataNode disk failure", "None"], a: 1 },
+        { q: "Which tool is used for data movement between Hadoop and Cloud S3?", o: ["DistCp", "Sqoop", "Flume", "Oozie"], a: 0 },
+        { q: "What is 'Apache Atlas' used for?", o: ["Data Governance and Metadata", "Storage", "Querying", "Workflow"], a: 0 },
+        { q: "In MapReduce, the 'InputSplit' defines:", o: ["Physical data block", "Logical view of data for a single Map task", "Replication factor", "None"], a: 1 },
+        { q: "Which component of Hive parses and optimizes the query?", o: ["Driver", "Metastore", "Compiler", "Execution Engine"], a: 2 },
+        { q: "What is 'Erasure Coding' in Hadoop 3.x?", o: ["Better encryption", "Reduces storage overhead compared to replication", "A new file system", "None"], a: 1 },
+        { q: "Which NoSQL category does MongoDB belong to?", o: ["Columnar", "Document", "Key-Value", "Graph"], a: 1 },
+        { q: "The 'Reducer' output is always written to:", o: ["Local Disk", "HDFS", "RAM", "Database"], a: 1 },
+        { q: "Which daemon is responsible for tracking resource usage in YARN?", o: ["ResourceManager", "NodeManager", "AppMaster", "TaskTracker"], a: 1 },
+        { q: "What is 'Apache Avro'?", o: ["A database", "Data serialization system", "Query engine", "Log collector"], a: 1 },
+        { q: "In HDFS, what is a 'Short-Circuit Local Read'?", o: ["Bypassing the DataNode to read directly from disk", "Reading only 1KB", "Reading from RAM", "None"], a: 0 },
+        { q: "Which property controls the maximum memory per container in YARN?", o: ["yarn.nodemanager.resource.memory-mb", "yarn.scheduler.maximum-allocation-mb", "mapreduce.map.memory.mb", "None"], a: 1 },
+        { q: "What is 'Apache Parquet'?", o: ["Text format", "Columnar storage format", "Encryption tool", "Web server"], a: 1 },
+        { q: "Which Hive feature allows you to speed up queries on large tables?", o: ["Indexing", "Partitioning", "Bucketing", "Both B and C"], a: 3 },
+        { q: "In HBase, what is the 'HLog'?", o: ["Actual data", "Write Ahead Log", "System logs", "User logs"], a: 1 },
+        { q: "Which tool is used for near-real-time search on Hadoop?", o: ["Hive", "Solr/Elasticsearch", "Sqoop", "Oozie"], a: 1 },
+        { q: "What is 'Apache NiFi'?", o: ["Storage", "Data routing and transformation", "Machine Learning", "Reporting"], a: 1 },
+        { q: "In MapReduce, if a task fails 4 times, Hadoop will:", o: ["Retry forever", "Kill the job", "Skip that record", "None"], a: 1 },
+        { q: "Which service in Hadoop 2.0+ handles NameNode HA states?", o: ["Secondary NameNode", "Quorum Journal Manager", "TaskTracker", "JobTracker"], a: 1 },
+        { q: "What does 'HCatalog' do?", o: ["Stores logs", "Table and storage management layer for Hadoop", "Query UI", "Compression tool"], a: 1 },
+        { q: "What is 'Data Skew'?", o: ["Corrupt data", "Uneven distribution of data across reducers", "Slow network", "None"], a: 1 },
+        { q: "Which command is used to move data within HDFS?", o: ["-mv", "-move", "-cp", "-put"], a: 0 },
+        { q: "What is 'Apache Ranger' used for?", o: ["Hadoop Security and Access Control", "Faster Querying", "Log collection", "Storage"], a: 0 },
+        { q: "In YARN, which scheduler allows resources to be shared among queues?", o: ["FIFO", "Capacity Scheduler", "Fair Scheduler", "Both B and C"], a: 3 },
+        { q: "Which port does the HDFS DataNode use for data transfer?", o: ["50010", "50070", "8088", "9000"], a: 0 },
+        { q: "What is the function of 'Znode' in Zookeeper?", o: ["Data node", "Configuration file", "In-memory data node/directory", "None"], a: 2 },
+        { q: "Which Hive operator is used to sample data?", o: ["LIMIT", "TABLESAMPLE", "SAMPLE", "FETCH"], a: 1 },
+        { q: "In HBase, 'Compaction' is used to:", o: ["Compress files", "Merge small HFiles into larger ones", "Delete data", "Backup"], a: 1 },
+        { q: "What is 'Apache Kudu'?", o: ["A log tool", "Storage for fast analytics on fast data", "Search engine", "Scripting tool"], a: 1 },
+        { q: "The 'InputFormat' class determines:", o: ["Output location", "How input files are split and read", "Number of reducers", "None"], a: 1 },
+        { q: "Which command shows HDFS space usage for a specific user?", o: ["-du", "-count", "-ls", "-stat"], a: 0 },
+        { q: "What is 'Apache Knox'?", o: ["Gateway for Hadoop security", "Database", "Query engine", "Workflow UI"], a: 0 },
+        { q: "Which process in HDFS HA manages the Active/Standby status?", o: ["NameNode", "ZKFC", "JournalNode", "DataNode"], a: 1 },
+        { q: "What is 'Apache Flink'?", o: ["Storage", "Stream processing framework", "ETL tool", "SQL engine"], a: 1 },
+        { q: "In MapReduce, 'Counter' is used for:", o: ["Filtering", "Gathering statistics about the job", "Sorting", "None"], a: 1 },
+        { q: "Which file system is often used as an alternative to HDFS in Cloud?", o: ["Local Disk", "Amazon S3", "NFS", "Oracle"], a: 1 },
+        { q: "What is 'ORC' in Hive?", o: ["Online Record Collection", "Optimized Row Columnar", "Oracle Record Code", "None"], a: 1 },
+        { q: "Which Hadoop daemon manages the CPU and Memory resources of a single node?", o: ["ResourceManager", "NodeManager", "NameNode", "DataNode"], a: 1 },
+        { q: "What is 'Apache Zeppelin'?", o: ["Query engine", "Web-based notebook for interactive analytics", "Storage system", "Encryption tool"], a: 1 },
+        { q: "In HBase, 'Tombstone' markers are used for:", o: ["Sorting", "Deleting records during compaction", "Indexing", "Backup"], a: 1 }
+    ],
+    "5": [
+        { q: "What is the primary goal of the 'Big Data' era?", o: ["Extracting insights from massive datasets", "Buying more servers", "Faster internet", "None"], a: 0 },
+        { q: "Which tool allows running SQL queries on HDFS without MapReduce?", o: ["Hive", "Impala", "Pig", "Sqoop"], a: 1 },
+        { q: "What is 'Apache Kylo'?", o: ["A log tool", "Data lake management platform", "NoSQL DB", "Query engine"], a: 1 },
+        { q: "In HDFS, what does 'Replication Lag' mean?", o: ["Slow network", "Time taken to create all replicas", "Corrupt blocks", "None"], a: 1 },
+        { q: "Which Hadoop tool is used to monitor cluster health via a dashboard?", o: ["Oozie", "Ambari", "Sqoop", "Flume"], a: 1 },
+        { q: "What is 'Hadoop Streaming'?", o: ["Video streaming", "Utility to run MapReduce with any executable script (Python/C++)", "Cloud storage", "None"], a: 1 },
+        { q: "Which port is default for YARN ResourceManager Web UI?", o: ["8088", "50070", "10000", "2181"], a: 0 },
+        { q: "In Pig, the 'STORE' operator is used to:", o: ["Delete data", "Save data to HDFS", "Display data", "Join data"], a: 1 },
+        { q: "What is 'Apache Beam'?", o: ["A database", "Unified model for batch and stream processing", "Search engine", "UI for Hive"], a: 1 },
+        { q: "Which NoSQL database uses the 'Cypher' query language?", o: ["MongoDB", "Neo4j", "Cassandra", "HBase"], a: 1 },
+        { q: "What is 'Apache Tez'?", o: ["Storage", "Framework to build high-performance batch/interactive jobs", "Log collector", "Encryption tool"], a: 1 },
+        { q: "In HDFS, which file contains the list of DataNodes allowed to join?", o: ["slaves (or workers)", "masters", "core-site.xml", "hdfs-site.xml"], a: 0 },
+        { q: "What is 'Apache Kylin'?", o: ["OLAP engine on Hadoop", "Real-time search", "Machine Learning", "Workflow tool"], a: 0 },
+        { q: "Which command is used to run a MapReduce jar file?", o: ["hadoop jar", "yarn jar", "hdfs jar", "Both A and B"], a: 3 },
+        { q: "What is 'Cold Data' in Hadoop?", o: ["Corrupt data", "Infrequently accessed data", "Encrypted data", "None"], a: 1 },
+        { q: "Which tool is used for massive scale Machine Learning (MLlib)?", o: ["Spark", "Hive", "Sqoop", "Oozie"], a: 0 },
+        { q: "What is 'Data Ingestion'?", o: ["Deleting data", "Process of importing/transferring data into Hadoop", "Cleaning data", "None"], a: 1 },
+        { q: "In Hive, what is 'Bucketing'?", o: ["Partitioning data based on hash of a column", "Naming columns", "Deleting rows", "None"], a: 0 },
+        { q: "What is 'Apache Airflow'?", o: ["Storage", "Workflow orchestration platform", "Query engine", "Database"], a: 1 },
+        { q: "Which component in Hadoop 3.x provides a centralized UI?", o: ["Resource Manager", "Hadoop KMS", "Apache Ambari", "None"], a: 2 },
+        { q: "What is 'Polybase'?", o: ["A type of HDFS", "Allows SQL Server to query Hadoop data", "New database", "None"], a: 1 },
+        { q: "In HDFS, 'Corruption' is detected using:", o: ["Checksums", "Replication", "Heartbeats", "None"], a: 0 },
+        { q: "What is 'Apache Sqoop' Job?", o: ["Manual task", "Saved definition of import/export to rerun easily", "A Hadoop daemon", "None"], a: 1 },
+        { q: "Which NoSQL database is wide-column and created by Facebook?", o: ["HBase", "Cassandra", "MongoDB", "Redis"], a: 1 },
+        { q: "What is 'Apache Calcite'?", o: ["Storage", "Dynamic data management framework used by Hive", "NoSQL DB", "Search tool"], a: 1 },
+        { q: "In MapReduce, what does the 'Shuffle' phase actually do?", o: ["Mixes data", "Transfers Map output to Reducers", "Deletes data", "Compresses data"], a: 1 },
+        { q: "What is 'Apache Pig' used for primarily?", o: ["Real-time querying", "ETL and data transformation scripts", "Storage", "UI"], a: 1 },
+        { q: "Which Hadoop version added support for GPU resources?", o: ["1.x", "2.x", "3.x", "4.x"], a: 2 },
+        { q: "What is 'Apache Falcon'?", o: ["Data governance and lifecycle management", "Faster SQL", "Log collector", "Workflow UI"], a: 0 },
+        { q: "In HDFS, 'Under-replicated' blocks are fixed by:", o: ["Manual copy", "NameNode instructing DataNodes to replicate", "Deleting blocks", "None"], a: 1 },
+        { q: "What is 'Apache Mahout'?", o: ["Storage", "Distributed Machine Learning library", "Log tool", "Security tool"], a: 1 },
+        { q: "Which property in mapred-site.xml defines the framework name?", o: ["mapreduce.framework.name", "yarn.framework", "hadoop.mode", "None"], a: 0 },
+        { q: "What is 'Apache Gobblin'?", o: ["A database", "Data ingestion framework for Hadoop", "Security tool", "Query UI"], a: 1 },
+        { q: "In Hive, 'PARTITION' helps in:", o: ["Scaling horizontally", "Reducing query time by scanning less data", "Security", "Encryption"], a: 1 },
+        { q: "What is 'Apache Livy'?", o: ["A database", "REST service for interacting with Spark", "Security tool", "None"], a: 1 },
+        { q: "Which command provides a summary of HDFS usage and health?", o: ["hdfs dfsadmin -report", "hdfs ls", "hadoop health", "yarn top"], a: 0 },
+        { q: "What is 'Apache Arrow'?", o: ["A database", "In-memory columnar data format for fast analytics", "Query tool", "None"], a: 1 },
+        { q: "In HBase, 'Row Key' is important because:", o: ["It's the only way to query efficiently", "It stores dates", "It's a password", "None"], a: 0 },
+        { q: "What is 'Apache Samza'?", o: ["Batch processor", "Stream processing framework using Kafka", "ETL tool", "Storage"], a: 1 },
+        { q: "The 'FsShell' refers to:", o: ["A physical shell", "Hadoop command line interface for file system", "A virus", "None"], a: 1 }
+    ]
+};
+
+const urlParams = new URLSearchParams(window.location.search);
+const setId = urlParams.get('set') || "1";
+document.getElementById('set-info').innerText = `CCE Practice Set: ${setId}`;
+
+const questionsArea = document.getElementById('questions-area');
+const activeQs = quizData[setId];
+
+if(activeQs) {
+    activeQs.forEach((item, idx) => {
+        let html = `<div class="question" id="q-block-${idx}">
+            <p class="q-text">${idx + 1}. ${item.q}</p>`;
+        item.o.forEach((opt, i) => {
+            html += `<label class="option">
+                <input type="radio" name="q${idx}" value="${i}" onclick="markAsAnswered(${idx})"> ${opt}
+            </label>`;
+        });
+        html += `</div>`;
+        questionsArea.innerHTML += html;
+    });
+}
+
+function markAsAnswered(idx) {
+    document.getElementById(`q-block-${idx}`).classList.remove('unanswered');
+}
+
+function checkSubmission() {
+    let unattemptedCount = 0;
+    activeQs.forEach((_, idx) => {
+        if (!document.querySelector(`input[name="q${idx}"]:checked`)) {
+            unattemptedCount++;
+            document.getElementById(`q-block-${idx}`).classList.add('unanswered');
+        }
+    });
+
+    if (unattemptedCount > 0) {
+        alert(`Incomplete: You have left ${unattemptedCount} questions unanswered.`);
+        const first = document.querySelector('.unanswered');
+        if (first) first.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    } else {
+        calculateScore();
+    }
+}
+
+function calculateScore() {
+    let score = 0, correct = 0, wrong = 0;
+    activeQs.forEach((item, idx) => {
+        const selected = document.querySelector(`input[name="q${idx}"]:checked`);
+        if (parseInt(selected.value) === item.a) { score += 3; correct++; } else { score -= 1; wrong++; }
+    });
+
+    const percentage = ((correct / activeQs.length) * 100).toFixed(2);
+    document.getElementById('perc-display').innerText = percentage + "%";
+    document.getElementById('stats-area').innerHTML = `
+        <div class="stat-line"><span>Total Questions:</span> <b>${activeQs.length}</b></div>
+        <div class="stat-line" style="color:green"><span>Correct:</span> <b>${correct}</b></div>
+        <div class="stat-line" style="color:red"><span>Wrong:</span> <b>${wrong}</b></div>
+        <div class="stat-line" style="font-weight:bold; font-size:1.3rem; margin-top:10px;">
+            <span>Final Score: ${score} / ${activeQs.length * 3}</span>
+        </div>`;
+    document.getElementById('result-modal').style.display = "flex";
+}
+
+function closeModal() {
+    document.getElementById('result-modal').style.display = "none";
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+</script>
+</body>
+</html>

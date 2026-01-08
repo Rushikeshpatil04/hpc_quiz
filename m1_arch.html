@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Module 1: Computer Architecture - Master Quiz</title>
+    <style>
+        :root { --blue: #003366; --orange: #ff9933; --green: #28a745; --red: #dc3545; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f4f7f6; padding: 20px; color: #333; line-height: 1.6; }
+        .quiz-container { max-width: 900px; margin: auto; background: white; padding: 40px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+        .header { border-bottom: 4px solid var(--blue); padding-bottom: 20px; margin-bottom: 30px; display: flex; justify-content: space-between; align-items: center; }
+        .back-link { text-decoration: none; color: var(--blue); font-weight: bold; padding: 8px 15px; border: 1px solid var(--blue); border-radius: 5px; }
+        
+        .question { margin-bottom: 30px; padding: 20px; border-radius: 10px; background: #fff; border: 1px solid #eee; }
+        .q-text { font-size: 1.15rem; font-weight: 600; margin-bottom: 15px; color: var(--blue); }
+        .option { display: block; padding: 14px; background: #f9f9f9; margin: 10px 0; border: 1.5px solid #ddd; border-radius: 8px; cursor: pointer; }
+        .option:hover { background: #eef2f7; border-color: var(--blue); }
+        
+        .btn-submit { background: var(--blue); color: white; border: none; padding: 18px; border-radius: 8px; cursor: pointer; font-size: 1.2rem; font-weight: bold; width: 100%; margin-top: 20px; }
+
+        /* Result Modal Styling */
+        #result-modal { 
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: rgba(0,0,0,0.85); z-index: 1000; justify-content: center; align-items: center; 
+        }
+        .modal-content { 
+            background: white; padding: 30px; border-radius: 15px; text-align: center; 
+            max-width: 500px; width: 90%; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        .stat-line { font-size: 1.1rem; margin: 10px 0; display: flex; justify-content: space-between; border-bottom: 1px solid #eee; padding: 5px 0; }
+        .percentage { font-size: 3rem; font-weight: bold; color: var(--blue); margin: 15px 0; }
+    </style>
+</head>
+<body>
+
+<div class="quiz-container">
+    <div class="header">
+        <div>
+            <h2 style="margin:0;">Computer Architecture</h2>
+            <span id="set-info" style="color: var(--orange); font-weight: bold;">Set Loading...</span>
+        </div>
+        <a href="index.html" class="back-link">Dashboard</a>
+    </div>
+
+    <form id="quiz-form">
+        <div id="questions-area"></div>
+        <button type="button" class="btn-submit" onclick="calculateScore()">Submit & View Detailed Result</button>
+    </form>
+</div>
+
+<div id="result-modal">
+    <div class="modal-content">
+        <h2 id="msg-text">Quiz Results</h2>
+        <div class="percentage" id="perc-display">0%</div>
+        <div id="stats-area">
+            </div>
+        <button onclick="location.reload()" style="background: var(--blue); color: white; border: none; padding: 12px 25px; border-radius: 5px; cursor: pointer; margin-top: 20px;">Try Again</button>
+        <button onclick="closeModal()" style="background: #666; color: white; border: none; padding: 12px 25px; border-radius: 5px; cursor: pointer; margin-top: 20px;">Review Answers</button>
+    </div>
+</div>
+
+<script>
+const quizData = {
+    "1": [
+        { q: "Which architecture is based on the stored-program concept?", o: ["Harvard", "Von Neumann", "RISC", "CISC"], a: 1 },
+        { q: "What does the Program Counter (PC) store?", o: ["Data", "Next Instruction address", "Accumulator Result", "Status flags"], a: 1 },
+        { q: "Which law predicts that the number of transistors doubles every two years?", o: ["Amdahl's", "Moore's", "Rock's", "Little's"], a: 1 },
+        { q: "In pipelining, when two instructions need the same resource, it is a:", o: ["Data hazard", "Structural hazard", "Control hazard", "Branch hazard"], a: 1 },
+        { q: "Which cycle is used to fetch and execute instructions?", o: ["Memory cycle", "Instruction cycle", "Clock cycle", "Bus cycle"], a: 1 },
+        { q: "Floating point representation is used to store:", o: ["Integers", "Real numbers", "Characters", "Booleans"], a: 1 },
+        { q: "What is the primary goal of RISC architecture?", o: ["Large instruction set", "Single cycle execution", "Variable length instructions", "Microprogrammed control"], a: 1 },
+        { q: "Which memory is the fastest in the hierarchy?", o: ["Main memory", "Cache", "Registers", "Hard disk"], a: 2 },
+        { q: "MAR stands for:", o: ["Memory Address Register", "Memory Accumulator Register", "Main Address Register", "Main Access Register"], a: 0 },
+        { q: "A 32-bit address bus can access how much memory?", o: ["2 GB", "4 GB", "8 GB", "16 GB"], a: 1 },
+        { q: "Which interrupt is non-maskable?", o: ["Software", "Hardware", "NMI", "Trap"], a: 2 },
+        { q: "The width of the data bus determines:", o: ["Memory size", "Word size", "Execution speed", "Clock frequency"], a: 1 },
+        { q: "Direct Mapping is a technique used in:", o: ["Hard disks", "Cache memory", "RAM", "ROM"], a: 1 },
+        { q: "Which unit performs arithmetic and logical operations?", o: ["Control Unit", "ALU", "MU", "Register Unit"], a: 1 },
+        { q: "Pipeline depth refers to:", o: ["Number of processors", "Number of stages", "Execution time", "Clock speed"], a: 1 },
+        { q: "Which register stores the instruction currently being executed?", o: ["PC", "MAR", "IR (Instruction Register)", "MDR"], a: 2 },
+        { q: "Little-endian refers to storing:", o: ["MSB at lowest address", "LSB at lowest address", "Middle byte first", "Random order"], a: 1 },
+        { q: "What is a 'Cold Start' in cache?", o: ["Empty cache", "Powering off", "Rebooting", "Clearing RAM"], a: 0 },
+        { q: "Microprogramming is a technique to implement:", o: ["ALU", "Control Unit", "Memory", "I/O"], a: 1 },
+        { q: "Which addressing mode uses the value inside the instruction as data?", o: ["Direct", "Immediate", "Indexed", "Register"], a: 1 },
+        { q: "A group of 8 bits is called a:", o: ["Nibble", "Byte", "Word", "Double word"], a: 1 },
+        { q: "SIMD stands for:", o: ["Single Instruction Multi Data", "Small Instruction Multi Data", "System Input Multi Data", "Serial Input Main Data"], a: 0 },
+        { q: "DMA stands for:", o: ["Direct Memory Access", "Data Memory Access", "Direct Main Access", "Digital Memory Access"], a: 0 },
+        { q: "What prevents a CPU from overheating?", o: ["Heatsink", "Registers", "Bus", "ALU"], a: 0 },
+        { q: "Which level of cache is usually built into the CPU core?", o: ["L1", "L2", "L3", "L4"], a: 0 },
+        { q: "A system with multiple CPUs sharing a single memory is:", o: ["Distributed", "Symmetric Multiprocessing", "Cluster", "Grid"], a: 1 },
+        { q: "A 'word' in a 64-bit machine is how many bytes?", o: ["4", "8", "16", "32"], a: 1 },
+        { q: "Which bus is bidirectional?", o: ["Address bus", "Data bus", "Control bus", "Both B and C"], a: 1 },
+        { q: "The 'fetch' stage of a pipeline involves:", o: ["Decoding", "Reading from memory", "Writing to register", "Arithmetic"], a: 1 },
+        { q: "What is a 'cache hit'?", o: ["Data not found", "Data found in cache", "Data corrupted", "Cache cleared"], a: 1 },
+        { q: "Which logic gate is known as a universal gate?", o: ["AND", "OR", "NAND", "XOR"], a: 2 },
+        { q: "A multi-core processor has multiple:", o: ["ALUs", "Execution units", "RAM sticks", "Hard drives"], a: 1 },
+        { q: "Endianness depends on:", o: ["OS", "Compiler", "CPU Architecture", "Software"], a: 2 },
+        { q: "The time taken to locate data on a disk is:", o: ["Seek time", "Latency", "Transfer time", "Access time"], a: 0 },
+        { q: "EPROM stands for:", o: ["Electronic PROM", "Erasable PROM", "External PROM", "Extended PROM"], a: 1 },
+        { q: "Which unit manages the data flow between CPU and memory?", o: ["Bus Interface Unit", "ALU", "CU", "Registers"], a: 0 },
+        { q: "Vector processors are used for:", o: ["Web surfing", "Scientific computations", "Word processing", "Email"], a: 1 },
+        { q: "What is 'Thrashing' in memory?", o: ["Fast access", "Excessive paging", "Low CPU usage", "Data loss"], a: 1 },
+        { q: "Which flag is set when a result is zero?", o: ["C", "S", "Z", "V"], a: 2 },
+        { q: "The first microprocessor was:", o: ["Intel 4004", "Intel 8080", "Motorola 6800", "Zilog Z80"], a: 0 }
+    ],
+    "2": [
+        { q: "Which register holds the data coming from or going to memory?", o: ["MAR", "MDR", "PC", "IR"], a: 1 },
+        { q: "Cache memory works on the principle of:", o: ["Locality of Reference", "Data Redundancy", "Parallelism", "Virtualization"], a: 0 },
+        { q: "What is 'Spatial Locality'?", o: ["Same data accessed again", "Nearby data accessed next", "Remote data access", "Random access"], a: 1 },
+        { q: "A 'Hazard' in a pipeline that occurs due to branch instructions is:", o: ["Data Hazard", "Structural Hazard", "Control Hazard", "Logic Hazard"], a: 2 },
+        { q: "Which mapping is the most flexible cache mapping?", o: ["Direct Mapping", "Set Associative", "Fully Associative", "Linear Mapping"], a: 2 },
+        { q: "RAID Level 0 is also known as:", o: ["Mirroring", "Striping", "Parity", "Error Correction"], a: 1 },
+        { q: "The instruction 'ADD R1, R2' is an example of which addressing mode?", o: ["Immediate", "Register", "Direct", "Indexed"], a: 1 },
+        { q: "How many selection lines are required for a 16-to-1 Multiplexer?", o: ["2", "4", "8", "16"], a: 1 },
+        { q: "Which memory requires periodic refreshing?", o: ["SRAM", "DRAM", "ROM", "EPROM"], a: 1 },
+        { q: "Super-scalar processors execute:", o: ["One instruction/clock", "Multiple instructions/clock", "Zero instructions", "Variable instructions"], a: 1 },
+        { q: "In 2's complement representation, -1 is represented as (8-bit):", o: ["00000001", "11111111", "10000001", "11111110"], a: 1 },
+        { q: "The 'Write-Back' policy is used in:", o: ["Cache Memory", "RAM", "HDD", "Registers"], a: 0 },
+        { q: "Which component is used to store intermediate ALU results?", o: ["IR", "MAR", "Accumulator", "PC"], a: 2 },
+        { q: "Instruction level parallelism is improved by:", o: ["Pipelining", "Increasing RAM", "Larger HDD", "Smaller Bus"], a: 0 },
+        { q: "A 4-way set associative cache with 1024 blocks has how many sets?", o: ["128", "256", "512", "1024"], a: 1 },
+        { q: "What is the purpose of a 'Watchdog Timer'?", o: ["Keep track of time", "Reset system if software hangs", "Speed up CPU", "Sync I/O"], a: 1 },
+        { q: "A 'Deep Pipeline' has:", o: ["Few stages", "Many stages", "No stages", "Single stage"], a: 1 },
+        { q: "Which protocol is used to maintain cache consistency?", o: ["TCP", "MESI", "HTTP", "FTP"], a: 1 },
+        { q: "VLIW stands for:", o: ["Very Long Instruction Word", "Virtual Long Instruction Word", "Variable Link Internal Word", "Vector Level Internal Word"], a: 0 },
+        { q: "Booth's algorithm is used for:", o: ["Addition", "Subtraction", "Multiplication", "Division"], a: 2 },
+        { q: "Which flip-flop is known as a Delay flip-flop?", o: ["JK", "SR", "D", "T"], a: 2 },
+        { q: "The time required for one clock pulse is:", o: ["Cycle time", "Access time", "Latency", "Throughput"], a: 0 },
+        { q: "Which architecture uses different buses for data and instructions?", o: ["Von Neumann", "Harvard", "CISC", "All of these"], a: 1 },
+        { q: "A 'page fault' occurs when:", o: ["Data is in RAM", "Data is not in RAM", "Data is corrupted", "Disk is full"], a: 1 },
+        { q: "The 'Hit Ratio' is calculated as:", o: ["Hits / Total Accesses", "Misses / Total Accesses", "Hits + Misses", "Hits - Misses"], a: 0 },
+        { q: "Which cache level is shared among all cores?", o: ["L1", "L2", "L3", "L1 and L2"], a: 2 },
+        { q: "Internal fragmentation is a problem in:", o: ["Paging", "Segmentation", "Cache", "Registers"], a: 0 },
+        { q: "Which I/O method involves the CPU constantly checking the device?", o: ["Interrupt-driven", "DMA", "Programmed I/O (Polling)", "Channel I/O"], a: 2 },
+        { q: "A 'Carry Look-Ahead' adder is used to:", o: ["Save power", "Reduce propagation delay", "Reduce size", "Perform division"], a: 1 },
+        { q: "Which addressing mode uses a displacement constant?", o: ["Immediate", "Direct", "Relative", "Register"], a: 2 },
+        { q: "Binary 1011 is equal to Decimal:", o: ["9", "10", "11", "12"], a: 2 },
+        { q: "The number of bits in a MAC address is:", o: ["32", "48", "64", "128"], a: 1 },
+        { q: "Hyper-threading allows one core to:", o: ["Execute two threads", "Execute two OS", "Use more RAM", "Increase clock speed"], a: 0 },
+        { q: "Which bus connects the CPU to the RAM?", o: ["System Bus", "Expansion Bus", "I/O Bus", "Internal Bus"], a: 0 },
+        { q: "What is 'Out-of-order execution'?", o: ["Executing wrong instructions", "Executing instructions as resources become available", "Random execution", "Linear execution"], a: 1 },
+        { q: "The speed of a processor is measured in:", o: ["RPM", "Hertz (GHz)", "Bytes", "Bits"], a: 1 },
+        { q: "Which unit decodes the instruction?", o: ["ALU", "Control Unit", "Registers", "DMA Controller"], a: 1 },
+        { q: "Floating point unit (FPU) is often called:", o: ["Coprocessor", "Main processor", "Subprocessor", "Logic processor"], a: 0 },
+        { q: "A 'Bus Master' is a device that:", o: ["Monitors the bus", "Can initiate a data transfer", "Controls the power", "Is a slave device"], a: 1 },
+        { q: "The 'Valid Bit' in cache indicates:", o: ["Data is correct", "Block contains useful data", "Block is empty", "Data is parity checked"], a: 1 }
+    ],
+    "3": [
+        { q: "What is the typical size of a L1 Cache?", o: ["32-64 KB", "32-64 MB", "1-2 GB", "1-2 TB"], a: 0 },
+        { q: "Which law is used to calculate speedup in parallel systems?", o: ["Moore's Law", "Amdahl's Law", "Faraday's Law", "Pascal's Law"], a: 1 },
+        { q: "Which instruction type can access memory in a RISC machine?", o: ["Add", "Sub", "Load/Store", "All of these"], a: 2 },
+        { q: "The 'Branch Target Buffer' is used for:", o: ["Data caching", "Branch Prediction", "Loop counting", "ALU sync"], a: 1 },
+        { q: "Which mechanism allows multiple devices to share the same bus?", o: ["Bus Arbitration", "Bus Sync", "Bus Paging", "Bus Locking"], a: 0 },
+        { q: "What is 'Latency'?", o: ["Throughput speed", "Delay before transfer begins", "Total data transferred", "Bus frequency"], a: 1 },
+        { q: "Which memory is volatile?", o: ["ROM", "Flash", "RAM", "EPROM"], a: 2 },
+        { q: "A 'Cold Cache' has a hit ratio of:", o: ["100%", "50%", "0%", "25%"], a: 2 },
+        { q: "How many bits are in an IPv4 address?", o: ["16", "32", "64", "128"], a: 1 },
+        { q: "What is the function of the ALU 'Flags'?", o: ["Store data", "Indicate status of result", "Store instructions", "Control clock"], a: 1 },
+        { q: "Which stage comes after 'Decode' in a 5-stage pipeline?", o: ["Fetch", "Execute", "Write Back", "Memory Access"], a: 1 },
+        { q: "The 'Cycle Time' of a CPU is the reciprocal of:", o: ["RAM speed", "Clock Frequency", "Bus width", "Instruction count"], a: 1 },
+        { q: "Which register holds the current status (e.g., zero, carry)?", o: ["IR", "PC", "PSW (Program Status Word)", "MAR"], a: 2 },
+        { q: "Multiprogramming increases CPU:", o: ["Power", "Utilization", "Cost", "Latency"], a: 1 },
+        { q: "In a 'Write-Allocate' policy:", o: ["Missed block is loaded into cache", "Missed block is ignored", "Cache is cleared", "RAM is cleared"], a: 0 },
+        { q: "Which bit is used to check for errors in data transmission?", o: ["Dirty bit", "Valid bit", "Parity bit", "Sign bit"], a: 2 },
+        { q: "The gap between CPU speed and Memory speed is bridged by:", o: ["Larger HDD", "Cache Memory", "Faster Fans", "Gold plated wires"], a: 1 },
+        { q: "Which flip-flop toggles its output when both inputs are 1?", o: ["SR", "D", "JK", "None"], a: 2 },
+        { q: "Memory interleaving is used to:", o: ["Save power", "Increase bandwidth", "Reduce heat", "Reduce cost"], a: 1 },
+        { q: "What is a 'Nop' instruction?", o: ["Next operation", "No operation", "Negative operation", "New operation"], a: 1 },
+        { q: "Harvard architecture is common in:", o: ["Mainframes", "Microcontrollers/DSPs", "Laptops", "Servers"], a: 1 },
+        { q: "A 'Superscalar' CPU can issue:", o: ["1 instruction/cycle", ">1 instruction/cycle", "0.5 instruction/cycle", "Only logic instructions"], a: 1 },
+        { q: "A decoder with n inputs has how many outputs?", o: ["n", "2n", "2^n", "n^2"], a: 2 },
+        { q: "Which logic gate is equivalent to (A.B)'?", o: ["NOR", "NAND", "XNOR", "AND"], a: 1 },
+        { q: "The 'Throughput' of a pipeline is maximum when:", o: ["Clock is slow", "Stages are balanced", "Hazards are high", "Pipeline is empty"], a: 1 },
+        { q: "What is 'Shadow RAM'?", o: ["Backup RAM", "Copying ROM contents to RAM for speed", "Virtual RAM", "VRAM"], a: 1 },
+        { q: "Which instruction changes the flow of execution?", o: ["Add", "Mov", "Jmp (Jump)", "Push"], a: 2 },
+        { q: "What is the hexadecimal equivalent of binary 1111?", o: ["E", "F", "10", "G"], a: 1 },
+        { q: "Which component coordinates all activities of the computer?", o: ["ALU", "Control Unit", "Bus", "Monitor"], a: 1 },
+        { q: "A half-adder can add how many bits?", o: ["2", "3", "4", "8"], a: 0 },
+        { q: "The 'Berkeley RISC' was the basis for:", o: ["Intel x86", "SPARC", "PowerPC", "ARM"], a: 1 },
+        { q: "A 'Virtual Memory' system uses:", o: ["Only RAM", "RAM and HDD space", "Only HDD", "Cache"], a: 1 },
+        { q: "A 'Cluster' is a group of:", o: ["Transistors", "Independent computers", "Registers", "Bus lines"], a: 1 },
+        { q: "Which flag is set if a result exceeds register capacity?", o: ["Zero", "Carry", "Overflow", "Sign"], a: 2 },
+        { q: "Instruction 'PUSH R1' affects the:", o: ["Program Counter", "Stack Pointer", "ALU", "Data Bus"], a: 1 },
+        { q: "The CPU 'Cache' is usually made of:", o: ["DRAM", "SRAM", "SDRAM", "Flash"], a: 1 },
+        { q: "Which unit is responsible for address calculation in some CPUs?", o: ["ALU", "AGU (Address Generation Unit)", "CU", "Registers"], a: 1 },
+        { q: "The 'Execution Time' of a program is:", o: ["IC * CPI * Clock_Cycle", "IC / CPI", "IC + CPI", "CPI / IC"], a: 0 },
+        { q: "What is the 'Endianness' of the internet (IP)?", o: ["Little-endian", "Big-endian", "Bi-endian", "None"], a: 1 },
+        { q: "An 8-bit register can represent how many unique values?", o: ["128", "255", "256", "512"], a: 2 }
+    ],
+    "4": [
+        { q: "What is the result of A XOR A?", o: ["A", "1", "0", "A'"], a: 2 },
+        { q: "The 'Replacement Policy' LRU stands for:", o: ["Least Recently Used", "Last Random Unit", "Low Rate Utility", "Long Range Unit"], a: 0 },
+        { q: "Which logic gate outputs 1 only if all inputs are 0?", o: ["OR", "AND", "NOR", "NAND"], a: 2 },
+        { q: "A 'Static' RAM is made of:", o: ["Capacitors", "Flip-flops", "Inductors", "Hard Disks"], a: 1 },
+        { q: "The 'Cycle Stealing' technique is related to:", o: ["Paging", "DMA", "Pipelining", "Caching"], a: 1 },
+        { q: "Which register holds the current status of the CPU?", o: ["MAR", "IR", "PSW", "PC"], a: 2 },
+        { q: "The number of bits in a single-precision float is:", o: ["16", "32", "64", "80"], a: 1 },
+        { q: "Which architecture is known for having a high 'Semantic Gap'?", o: ["RISC", "CISC", "VLIW", "SIMD"], a: 1 },
+        { q: "What is the base of the Hexadecimal system?", o: ["2", "8", "10", "16"], a: 3 },
+        { q: "Which interrupt has the highest priority?", o: ["Timer", "I/O", "TRAP", "Software"], a: 2 },
+        { q: "A 'Multiplexer' is also called a:", o: ["Data Selector", "Data Encoder", "Data Decoder", "Data Buffer"], a: 0 },
+        { q: "Which level of RAID uses Hamming Code?", o: ["RAID 1", "RAID 2", "RAID 3", "RAID 4"], a: 1 },
+        { q: "A 'Word' size of 16-bits corresponds to how many bytes?", o: ["1", "2", "4", "8"], a: 1 },
+        { q: "Which law describes the diminishing returns of parallelization?", o: ["Moore's", "Amdahl's", "Ohm's", "Gustafson's"], a: 1 },
+        { q: "The 'Fetch' operation is controlled by:", o: ["ALU", "Program Counter", "Hard Drive", "Registers"], a: 1 },
+        { q: "What is 'Pipeline Bubble'?", o: ["Fast processing", "A stall in execution", "A type of memory", "A cooling unit"], a: 1 },
+        { q: "Which flip-flop does not have a 'Race Around' condition?", o: ["JK", "Master-Slave JK", "SR", "T"], a: 1 },
+        { q: "A 'Nanosecond' is what fraction of a second?", o: ["10^-3", "10^-6", "10^-9", "10^-12"], a: 2 },
+        { q: "Which bus carries the 'Read/Write' signals?", o: ["Address Bus", "Data Bus", "Control Bus", "Memory Bus"], a: 2 },
+        { q: "What is the 1's complement of 1010?", o: ["0101", "1011", "1100", "0011"], a: 0 },
+        { q: "The 'ALU' result is typically stored in the:", o: ["MAR", "MDR", "Accumulator", "Instruction Register"], a: 2 },
+        { q: "Which device converts digital signals to analog?", o: ["Encoder", "Decoder", "DAC", "ADC"], a: 2 },
+        { q: "A 'CISC' processor usually has:", o: ["Few registers", "Many registers", "No registers", "Only 1 register"], a: 0 },
+        { q: "What is 'Context Switching'?", o: ["Changing hardware", "Changing from one process to another", "Changing RAM", "Rebooting"], a: 1 },
+        { q: "The 'Execution Unit' is part of the:", o: ["Input", "Output", "CPU", "RAM"], a: 2 },
+        { q: "Which stage of a pipeline writes results back to registers?", o: ["WB", "MEM", "EX", "ID"], a: 0 },
+        { q: "In 'Set-Associative' mapping, 'Set' is a collection of:", o: ["Lines", "Words", "Tags", "Buses"], a: 0 },
+        { q: "Which logic gate is equivalent to (A+B)'?", o: ["NAND", "NOR", "AND", "OR"], a: 1 },
+        { q: "How many inputs are there in a Full Adder?", o: ["1", "2", "3", "4"], a: 2 },
+        { q: "What is 'Temporal Locality'?", o: ["Accessing nearby data", "Accessing same data again soon", "Accessing remote data", "Sequential access"], a: 1 },
+        { q: "A 'Bus Cycle' consists of:", o: ["Address phase", "Data phase", "Wait states", "All of these"], a: 3 },
+        { q: "Which memory is non-volatile and can be erased electrically?", o: ["ROM", "DRAM", "EEPROM", "SRAM"], a: 2 },
+        { q: "A 'Dual-Core' processor has two:", o: ["RAMs", "Execution Cores", "Hard Drives", "Monitors"], a: 1 },
+        { q: "What is the purpose of 'ECC' memory?", o: ["Speed up RAM", "Detect and correct errors", "Reduce power", "Increase capacity"], a: 1 },
+        { q: "Which register is auto-incremented during a fetch?", o: ["IR", "MAR", "PC", "MDR"], a: 2 },
+        { q: "A 64-bit CPU can handle how many bits at once?", o: ["32", "64", "128", "256"], a: 1 },
+        { q: "What is the function of a 'Demultiplexer'?", o: ["1 input to many outputs", "Many inputs to 1 output", "Binary to Decimal", "Decimal to Binary"], a: 0 },
+        { q: "The 'Micro-instruction' is stored in:", o: ["RAM", "Control Memory", "L3 Cache", "Registers"], a: 1 },
+        { q: "What does 'MIPS' stand for in performance?", o: ["Million Instructions Per Second", "Many Input Per Second", "Memory Instruction Per Second", "Main Internal Per Second"], a: 0 },
+        { q: "Which RAID level is used for High Performance without fault tolerance?", o: ["RAID 0", "RAID 1", "RAID 5", "RAID 6"], a: 0 }
+    ],
+    "5": [
+        { q: "What is the 2's complement of 1010?", o: ["0101", "0110", "1100", "0111"], a: 1 },
+        { q: "A 'Pipeline Hazard' caused by conditional jumps is:", o: ["Data", "Structural", "Control", "Latency"], a: 2 },
+        { q: "Which law is related to the scale of integration in chips?", o: ["Amdahl's", "Moore's", "Newton's", "Rock's"], a: 1 },
+        { q: "In Flynn's taxonomy, a standard PC is:", o: ["SISD", "SIMD", "MIMD", "MISD"], a: 0 },
+        { q: "Which component stores 'Micro-code'?", o: ["Control Unit", "ALU", "Registers", "DMA"], a: 0 },
+        { q: "What is the main advantage of 'DMA'?", o: ["Saves power", "Increases CPU speed", "CPU is free during I/O", "Smaller motherboard"], a: 2 },
+        { q: "Which register is involved in Stack operations?", o: ["PC", "MAR", "SP", "IR"], a: 2 },
+        { q: "The time to read a sector from HDD is:", o: ["Seek + Latency + Transfer", "Seek + Latency", "Transfer only", "Seek only"], a: 0 },
+        { q: "Which memory is used as Cache?", o: ["DRAM", "SRAM", "ROM", "Flash"], a: 1 },
+        { q: "What is the Decimal value of Hex 'A'?", o: ["10", "11", "12", "15"], a: 0 },
+        { q: "Which gate is called an 'Inverter'?", o: ["AND", "OR", "NOT", "NAND"], a: 2 },
+        { q: "What is 'Paging' used for?", o: ["Pipelining", "Virtual Memory", "Cache Mapping", "Bus Control"], a: 1 },
+        { q: "Which interrupt is triggered by a divide-by-zero error?", o: ["Hardware", "External", "Exception/Trap", "I/O"], a: 2 },
+        { q: "The 'Accumulator' is a part of:", o: ["RAM", "ALU", "Hard Disk", "CU"], a: 1 },
+        { q: "A 'Bit' can have how many states?", o: ["1", "2", "4", "8"], a: 1 },
+        { q: "Which architecture is optimized for power efficiency?", o: ["CISC", "RISC", "Mainframe", "Supercomputer"], a: 1 },
+        { q: "What is the role of the 'Instruction Decoder'?", o: ["Fetch data", "Translate opcode to signals", "Execute math", "Store results"], a: 1 },
+        { q: "Which flip-flop has a 'Toggle' mode?", o: ["JK", "T", "D", "Both JK and T"], a: 3 },
+        { q: "What is 'Cache Invalidation'?", o: ["Deleting cache", "Marking data as stale", "Increasing size", "Reducing speed"], a: 1 },
+        { q: "A 'Word' addressable memory means:", o: ["Each byte has an address", "Each word has an address", "Only 1st byte has address", "No addresses"], a: 1 },
+        { q: "Which bus is used for communicating with external devices?", o: ["System Bus", "Expansion/IO Bus", "Internal Bus", "Local Bus"], a: 1 },
+        { q: "How many bits are in a Kilobyte (KB)?", o: ["1000", "1024", "8000", "8192"], a: 3 },
+        { q: "Which CPU component performs 'Branch Prediction'?", o: ["ALU", "Control Unit", "Registers", "Bus Interface"], a: 1 },
+        { q: "The 'MDR' connects the CPU to the:", o: ["Address Bus", "Data Bus", "Control Bus", "I/O Bus"], a: 1 },
+        { q: "Which memory type is used in BIOS?", o: ["RAM", "ROM/Flash", "L2 Cache", "Registers"], a: 1 },
+        { q: "What is 'Throughput' in a system?", o: ["Delay time", "Jobs completed per unit time", "Memory size", "Clock speed"], a: 1 },
+        { q: "The 'Floating Point' format follows which standard?", o: ["ISO 9001", "IEEE 754", "ANSI C", "UTF-8"], a: 1 },
+        { q: "Which mapping does not have a 'Conflict Miss'?", o: ["Direct", "Set-Associative", "Fully-Associative", "None"], a: 2 },
+        { q: "What is 'Endianness'?", o: ["Size of memory", "Order of bytes in memory", "Type of CPU", "Speed of bus"], a: 1 },
+        { q: "Which gate is a Universal Gate?", o: ["AND", "OR", "XOR", "NOR"], a: 3 },
+        { q: "The 'Program Status Word' (PSW) is a:", o: ["Register", "Instruction", "Bus", "Memory block"], a: 0 },
+        { q: "What is 'Microprogramming'?", o: ["Small programs", "Implementing CU using instructions", "Binary coding", "Python coding"], a: 1 },
+        { q: "Which cache level is the largest?", o: ["L1", "L2", "L3", "L1 and L2"], a: 2 },
+        { q: "What is 'Instruction Fetch' latency?", o: ["Time to decode", "Time to read from memory", "Time to execute", "Time to write"], a: 1 },
+        { q: "A 4-bit 'Nibble' can represent how many values?", o: ["4", "8", "16", "32"], a: 2 },
+        { q: "Which addressing mode is fastest?", o: ["Direct", "Immediate", "Indirect", "Memory"], a: 1 },
+        { q: "The 'ALU' is responsible for:", o: ["Storage", "Math and Logic", "Display", "Printing"], a: 1 },
+        { q: "What is 'Speculative Execution'?", o: ["Guessing the next instruction", "Random execution", "Error checking", "Background tasks"], a: 0 },
+        { q: "The 'Wait State' is used for:", o: ["CPU speed up", "Syncing with slower devices", "Cooling", "Paging"], a: 1 },
+        { q: "Which architecture is common in modern Supercomputers?", o: ["SISD", "SIMD", "MIMD", "MISD"], a: 2 }
+    ]
+};
+
+// --- Logic to Render and Calculate ---
+
+const urlParams = new URLSearchParams(window.location.search);
+const setId = urlParams.get('set') || "1";
+document.getElementById('set-info').innerText = `CCE Practice Set: ${setId}`;
+
+const questionsArea = document.getElementById('questions-area');
+const activeQs = quizData[setId];
+
+if(activeQs) {
+    activeQs.forEach((item, idx) => {
+        let html = `<div class="question"><p class="q-text">${idx + 1}. ${item.q}</p>`;
+        item.o.forEach((opt, i) => {
+            html += `<label class="option"><input type="radio" name="q${idx}" value="${i}"> ${opt}</label>`;
+        });
+        html += `</div>`;
+        questionsArea.innerHTML += html;
+    });
+}
+
+function calculateScore() {
+    let score = 0; let correct = 0; let wrong = 0; let unattempted = 0;
+    const total = activeQs.length;
+
+    activeQs.forEach((item, idx) => {
+        const selected = document.querySelector(`input[name="q${idx}"]:checked`);
+        if (selected) {
+            if (parseInt(selected.value) === item.a) {
+                score += 3; correct++;
+            } else {
+                score -= 1; wrong++;
+            }
+        } else { unattempted++; }
+    });
+
+    const percentage = ((correct / total) * 100).toFixed(2);
+    
+    // Update Modal
+    document.getElementById('perc-display').innerText = percentage + "%";
+    document.getElementById('stats-area').innerHTML = `
+        <div class="stat-line"><span>Total Questions:</span> <b>${total}</b></div>
+        <div class="stat-line" style="color:green"><span>Correct Answers:</span> <b>${correct}</b></div>
+        <div class="stat-line" style="color:red"><span>Wrong Answers:</span> <b>${wrong}</b></div>
+        <div class="stat-line"><span>Unattempted:</span> <b>${unattempted}</b></div>
+        <div class="stat-line" style="font-weight:bold; border:none; font-size:1.3rem; margin-top:10px;">
+            <span>Final Score:</span> <span>${score} / ${total * 3}</span>
+        </div>
+    `;
+
+    document.getElementById('result-modal').style.display = "flex";
+}
+
+function closeModal() {
+    document.getElementById('result-modal').style.display = "none";
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+</script>
+</body>
+</html>

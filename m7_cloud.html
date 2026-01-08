@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Module 7: Cloud Computing - Master Quiz</title>
+    <style>
+        :root { --blue: #0056b3; --light-blue: #e7f1ff; --orange: #fd7e14; --green: #198754; --red: #dc3545; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: #f8f9fa; padding: 20px; color: #212529; }
+        .quiz-container { max-width: 950px; margin: auto; background: white; padding: 35px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+        .header { border-bottom: 4px solid var(--blue); padding-bottom: 15px; margin-bottom: 25px; display: flex; justify-content: space-between; align-items: center; }
+        .back-link { text-decoration: none; color: var(--blue); font-weight: bold; padding: 10px 18px; border: 2px solid var(--blue); border-radius: 6px; transition: 0.3s; }
+        .back-link:hover { background: var(--blue); color: white; }
+        
+        .question { margin-bottom: 25px; padding: 20px; border-radius: 8px; border: 1px solid #dee2e6; background: #fff; }
+        .question.unanswered { border-left: 6px solid var(--red); background: #fff8f8; }
+        .q-text { font-size: 1.1rem; font-weight: 600; color: #333; margin-bottom: 15px; }
+        .option { display: block; padding: 12px 15px; background: #fdfdfd; margin: 8px 0; border: 1px solid #ced4da; border-radius: 6px; cursor: pointer; }
+        .option:hover { background: var(--light-blue); border-color: var(--blue); }
+        
+        .btn-submit { background: var(--blue); color: white; border: none; padding: 18px; border-radius: 8px; cursor: pointer; font-size: 1.2rem; font-weight: bold; width: 100%; }
+        #result-modal { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.8); z-index: 1000; justify-content: center; align-items: center; }
+        .modal-content { background: white; padding: 35px; border-radius: 15px; text-align: center; width: 90%; max-width: 500px; }
+        .percentage { font-size: 3.5rem; font-weight: bold; color: var(--blue); margin: 15px 0; }
+        .stat-line { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #eee; }
+    </style>
+</head>
+<body>
+
+<div class="quiz-container">
+    <div class="header">
+        <div>
+            <h2 style="margin:0;">Cloud Computing</h2>
+            <span id="set-info" style="color: var(--orange); font-weight: bold;">Set Loading...</span>
+        </div>
+        <a href="index.html" class="back-link">Dashboard</a>
+    </div>
+
+    
+
+    <form id="quiz-form">
+        <div id="questions-area"></div>
+        <button type="button" class="btn-submit" onclick="checkAllAnswered()">Submit Quiz</button>
+    </form>
+</div>
+
+<div id="result-modal">
+    <div class="modal-content">
+        <h2>Final Result</h2>
+        <div class="percentage" id="perc-display">0%</div>
+        <div id="stats-area"></div>
+        <button onclick="location.reload()" style="background: var(--blue); color: white; border: none; padding: 12px 25px; border-radius: 5px; cursor: pointer; margin-top: 20px;">Retake</button>
+        <button onclick="closeModal()" style="background: #6c757d; color: white; border: none; padding: 12px 25px; border-radius: 5px; cursor: pointer; margin-top: 20px;">Review</button>
+    </div>
+</div>
+
+<script>
+const quizData = {
+    "1": [
+        { q: "What does NIST stand for in the context of cloud standards?", o: ["National Institute of Standards and Technology", "National Information Security Team", "Network Infrastructure and System Tools", "None"], a: 0 },
+        { q: "Which of the following is NOT a service model in Cloud?", o: ["IaaS", "PaaS", "SaaS", "CaaS"], a: 3 },
+        { q: "Amazon Web Services (AWS) is an example of which model?", o: ["Private Cloud", "Public Cloud", "Hybrid Cloud", "Community Cloud"], a: 1 },
+        { q: "What is 'On-demand self-service' in Cloud?", o: ["Requesting resources from a person", "Automatic provisioning without human interaction", "Paying for a yearly subscription", "None"], a: 1 },
+        { q: "Which deployment model is a combination of two or more clouds?", o: ["Public", "Private", "Hybrid", "Multi-cloud"], a: 2 },
+        { q: "What is 'Virtualization'?", o: ["Creating a physical version of something", "Creating a virtual version of hardware, storage, or network", "Buying new servers", "None"], a: 1 },
+        { q: "The software that creates and runs virtual machines is called:", o: ["Hypervisor", "Kernel", "Compiler", "Docker"], a: 0 },
+        { q: "In which model does the user manage the OS and Middleware?", o: ["IaaS", "PaaS", "SaaS", "None"], a: 0 },
+        { q: "Google Docs is an example of:", o: ["IaaS", "PaaS", "SaaS", "DaaS"], a: 2 },
+        { q: "Which of these is a Type-1 Hypervisor?", o: ["VMware Workstation", "Oracle VirtualBox", "Xen / VMware ESXi", "Microsoft Virtual PC"], a: 2 },
+        { q: "What is 'Cloud Elasticity'?", o: ["Paying a fixed price", "Ability to scale resources up or down dynamically", "Moving data to a hard drive", "None"], a: 1 },
+        { q: "Which of the following is a cloud storage service by AWS?", o: ["S3", "EC2", "RDS", "Lambda"], a: 0 },
+        { q: "What does 'SLA' stand for?", o: ["Service Level Agreement", "System Level Access", "Storage Layer Architecture", "None"], a: 0 },
+        { q: "Which cloud model provides a platform for developers to build applications?", o: ["IaaS", "PaaS", "SaaS", "None"], a: 1 },
+        { q: "Cloud computing is based on which payment model?", o: ["Upfront cost", "Pay-as-you-go", "Free forever", "Fixed monthly"], a: 1 },
+        { q: "Which type of Hypervisor runs on top of an existing Operating System?", o: ["Type 1", "Type 2", "Bare Metal", "None"], a: 1 },
+        { q: "What is 'Resource Pooling'?", o: ["Deleting resources", "Serving multiple consumers using a multi-tenant model", "Using one server for one person", "None"], a: 1 },
+        { q: "Which of these is a major security concern in Cloud?", o: ["Data breach", "Multi-tenancy issues", "DDoS attacks", "All of these"], a: 3 },
+        { q: "Which service by Microsoft provides cloud computing?", o: ["AWS", "Azure", "GCP", "OpenStack"], a: 1 },
+        { q: "In SaaS, who is responsible for application security?", o: ["User", "Cloud Provider", "Network Admin", "None"], a: 1 },
+        { q: "What is 'Broad Network Access'?", o: ["Access via standard mechanisms (mobile, laptop, web)", "Access only from a LAN", "No internet access", "None"], a: 0 },
+        { q: "Which model is used by a group of organizations with shared concerns?", o: ["Public", "Private", "Community", "Hybrid"], a: 2 },
+        { q: "What is 'Multi-tenancy'?", o: ["Single user per server", "Multiple users sharing the same physical resources", "Buying many houses", "None"], a: 1 },
+        { q: "Which AWS service is used for virtual servers?", o: ["S3", "RDS", "EC2", "IAM"], a: 2 },
+        { q: "What is 'Cloud Migration'?", o: ["Deleting a cloud account", "Moving data and apps from on-premise to cloud", "Upgrading a CPU", "None"], a: 1 },
+        { q: "Which of these is a PaaS provider?", o: ["AWS EC2", "Heroku", "Dropbox", "Microsoft Office 365"], a: 1 },
+        { q: "What is 'Measured Service'?", o: ["Cloud resources are metered and reported for billing", "Estimating cost", "Buying a server", "None"], a: 0 },
+        { q: "In IaaS, who manages the hardware?", o: ["User", "Cloud Provider", "Government", "None"], a: 1 },
+        { q: "What does 'VPC' stand for?", o: ["Virtual Private Cloud", "Verified Private Connection", "Virtual Power Center", "None"], a: 0 },
+        { q: "Which model offers the most control to the user?", o: ["SaaS", "PaaS", "IaaS", "CaaS"], a: 2 },
+        { q: "What is 'Vendor Lock-in'?", o: ["Security feature", "Difficulty in moving from one cloud provider to another", "Fixing a price", "None"], a: 1 },
+        { q: "Which of these is an open-source cloud operating system?", o: ["Windows", "OpenStack", "macOS", "Solaris"], a: 1 },
+        { q: "What is 'Edge Computing'?", o: ["Cloud computing in the center", "Computing near the source of data", "Using only mobile phones", "None"], a: 1 },
+        { q: "Which is a characteristic of Private Cloud?", o: ["Shared by everyone", "Operated solely for a single organization", "Cheapest model", "None"], a: 1 },
+        { q: "What is 'Cold Storage' in cloud?", o: ["Frequent access storage", "Infrequently accessed data stored at lower cost", "Server in a fridge", "None"], a: 1 },
+        { q: "Which AWS service is used for databases?", o: ["EC2", "RDS", "CloudFront", "Route53"], a: 1 },
+        { q: "What is 'Cloud Bursting'?", o: ["Server explosion", "Moving workload to public cloud when private cloud reaches capacity", "Deleting data", "None"], a: 1 },
+        { q: "What is 'Identity and Access Management' (IAM)?", o: ["Measuring internet speed", "Managing user permissions and security", "Naming servers", "None"], a: 1 },
+        { q: "Which model is best for a startup with no infrastructure budget?", o: ["On-premise", "Public Cloud", "Private Cloud", "None"], a: 1 },
+        { q: "What is 'Serverless Computing'?", o: ["Running without servers", "Cloud provider manages infrastructure; user only provides code", "Buying a physical server", "None"], a: 1 }
+    ],
+    "2": [
+        { q: "What is a 'Snapshot' in cloud computing?", o: ["A quick photo", "A point-in-time backup of a virtual disk", "A cloud login", "None"], a: 1 },
+        { q: "Which port is commonly used for SSH to a cloud instance?", o: ["80", "443", "22", "3389"], a: 2 },
+        { q: "What is 'Containerization'?", o: ["Buying shipping containers", "Packaging an application with its dependencies", "Using a bigger server", "None"], a: 1 },
+        { q: "Which tool is used for container orchestration?", o: ["Docker", "Kubernetes", "S3", "Notepad"], a: 1 },
+        { q: "In 'Shared Responsibility Model', who is responsible for physical security?", o: ["Customer", "Cloud Provider", "Both", "None"], a: 1 },
+        { q: "What is 'Latency' in cloud network?", o: ["Data size", "Time taken for data to travel across the network", "Bandwidth", "None"], a: 1 },
+        { q: "What does 'Region' mean in AWS?", o: ["A single server", "A geographic area with multiple data centers", "A user group", "None"], a: 1 },
+        { q: "What is an 'Availability Zone' (AZ)?", o: ["A whole country", "One or more isolated data centers within a region", "A backup drive", "None"], a: 1 },
+        { q: "Which protocol is used for RDP (Remote Desktop) in Windows instances?", o: ["22", "80", "3389", "443"], a: 2 },
+        { q: "What is 'Auto Scaling'?", o: ["Buying more RAM manually", "Automatically adjusting the number of instances based on load", "Deleting old files", "None"], a: 1 },
+        { q: "Which of these is a NoSQL service in AWS?", o: ["RDS", "DynamoDB", "Aurora", "MySQL"], a: 1 },
+        { q: "What is 'Cloud Object Storage'?", o: ["Storing code", "Storing data as objects (e.g., S3)", "A relational database", "None"], a: 1 },
+        { q: "What is 'Global Infrastructure'?", o: ["Local network", "The worldwide network of data centers and regions", "Server brand", "None"], a: 1 },
+        { q: "What is 'Microservices'?", o: ["One giant application", "Breaking an app into small, independent services", "Using small CPUs", "None"], a: 1 },
+        { q: "What is 'DDoS'?", o: ["A database command", "Distributed Denial of Service attack", "A type of cloud", "None"], a: 1 },
+        { q: "Which service is used for serverless functions in AWS?", o: ["EC2", "Lambda", "S3", "VPC"], a: 1 },
+        { q: "What is 'Infrastructure as Code' (IaC)?", o: ["Writing a manual", "Managing infrastructure through configuration files/code", "Hand-wiring a server", "None"], a: 1 },
+        { q: "Which tool is used for IaC?", o: ["Terraform", "CloudFormation", "Both A and B", "None"], a: 2 },
+        { q: "What is 'Cloud Orchestration'?", o: ["Playing music", "Automated arrangement and management of cloud services", "Manual setup", "None"], a: 1 },
+        { q: "In cloud, what is 'Governance'?", o: ["Politics", "Rules and policies to manage cloud usage", "Cost estimation", "None"], a: 1 },
+        { q: "What is 'AMI' in AWS?", o: ["Amazon Machine Image", "Advanced Media Interface", "Application Multi Instance", "None"], a: 0 },
+        { q: "Which cloud service model is Netflix an example of?", o: ["SaaS", "PaaS", "IaaS", "None"], a: 0 },
+        { q: "What is 'Compliance'?", o: ["Following laws and regulations (e.g., GDPR, HIPAA)", "Ignoring rules", "Paying bills", "None"], a: 0 },
+        { q: "Which service provides Content Delivery Network (CDN) in AWS?", o: ["CloudFront", "CloudWatch", "CloudTrail", "CloudSearch"], a: 0 },
+        { q: "What is 'Horizontal Scaling'?", o: ["Adding more power to a single server", "Adding more servers/instances", "Increasing disk size", "None"], a: 1 },
+        { q: "What is 'Vertical Scaling'?", o: ["Adding more instances", "Increasing CPU/RAM of an existing server", "Moving to a new building", "None"], a: 1 },
+        { q: "What is 'CloudWatch' used for in AWS?", o: ["Monitoring and alerts", "Storage", "Databases", "None"], a: 0 },
+        { q: "What is 'CloudTrail' used for?", o: ["Logging API calls and activity", "Sending emails", "Running code", "None"], a: 0 },
+        { q: "What is 'Elastic Load Balancing' (ELB)?", o: ["Weight scale", "Distributing incoming traffic across multiple targets", "Charging battery", "None"], a: 1 },
+        { q: "What is 'DNS' in cloud (e.g., Route53)?", o: ["Database Name System", "Domain Name System", "Data Network Service", "None"], a: 1 },
+        { q: "What is 'Ephemeral Storage'?", o: ["Permanent storage", "Temporary storage that is lost when the instance is stopped", "A USB drive", "None"], a: 1 },
+        { q: "What is 'EBS' in AWS?", o: ["Elastic Block Store", "Electronic Backup System", "Every Block Stored", "None"], a: 0 },
+        { q: "Which is a 'Public Cloud' disadvantage?", o: ["Low cost", "Limited control and security concerns", "Ease of use", "None"], a: 1 },
+        { q: "What is 'Multi-cloud' strategy?", o: ["Using only one cloud", "Using services from multiple cloud providers (AWS + Azure)", "No cloud", "None"], a: 1 },
+        { q: "What is 'CapEx' in traditional IT?", o: ["Operating Expense", "Capital Expenditure (upfront cost)", "Cloud Expense", "None"], a: 1 },
+        { q: "What is 'OpEx' in Cloud computing?", o: ["Capital Expenditure", "Operating Expenditure (ongoing cost)", "Optional Expense", "None"], a: 1 },
+        { q: "What is 'Hybrid Cloud'?", o: ["Mix of on-premise and public cloud", "Only private cloud", "Using two PCs", "None"], a: 0 },
+        { q: "What is 'Disaster Recovery' (DR)?", o: ["Breaking a server", "Plan to restore systems after a failure", "Upgrading software", "None"], a: 1 },
+        { q: "Which Azure service is equivalent to AWS EC2?", o: ["Blob Storage", "Virtual Machines", "Azure Functions", "CosmosDB"], a: 1 },
+        { q: "What is 'JSON' commonly used for in cloud?", o: ["Cooking", "Configuration and data exchange", "Designing logos", "None"], a: 1 }
+    ],
+    "3": [
+        { q: "Which virtualization is most efficient?", o: ["Full Virtualization", "Para-virtualization", "OS-level virtualization (Containers)", "None"], a: 2 },
+        { q: "What is a 'Sandbox' in cloud?", o: ["A place to play", "Isolated environment for testing", "A backup drive", "None"], a: 1 },
+        { q: "What is 'Shadow IT'?", o: ["IT in the dark", "Cloud usage without central IT department approval", "A secret server", "None"], a: 1 },
+        { q: "What does 'S3' stand for?", o: ["Super Simple Storage", "Simple Storage Service", "System Storage Service", "None"], a: 1 },
+        { q: "What is 'Bucketing' in S3?", o: ["A storage container for objects", "A database table", "A folder in Windows", "None"], a: 0 },
+        { q: "What is 'Glacier' storage?", o: ["Fastest storage", "Low-cost archival storage", "A type of server", "None"], a: 1 },
+        { q: "What is 'EFS'?", o: ["Elastic File System", "Electronic File Store", "Every File Saved", "None"], a: 0 },
+        { q: "Which protocol is used by EFS?", o: ["HTTP", "NFS", "FTP", "SMB"], a: 1 },
+        { q: "What is 'Provisioned IOPS'?", o: ["Free disk space", "Guaranteed storage performance", "A type of RAM", "None"], a: 1 },
+        { q: "What is 'Spot Instance' in AWS?", o: ["Most expensive", "Spare capacity at high discount (can be terminated)", "Reserved for 3 years", "None"], a: 1 },
+        { q: "What is 'Reserved Instance'?", o: ["Pay as you go", "Pre-paying for capacity to get a discount", "Free instance", "None"], a: 1 },
+        { q: "What is 'Dedicated Host'?", o: ["Shared server", "Physical server dedicated for one customer", "Virtual machine", "None"], a: 1 },
+        { q: "What is 'WAF'?", o: ["Web Application Firewall", "Wide Area Frequency", "Windows App Framework", "None"], a: 0 },
+        { q: "What is 'VPC Peering'?", o: ["Deleting a network", "Connecting two VPCs to route traffic", "A type of internet", "None"], a: 1 },
+        { q: "What is 'NAT Gateway'?", o: ["A type of door", "Allows private instances to access internet", "A security guard", "None"], a: 1 },
+        { q: "What is 'Direct Connect'?", o: ["Wifi", "Dedicated network connection from on-premise to AWS", "Standard internet", "None"], a: 1 },
+        { q: "What is 'CloudFront' Edge Location?", o: ["Main data center", "Where content is cached for low latency", "A user's home", "None"], a: 1 },
+        { q: "What is 'Route 53'?", o: ["A highway", "AWS DNS service", "A database", "None"], a: 1 },
+        { q: "What is 'Elastic Beanstalk'?", o: ["Storage", "PaaS service for deploying applications", "A physical tree", "None"], a: 1 },
+        { q: "What is 'OpsWorks'?", o: ["Configuration management using Chef/Puppet", "Writing code", "Monitoring", "None"], a: 0 },
+        { q: "What is 'AWS Organizations'?", o: ["A charity", "Centrally manage multiple AWS accounts", "A user group", "None"], a: 1 },
+        { q: "What is 'Consolidated Billing'?", o: ["Paying individual bills", "One bill for multiple AWS accounts", "Free billing", "None"], a: 1 },
+        { q: "What is 'Trusted Advisor'?", o: ["A lawyer", "AWS tool providing best practices for cost and security", "A cloud manual", "None"], a: 1 },
+        { q: "What is 'Shared Controls' in AWS?", o: ["User controls everything", "Controls that apply to both provider and customer", "No controls", "None"], a: 1 },
+        { q: "What is 'Penetration Testing' in cloud?", o: ["Building a server", "Testing a system for security vulnerabilities", "Fixing a bug", "None"], a: 1 },
+        { q: "What is 'KMS'?", o: ["Key Management Service (Encryption)", "Kernel Management System", "Keep Memory Safe", "None"], a: 0 },
+        { q: "What is 'Data at Rest'?", o: ["Moving data", "Data stored on a disk", "Deleting data", "None"], a: 1 },
+        { q: "What is 'Data in Transit'?", o: ["Stored data", "Data moving over a network", "Compressed data", "None"], a: 1 },
+        { q: "What is 'Golden Image'?", o: ["A shiny picture", "A pre-configured template for a virtual machine", "A new CPU", "None"], a: 1 },
+        { q: "What is 'Lift and Shift'?", o: ["Gym exercise", "Rehosting an app to the cloud without changes", "Rewriting an app", "None"], a: 1 },
+        { q: "What is 'Refactoring'?", o: ["Moving data", "Modifying code to take advantage of cloud features", "Deleting code", "None"], a: 1 },
+        { q: "What is 'Cloud Optimization'?", o: ["Buying more servers", "Reducing cost and improving performance", "Closing an account", "None"], a: 1 },
+        { q: "What is 'Scale Up'?", o: ["Vertical Scaling", "Horizontal Scaling", "Scale Down", "None"], a: 0 },
+        { q: "What is 'Scale Out'?", o: ["Vertical Scaling", "Horizontal Scaling", "None", "None"], a: 1 },
+        { q: "What is 'High Availability' (HA)?", o: ["System is always accessible even during failures", "System is fast", "System is expensive", "None"], a: 0 },
+        { q: "What is 'Fault Tolerance'?", o: ["Ignoring errors", "System continues to operate despite components failing", "System crashes", "None"], a: 1 },
+        { q: "What is 'TCO'?", o: ["Total Cost of Ownership", "Total Cloud Operation", "Technical Cost Only", "None"], a: 0 },
+        { q: "What is 'Green Computing'?", o: ["Environmentally friendly computing", "Using green servers", "Fast computing", "None"], a: 0 },
+        { q: "What is 'Cloud Agnosticism'?", o: ["Hating cloud", "Designing apps to run on any cloud provider", "Using only AWS", "None"], a: 1 },
+        { q: "The 'C' in VPC stands for:", o: ["Code", "Cloud", "Center", "Connection"], a: 1 }
+    ],
+    "4": [
+        { q: "What is 'Docker Hub'?", o: ["A server", "A registry to share and find container images", "A code editor", "None"], a: 1 },
+        { q: "Which command lists running Docker containers?", o: ["docker list", "docker ps", "docker show", "docker run"], a: 1 },
+        { q: "What is a 'Dockerfile'?", o: ["A text file containing instructions to build an image", "A binary file", "A zip file", "None"], a: 0 },
+        { q: "What is 'Docker Compose'?", o: ["Writing music", "Defining and running multi-container applications", "Deleting containers", "None"], a: 1 },
+        { q: "Which tool is managed Kubernetes by AWS?", o: ["ECS", "EKS", "Fargate", "Lambda"], a: 1 },
+        { q: "What is 'Fargate'?", o: ["A network gate", "Serverless compute engine for containers", "A storage disk", "None"], a: 1 },
+        { q: "What is 'Serverless' storage in AWS?", o: ["S3", "Aurora Serverless", "Both A and B", "None"], a: 2 },
+        { q: "Which protocol does S3 use?", o: ["HTTP/HTTPS", "FTP", "NFS", "SMB"], a: 0 },
+        { q: "What is 'API Gateway'?", o: ["A type of RAM", "Entry point for APIs to access backend data/logic", "A security wall", "None"], a: 1 },
+        { q: "What is 'Step Functions'?", o: ["Drawing steps", "Orchestrating serverless workflows", "Calculating math", "None"], a: 1 },
+        { q: "Which AWS service is used for 'Big Data' warehousing?", o: ["RDS", "Redshift", "DynamoDB", "S3"], a: 1 },
+        { q: "What is 'Athena'?", o: ["A database", "Serverless query service for S3 using SQL", "Storage", "None"], a: 1 },
+        { q: "What is 'Glue' in AWS?", o: ["Adhesive", "Serverless ETL service", "Network tool", "None"], a: 1 },
+        { q: "What is 'Kinesis'?", o: ["Streaming data service", "Storage", "Compute", "Database"], a: 0 },
+        { q: "What is 'SES' in AWS?", o: ["Simple Email Service", "Simple Entry System", "Secure Email Storage", "None"], a: 0 },
+        { q: "What is 'SQS'?", o: ["Simple Queue Service", "Secure Query System", "Simple Query Storage", "None"], a: 0 },
+        { q: "What is 'SNS'?", o: ["Simple Notification Service (Pub/Sub)", "Secure Network System", "Storage Node System", "None"], a: 0 },
+        { q: "What is 'Decoupling'?", o: ["Joining apps", "Breaking dependencies between components (e.g., using SQS)", "Deleting code", "None"], a: 1 },
+        { q: "What is 'Elasticache'?", o: ["In-memory cache (Redis/Memcached)", "Persistent storage", "Database", "None"], a: 0 },
+        { q: "What is 'Storage Gateway'?", o: ["USB drive", "Hybrid storage between on-premise and S3", "Cloud backup", "None"], a: 1 },
+        { q: "What is 'Snowball'?", o: ["A game", "Physical device to move petabytes of data to AWS", "Cloud storage", "None"], a: 1 },
+        { q: "What is 'Rekognition' in AWS?", o: ["Memory", "Image and video analysis service", "Database", "None"], a: 1 },
+        { q: "What is 'Lex'?", o: ["A law", "Service for building conversational interfaces (chatbots)", "Search engine", "None"], a: 1 },
+        { q: "What is 'Polly'?", o: ["A bird", "Text-to-speech service", "Database", "None"], a: 1 },
+        { q: "What is 'SageMaker'?", o: ["A cooking tool", "Machine Learning platform", "Storage", "None"], a: 1 },
+        { q: "What is 'Inspector' in AWS?", o: ["A detective", "Automated security assessment service", "Manual check", "None"], a: 1 },
+        { q: "What is 'Shield'?", o: ["Armor", "Managed DDoS protection", "Antivirus", "None"], a: 1 },
+        { q: "What is 'Artifact' in AWS?", o: ["A historical object", "Portal for compliance reports", "Code storage", "None"], a: 1 },
+        { q: "What is 'Lightsail'?", o: ["A flashlight", "Simplified VPS for small projects", "High-end cluster", "None"], a: 1 },
+        { q: "What is 'Batch'?", o: ["A cookie group", "Running batch computing jobs at any scale", "Serial processing", "None"], a: 1 },
+        { q: "What is 'CodeCommit'?", o: ["AWS version of GitHub", "AWS version of Jenkins", "Storage", "None"], a: 0 },
+        { q: "What is 'CodeBuild'?", o: ["Writing code", "Managed build service", "Deploying code", "None"], a: 1 },
+        { q: "What is 'CodeDeploy'?", o: ["Writing code", "Automated application deployment", "Version control", "None"], a: 1 },
+        { q: "What is 'CodePipeline'?", o: ["A water pipe", "Continuous integration and continuous delivery (CI/CD)", "Database", "None"], a: 1 },
+        { q: "What is 'X-Ray'?", o: ["Medical tool", "Analyze and debug distributed applications", "Storage", "None"], a: 1 },
+        { q: "What is 'WorkSpaces'?", o: ["Office desk", "Desktop-as-a-Service (DaaS)", "Cloud storage", "None"], a: 1 },
+        { q: "What is 'AppStream'?", o: ["Streaming music", "Streaming desktop applications to a browser", "Database", "None"], a: 1 },
+        { q: "What is 'Macie'?", o: ["Makeup", "Service using ML to protect sensitive data", "Storage", "None"], a: 1 },
+        { q: "What is 'GuardDuty'?", o: ["A security guard", "Threat detection service", "Billing tool", "None"], a: 1 },
+        { q: "The 'S' in SaaS stands for:", o: ["System", "Software", "Storage", "Security"], a: 1 }
+    ],
+    "5": [
+        { q: "Which model is Google App Engine?", o: ["IaaS", "PaaS", "SaaS", "None"], a: 1 },
+        { q: "Which model is Salesforce?", o: ["IaaS", "PaaS", "SaaS", "None"], a: 2 },
+        { q: "What is 'Horizontal Pod Autoscaler' in Kubernetes?", o: ["Scaling Nodes", "Scaling Pods based on CPU usage", "Deleting Pods", "None"], a: 1 },
+        { q: "What is 'Blue/Green Deployment'?", o: ["Mixing colors", "Two identical environments to reduce downtime during updates", "Deleting old code", "None"], a: 1 },
+        { q: "What is 'Canary Deployment'?", o: ["Bird watching", "Releasing to a small group of users first", "Releasing to everyone", "None"], a: 1 },
+        { q: "What is 'RTO'?", o: ["Recovery Time Objective", "Read Time Only", "Real Time Output", "None"], a: 0 },
+        { q: "What is 'RPO'?", o: ["Read Power Only", "Recovery Point Objective", "Real Point Output", "None"], a: 1 },
+        { q: "Which storage is 'Block level'?", o: ["S3", "EBS", "EFS", "None"], a: 1 },
+        { q: "Which storage is 'File level'?", o: ["EBS", "S3", "EFS", "None"], a: 2 },
+        { q: "Which storage is 'Object level'?", o: ["S3", "EBS", "EFS", "None"], a: 0 },
+        { q: "What is 'IAM Role'?", o: ["A user password", "Set of permissions for a service to act on your behalf", "A user ID", "None"], a: 1 },
+        { q: "What is 'IAM Policy'?", o: ["A physical document", "JSON document defining permissions", "A username", "None"], a: 1 },
+        { q: "What is 'MFA'?", o: ["Multi-Factor Authentication", "Many File Access", "Main Frame Area", "None"], a: 0 },
+        { q: "What is 'Least Privilege Principle'?", o: ["Giving all access", "Giving only the minimum permissions needed", "No access", "None"], a: 1 },
+        { q: "What is 'Shared Secret'?", o: ["A public post", "A cryptographic key shared between two parties", "A password", "None"], a: 1 },
+        { q: "What is 'Cold Site' in DR?", o: ["Ready to go", "Needs equipment and data to be set up", "Warm server", "None"], a: 1 },
+        { q: "What is 'Hot Site' in DR?", o: ["Takes days to start", "Fully operational immediate backup", "Broken site", "None"], a: 1 },
+        { q: "What is 'Pilot Light' in DR?", o: ["Full running", "Keeping a minimal version of core functional", "Switch off", "None"], a: 1 },
+        { q: "Which cloud provider uses the term 'Resource Groups'?", o: ["AWS", "Azure", "GCP", "IBM"], a: 1 },
+        { q: "What is 'Blob Storage' equivalent to in Azure?", o: ["S3", "EC2", "RDS", "VPC"], a: 0 },
+        { q: "What is 'CosmosDB' in Azure?", o: ["Relational DB", "Globally distributed NoSQL DB", "Storage", "None"], a: 1 },
+        { q: "What is 'VNet' in Azure?", o: ["VPC", "EC2", "S3", "None"], a: 0 },
+        { q: "What is 'Cloud Foundry'?", o: ["A factory", "Open source PaaS", "NoSQL DB", "None"], a: 1 },
+        { q: "What is 'Heroku'?", o: ["A game", "Popular PaaS for developers", "Storage", "None"], a: 1 },
+        { q: "What is 'Public IP'?", o: ["Internal IP", "IP address reachable from internet", "Private IP", "None"], a: 1 },
+        { q: "What is 'Elastic IP'?", o: ["Changing IP", "Static public IP address", "Local IP", "None"], a: 1 },
+        { q: "What is 'Security Group' in AWS?", o: ["Physical lock", "Virtual firewall for instances", "User group", "None"], a: 1 },
+        { q: "What is 'NACL'?", o: ["Salt", "Network Access Control List (Subnet firewall)", "User list", "None"], a: 1 },
+        { q: "Which is stateful?", o: ["Security Group", "NACL", "Both", "None"], a: 0 },
+        { q: "Which is stateless?", o: ["Security Group", "NACL", "Both", "None"], a: 1 },
+        { q: "What is 'Cloud Economics'?", o: ["Buying servers", "Studying costs and benefits of cloud", "Accounting", "None"], a: 1 },
+        { q: "What is 'Right Sizing'?", o: ["Buying the biggest server", "Choosing the correct instance type for the load", "Deleting data", "None"], a: 1 },
+        { q: "What is 'Tagging'?", o: ["Drawing", "Assigning metadata (key-value) to resources", "Naming a file", "None"], a: 1 },
+        { q: "What is 'Billing Alarm'?", o: ["Morning alarm", "Alert when spending exceeds a limit", "Fire alarm", "None"], a: 1 },
+        { q: "What is 'Instance Store'?", o: ["Permanent disk", "Temporary physical storage attached to host", "Backup drive", "None"], a: 1 },
+        { q: "What is 'Placement Group'?", o: ["Friend group", "Strategy to place instances (Cluster, Spread, Partition)", "User group", "None"], a: 1 },
+        { q: "What is 'Egress'?", o: ["Incoming traffic", "Outgoing traffic", "Data storage", "None"], a: 1 },
+        { q: "What is 'Ingress'?", o: ["Outgoing traffic", "Incoming traffic", "Data deletion", "None"], a: 1 },
+        { q: "What is 'API'?", o: ["Application Programming Interface", "Advanced Power Interface", "All Point Input", "None"], a: 0 },
+        { q: "The 'I' in IaaS stands for:", o: ["Internal", "Infrastructure", "Internet", "Instance"], a: 1 }
+    ]
+};
+
+const urlParams = new URLSearchParams(window.location.search);
+const setId = urlParams.get('set') || "1";
+document.getElementById('set-info').innerText = `CCE Practice Set: ${setId}`;
+
+const questionsArea = document.getElementById('questions-area');
+const activeQs = quizData[setId];
+
+if(activeQs) {
+    activeQs.forEach((item, idx) => {
+        let html = `<div class="question" id="q-block-${idx}">
+            <p class="q-text">${idx + 1}. ${item.q}</p>`;
+        item.o.forEach((opt, i) => {
+            html += `<label class="option">
+                <input type="radio" name="q${idx}" value="${i}" onclick="removeUnansweredClass(${idx})"> ${opt}
+            </label>`;
+        });
+        html += `</div>`;
+        questionsArea.innerHTML += html;
+    });
+}
+
+function removeUnansweredClass(idx) {
+    document.getElementById(`q-block-${idx}`).classList.remove('unanswered');
+}
+
+function checkAllAnswered() {
+    let missing = 0;
+    activeQs.forEach((_, idx) => {
+        if (!document.querySelector(`input[name="q${idx}"]:checked`)) {
+            missing++;
+            document.getElementById(`q-block-${idx}`).classList.add('unanswered');
+        }
+    });
+
+    if (missing > 0) {
+        alert("You have left " + missing + " questions unanswered.");
+        document.querySelector('.unanswered').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    } else {
+        calculateScore();
+    }
+}
+
+function calculateScore() {
+    let score = 0, correct = 0, wrong = 0;
+    activeQs.forEach((item, idx) => {
+        const selected = document.querySelector(`input[name="q${idx}"]:checked`);
+        if (parseInt(selected.value) === item.a) { score += 3; correct++; } else { score -= 1; wrong++; }
+    });
+
+    const percentage = ((correct / activeQs.length) * 100).toFixed(2);
+    document.getElementById('perc-display').innerText = percentage + "%";
+    document.getElementById('stats-area').innerHTML = `
+        <div class="stat-line"><span>Questions:</span> <b>${activeQs.length}</b></div>
+        <div class="stat-line" style="color:green"><span>Correct:</span> <b>${correct}</b></div>
+        <div class="stat-line" style="color:red"><span>Wrong:</span> <b>${wrong}</b></div>
+        <div class="stat-line" style="font-weight:bold; margin-top:10px;"><span>Score: ${score} / ${activeQs.length * 3}</span></div>`;
+    document.getElementById('result-modal').style.display = "flex";
+}
+
+function closeModal() {
+    document.getElementById('result-modal').style.display = "none";
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+</script>
+</body>
+</html>

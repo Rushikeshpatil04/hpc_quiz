@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Module 4: Python Programming - Master Quiz</title>
+    <style>
+        :root { --blue: #003366; --orange: #ff9933; --green: #28a745; --red: #dc3545; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f4f7f6; padding: 20px; color: #333; line-height: 1.6; }
+        .quiz-container { max-width: 900px; margin: auto; background: white; padding: 40px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+        .header { border-bottom: 4px solid var(--blue); padding-bottom: 20px; margin-bottom: 30px; display: flex; justify-content: space-between; align-items: center; }
+        .back-link { text-decoration: none; color: var(--blue); font-weight: bold; padding: 8px 15px; border: 1px solid var(--blue); border-radius: 5px; }
+        
+        .question { margin-bottom: 30px; padding: 20px; border-radius: 10px; background: #fff; border: 1px solid #eee; transition: 0.3s; }
+        .question.unanswered { border-left: 5px solid var(--red); background: #fff8f8; }
+        .q-text { font-size: 1.15rem; font-weight: 600; margin-bottom: 15px; color: var(--blue); }
+        .option { display: block; padding: 14px; background: #f9f9f9; margin: 10px 0; border: 1.5px solid #ddd; border-radius: 8px; cursor: pointer; }
+        .option:hover { background: #eef2f7; border-color: var(--blue); }
+        
+        .btn-submit { background: var(--blue); color: white; border: none; padding: 18px; border-radius: 8px; cursor: pointer; font-size: 1.2rem; font-weight: bold; width: 100%; margin-top: 20px; }
+
+        #result-modal { 
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: rgba(0,0,0,0.85); z-index: 1000; justify-content: center; align-items: center; 
+        }
+        .modal-content { 
+            background: white; padding: 30px; border-radius: 15px; text-align: center; 
+            max-width: 500px; width: 90%; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        .stat-line { font-size: 1.1rem; margin: 10px 0; display: flex; justify-content: space-between; border-bottom: 1px solid #eee; padding: 5px 0; }
+        .percentage { font-size: 3rem; font-weight: bold; color: var(--blue); margin: 15px 0; }
+        .diagram-box { text-align: center; margin: 20px 0; padding: 15px; }
+    </style>
+</head>
+<body>
+
+<div class="quiz-container">
+    <div class="header">
+        <div>
+            <h2 style="margin:0;">Python Programming</h2>
+            <span id="set-info" style="color: var(--orange); font-weight: bold;">Set Loading...</span>
+        </div>
+        <a href="index.html" class="back-link">Dashboard</a>
+    </div>
+
+    <div class="diagram-box">
+        
+    </div>
+
+    <form id="quiz-form">
+        <div id="questions-area"></div>
+        <button type="button" class="btn-submit" onclick="checkSubmission()">Submit & View Detailed Result</button>
+    </form>
+</div>
+
+<div id="result-modal">
+    <div class="modal-content">
+        <h2 id="msg-text">Quiz Results</h2>
+        <div class="percentage" id="perc-display">0%</div>
+        <div id="stats-area"></div>
+        <button onclick="location.reload()" style="background: var(--blue); color: white; border: none; padding: 12px 25px; border-radius: 5px; cursor: pointer; margin-top: 20px;">Try Again</button>
+        <button onclick="closeModal()" style="background: #666; color: white; border: none; padding: 12px 25px; border-radius: 5px; cursor: pointer; margin-top: 20px;">Review Answers</button>
+    </div>
+</div>
+
+<script>
+const quizData = {
+    "1": [
+        { q: "Who developed Python Programming Language?", o: ["Wick van Rossum", "Guido van Rossum", "Dennis Ritchie", "James Gosling"], a: 1 },
+        { q: "Which type of Programming does Python support?", o: ["Object-oriented", "Structured", "Functional", "All of these"], a: 3 },
+        { q: "Is Python case sensitive when dealing with identifiers?", o: ["No", "Yes", "Depends on OS", "None of these"], a: 1 },
+        { q: "Which of the following is the correct extension of the Python file?", o: [".python", ".pl", ".py", ".p"], a: 2 },
+        { q: "All keywords in Python are in _________", o: ["Capitalized", "Lower case", "Upper case", "None of these"], a: 3 },
+        { q: "What is the correct syntax to output 'Hello World' in Python?", o: ["echo('Hello World')", "print('Hello World')", "p('Hello World')", "printf('Hello World')"], a: 1 },
+        { q: "How do you insert comments in Python code?", o: ["//", "/* */", "#", "--"], a: 2 },
+        { q: "Which of the following is used to define a block of code in Python?", o: ["Brackets", "Indentation", "Key", "Parenthesis"], a: 1 },
+        { q: "Which keyword is used for function in Python language?", o: ["Function", "def", "Fun", "Define"], a: 1 },
+        { q: "What is the order of precedence in Python?", o: ["Exponential, Parentheses, Multiplication, Division, Addition, Subtraction", "Parentheses, Exponential, Multiplication, Division, Addition, Subtraction", "Parentheses, Multiplication, Division, Exponential, Addition, Subtraction", "None of these"], a: 1 },
+        { q: "Which of the following functions is a built-in function in python?", o: ["factorial()", "print()", "seed()", "sqrt()"], a: 1 },
+        { q: "What is the maximum possible length of an identifier in Python?", o: ["79 characters", "31 characters", "63 characters", "None of these"], a: 3 },
+        { q: "Which of the following is not a core data type in Python programming?", o: ["Tuples", "Lists", "Class", "Dictionaries"], a: 2 },
+        { q: "Which arithmetic operator is used for exponentiation?", o: ["^", "**", "//", "%"], a: 1 },
+        { q: "Which of the following represents a bitwise XOR operator?", o: ["&", "|", "^", "~"], a: 2 },
+        { q: "What is the value of the expression: 2 ** 3 ** 2?", o: ["64", "512", "12", "81"], a: 1 },
+        { q: "Which of these is used to create an empty set in Python?", o: ["{}", "set()", "[]", "()"], a: 1 },
+        { q: "Which of the following is a mutable data type?", o: ["String", "Tuple", "List", "Int"], a: 2 },
+        { q: "What is the output of 'print(type(1/2))'?", o: ["<class 'int'>", "<class 'float'>", "<class 'double'>", "Error"], a: 1 },
+        { q: "Which function is used to get the length of a list?", o: ["size()", "count()", "len()", "length()"], a: 2 },
+        { q: "How do you start a 'while' loop in Python?", o: ["while x > y {", "while (x > y)", "while x > y:", "while x > y do:"], a: 2 },
+        { q: "Which statement is used to stop a loop?", o: ["stop", "exit", "break", "return"], a: 2 },
+        { q: "What is the result of '3 * 'abc''?", o: ["abcabcabc", "abc3", "Error", "9"], a: 0 },
+        { q: "Which method is used to add an element at the end of a list?", o: ["add()", "insert()", "append()", "extend()"], a: 2 },
+        { q: "Which of the following is a Python tuple?", o: ["[1, 2]", "{1, 2}", "(1, 2)", "{'a':1}"], a: 2 },
+        { q: "How can you generate a list of numbers from 0 to 4?", o: ["range(5)", "range(0,4)", "range(4)", "list(5)"], a: 0 },
+        { q: "Which keyword is used to import a module?", o: ["include", "require", "import", "using"], a: 2 },
+        { q: "What does 'pip' stand for in Python?", o: ["Pip Installs Python", "Preferred Installer Program", "Python Installation Package", "None of these"], a: 1 },
+        { q: "Which of the following is used to handle exceptions in Python?", o: ["try-except", "throw-catch", "do-while", "if-else"], a: 0 },
+        { q: "What is the result of 10 // 3?", o: ["3.33", "3", "3.0", "4"], a: 1 },
+        { q: "Which of the following is a dictionary?", o: ["(1, 2)", "[1, 2]", "{1, 2}", "{'a': 1}"], a: 3 },
+        { q: "Which method removes all items from a list?", o: ["delete()", "clear()", "remove()", "pop()"], a: 1 },
+        { q: "How do you create a variable with the floating number 2.8?", o: ["x = 2.8", "x = float(2.8)", "Both A and B", "x = 2,8"], a: 2 },
+        { q: "Which operator is used to check if two values are equal?", o: ["=", "==", "is", "==="], a: 1 },
+        { q: "What is the result of 'not True'?", o: ["True", "False", "None", "Error"], a: 1 },
+        { q: "Which of the following is used to read input from user?", o: ["get()", "read()", "input()", "scanf()"], a: 2 },
+        { q: "Which module is used for mathematical operations?", o: ["math", "calc", "numpy", "cmath"], a: 0 },
+        { q: "What is the result of 'len('Python')'?", o: ["5", "6", "7", "Error"], a: 1 },
+        { q: "Which of the following is an immutable data type?", o: ["List", "Dictionary", "Set", "Tuple"], a: 3 },
+        { q: "What is the output of 'print(bool(0))'?", o: ["True", "False", "None", "Error"], a: 1 }
+    ],
+    "2": [
+        { q: "What is the output of 'print(2 ** 3)'?", o: ["6", "8", "9", "5"], a: 1 },
+        { q: "Which method is used to remove a specific item from a list?", o: ["pop()", "remove()", "discard()", "delete()"], a: 1 },
+        { q: "Which collection is ordered, changeable, and allows duplicate members?", o: ["Set", "List", "Tuple", "Dictionary"], a: 1 },
+        { q: "How do you create a function in Python?", o: ["create myFunction():", "def myFunction():", "function myFunction():", "new myFunction():"], a: 1 },
+        { q: "What is the result of 'print(10 % 3)'?", o: ["3", "1", "0", "3.33"], a: 1 },
+        { q: "Which of the following is the correct way to close a file?", o: ["f.stop()", "f.close()", "f.exit()", "f.quit()"], a: 1 },
+        { q: "Which statement is used to skip the current iteration of a loop?", o: ["break", "pass", "continue", "skip"], a: 2 },
+        { q: "What is the output of 'print('Hello'[0])'?", o: ["H", "e", "l", "o"], a: 0 },
+        { q: "Which method can be used to return a string in upper case?", o: ["upperCase()", "toUpperCase()", "upper()", "uppercase()"], a: 2 },
+        { q: "Which method can be used to replace parts of a string?", o: ["switch()", "replace()", "change()", "repl()"], a: 1 },
+        { q: "How do you start an 'if' statement in Python?", o: ["if x > 5 then:", "if x > 5:", "if (x > 5)", "if x > 5 then"], a: 1 },
+        { q: "What is the correct way to create a list?", o: ["x = (1, 2, 3)", "x = {1, 2, 3}", "x = [1, 2, 3]", "x = <1, 2, 3>"], a: 2 },
+        { q: "Which of the following is used to find the power of a number?", o: ["pow(x, y)", "x ** y", "Both A and B", "power(x, y)"], a: 2 },
+        { q: "What is the default return value of a function that doesn't return anything?", o: ["0", "False", "None", "Error"], a: 2 },
+        { q: "Which of the following is used to convert a string to an integer?", o: ["int()", "str()", "float()", "integer()"], a: 0 },
+        { q: "Which keyword is used to create a class in Python?", o: ["def", "class", "obj", "struct"], a: 1 },
+        { q: "What does the 'self' parameter in a class method represent?", o: ["The class itself", "The instance of the class", "A global variable", "None of these"], a: 1 },
+        { q: "Which method is used to add an item to a set?", o: ["append()", "add()", "insert()", "extend()"], a: 1 },
+        { q: "What is the output of 'print(type([]))'?", o: ["list", "tuple", "dict", "set"], a: 0 },
+        { q: "Which operator is used for 'not equal'?", o: ["<>", "!=", "==", "not="], a: 1 },
+        { q: "Which module is used for generating random numbers?", o: ["math", "random", "rand", "numpy"], a: 1 },
+        { q: "What is the result of 'print(list(range(3)))'?", o: ["[0, 1, 2, 3]", "[1, 2, 3]", "[0, 1, 2]", "[1, 2]"], a: 2 },
+        { q: "Which method is used to join elements of a list into a string?", o: ["concat()", "join()", "merge()", "combine()"], a: 1 },
+        { q: "What is a 'lambda' function in Python?", o: ["A recursive function", "An anonymous function", "A system function", "None of these"], a: 1 },
+        { q: "How do you access the value of 'name' in {'name': 'Alice'}?", o: ["dict[0]", "dict['name']", "dict.name", "dict.get(0)"], a: 1 },
+        { q: "Which function is used to open a file for reading?", o: ["read()", "open()", "file()", "get()"], a: 1 },
+        { q: "What is the result of 'print(bool('False'))'?", o: ["True", "False", "None", "Error"], a: 0 },
+        { q: "Which of the following is used to sort a list in place?", o: ["sorted()", "sort()", "arrange()", "order()"], a: 1 },
+        { q: "Which keyword is used for 'else if' in Python?", o: ["elseif", "elif", "else if", "if else"], a: 1 },
+        { q: "What is the output of 'print('Python'[1:4])'?", o: ["Pyth", "yth", "ytho", "yt"], a: 1 },
+        { q: "Which of the following is a valid variable name?", o: ["2variable", "var-name", "var_name", "var name"], a: 2 },
+        { q: "Which method is used to return all keys in a dictionary?", o: ["allKeys()", "keys()", "get_keys()", "list_keys()"], a: 1 },
+        { q: "What is the result of 'print(abs(-5))'?", o: ["-5", "5", "0", "Error"], a: 1 },
+        { q: "Which of these is used for multi-line strings?", o: ["//", "/* */", "'''", "###"], a: 2 },
+        { q: "What is the output of 'print(round(4.5))'?", o: ["4", "5", "4.0", "5.0"], a: 0 },
+        { q: "Which function is used to find the minimum value in a list?", o: ["min()", "small()", "lowest()", "bottom()"], a: 0 },
+        { q: "Which method converts all characters to lower case?", o: ["lower()", "low()", "toLower()", "caseLower()"], a: 0 },
+        { q: "What is the output of 'print(1 in [1, 2, 3])'?", o: ["True", "False", "None", "Error"], a: 0 },
+        { q: "Which of the following is used for integer division?", o: ["/", "//", "%", "\\"], a: 1 },
+        { q: "What is the extension of a compiled Python file?", o: [".py", ".pyc", ".pyo", ".pyd"], a: 1 }
+    ],
+    "3": [
+        { q: "Which of the following is not a keyword in Python?", o: ["eval", "assert", "nonlocal", "pass"], a: 0 },
+        { q: "What is the result of 'print(set([1, 2, 2, 3]))'?", o: ["{1, 2, 2, 3}", "{1, 2, 3}", "[1, 2, 3]", "(1, 2, 3)"], a: 1 },
+        { q: "Which method is used to insert an item at a specific index in a list?", o: ["add()", "append()", "insert()", "put()"], a: 2 },
+        { q: "What is the output of 'print(bool([]))'?", o: ["True", "False", "None", "Error"], a: 1 },
+        { q: "Which of the following creates a dictionary?", o: ["d = {}", "d = {'a':1}", "d = dict()", "All of these"], a: 3 },
+        { q: "What is the result of 'print('a' > 'b')'?", o: ["True", "False", "None", "Error"], a: 1 },
+        { q: "Which keyword is used to handle multiple exceptions in one block?", o: ["except", "catch", "try", "finally"], a: 0 },
+        { q: "What is the result of 'print(5 // 2)'?", o: ["2.5", "2", "3", "2.0"], a: 1 },
+        { q: "Which of the following is used to represent 'infinity' in Python?", o: ["inf", "float('inf')", "math.inf", "Both B and C"], a: 3 },
+        { q: "Which of the following is not a complex number?", o: ["k = 2 + 3j", "k = complex(2, 3)", "k = 2 + 3i", "k = 2j"], a: 2 },
+        { q: "What is the output of 'print(0.1 + 0.2 == 0.3)'?", o: ["True", "False", "None", "Error"], a: 1 },
+        { q: "Which method returns the value of a key in a dictionary, if it exists?", o: ["find()", "get()", "search()", "value()"], a: 1 },
+        { q: "What does the 'pass' statement do?", o: ["Terminates the program", "Skips the loop", "Does nothing (null operation)", "Returns a value"], a: 2 },
+        { q: "Which function is used to map a function to all items in an input list?", o: ["map()", "filter()", "reduce()", "apply()"], a: 0 },
+        { q: "What is the result of 'print('Hello'.find('e'))'?", o: ["0", "1", "2", "-1"], a: 1 },
+        { q: "Which module is used to work with dates and times?", o: ["time", "date", "datetime", "clock"], a: 2 },
+        { q: "What is 'List Comprehension'?", o: ["A way to sort lists", "A concise way to create lists", "A method to delete lists", "None of these"], a: 1 },
+        { q: "Which method is used to reverse a list in place?", o: ["reverse()", "reversed()", "flip()", "back()"], a: 0 },
+        { q: "What is the output of 'print(type(lambda x: x))'?", o: ["function", "lambda", "class", "method"], a: 0 },
+        { q: "Which function is used to sort a list and return a new list?", o: ["sort()", "sorted()", "arrange()", "order()"], a: 1 },
+        { q: "What is the output of 'print(bool(None))'?", o: ["True", "False", "None", "Error"], a: 1 },
+        { q: "Which keyword is used to create a generator function?", o: ["def", "yield", "return", "generate"], a: 1 },
+        { q: "What is the purpose of '__init__' in a class?", o: ["To delete an object", "To initialize object attributes", "To create a new class", "None of these"], a: 1 },
+        { q: "Which function is used to convert an integer to its binary string?", o: ["bin()", "hex()", "oct()", "bit()"], a: 0 },
+        { q: "What is the result of 'print(sum([1, 2, 3]))'?", o: ["6", "123", "Error", "0"], a: 0 },
+        { q: "Which of the following is not a valid set operation?", o: ["union()", "intersection()", "difference()", "append()"], a: 3 },
+        { q: "What is the output of 'print(2 << 1)'?", o: ["2", "4", "1", "0"], a: 1 },
+        { q: "Which of the following is used to check if a key exists in a dictionary?", o: ["key in dict", "dict.has(key)", "dict.contains(key)", "exists(key)"], a: 0 },
+        { q: "What is the result of 'print('Python'.count('y'))'?", o: ["1", "0", "True", "Error"], a: 0 },
+        { q: "Which method is used to split a string into a list?", o: ["divide()", "break()", "split()", "slice()"], a: 2 },
+        { q: "What is 'Duck Typing' in Python?", o: ["A data type", "A coding style where the type of an object is determined by its behavior", "A method to handle errors", "None"], a: 1 },
+        { q: "Which function is used to create a range of floats?", o: ["range()", "frange()", "numpy.arange()", "float_range()"], a: 2 },
+        { q: "What is the result of 'print(any([False, True, False]))'?", o: ["True", "False", "None", "Error"], a: 0 },
+        { q: "Which keyword is used to define a global variable inside a function?", o: ["global", "def", "static", "extern"], a: 0 },
+        { q: "What is the output of 'print(tuple([1, 2]))'?", o: ["(1, 2)", "[1, 2]", "{1, 2}", "1, 2"], a: 0 },
+        { q: "Which of the following is used to get the character from an ASCII value?", o: ["chr()", "ord()", "ascii()", "char()"], a: 0 },
+        { q: "What is the output of 'print(3 == 3.0)'?", o: ["True", "False", "None", "Error"], a: 0 },
+        { q: "Which method removes and returns the last item from a list?", o: ["pop()", "remove()", "discard()", "delete()"], a: 0 },
+        { q: "What is the result of 'print('hello' * 0)'?", o: ["hello", "Error", "'' (empty string)", "0"], a: 2 },
+        { q: "Which of the following is used to find the memory address of an object?", o: ["addr()", "id()", "mem()", "loc()"], a: 1 }
+    ],
+    "4": [
+        { q: "What is a decorator in Python?", o: ["A CSS property", "A function that modifies the behavior of another function", "A type of class", "None"], a: 1 },
+        { q: "Which module is commonly used for data analysis in Python?", o: ["pandas", "math", "random", "os"], a: 0 },
+        { q: "What is the output of 'print(all([True, True, False]))'?", o: ["True", "False", "None", "Error"], a: 1 },
+        { q: "Which method is used to merge two dictionaries?", o: ["merge()", "update()", "combine()", "add()"], a: 1 },
+        { q: "What is 'Pickling' in Python?", o: ["A way to sort data", "Serialization of a Python object", "Deleting old files", "None"], a: 1 },
+        { q: "Which function is used to list all the attributes of an object?", o: ["list()", "dir()", "show()", "attr()"], a: 1 },
+        { q: "What is the result of 'print(10 / 2)'?", o: ["5", "5.0", "Error", "None"], a: 1 },
+        { q: "Which function can be used to filter elements in an iterable?", o: ["filter()", "map()", "reduce()", "clean()"], a: 0 },
+        { q: "What is the output of 'print(isinstance(5, int))'?", o: ["True", "False", "None", "Error"], a: 0 },
+        { q: "Which keyword is used to import a specific part of a module?", o: ["from", "with", "as", "using"], a: 0 },
+        { q: "What does the 'with' statement help with in file handling?", o: ["Faster reading", "Automatic closing of files", "Better encryption", "None"], a: 1 },
+        { q: "What is the output of 'print('a'.upper())'?", o: ["a", "A", "Error", "None"], a: 1 },
+        { q: "Which of the following is not a sequence type?", o: ["List", "Tuple", "String", "Dictionary"], a: 3 },
+        { q: "What is the result of 'print(min('apple', 'banana'))'?", o: ["apple", "banana", "Error", "None"], a: 0 },
+        { q: "Which method is used to remove a set item if it exists, without error if it doesn't?", o: ["remove()", "discard()", "pop()", "clear()"], a: 1 },
+        { q: "What is the output of 'print(list('abc'))'?", o: ["['a', 'b', 'c']", "['abc']", "('a', 'b', 'c')", "Error"], a: 0 },
+        { q: "Which operator is used to check for object identity?", o: ["==", "is", "equals", "==="], a: 1 },
+        { q: "What is the output of 'print(1.1 + 2.2 == 3.3)'?", o: ["True", "False", "None", "Error"], a: 1 },
+        { q: "Which function is used to get the ASCII value of a character?", o: ["chr()", "ord()", "ascii()", "val()"], a: 1 },
+        { q: "What is the purpose of 'sys.argv'?", o: ["System version", "Command line arguments", "System variables", "None"], a: 1 },
+        { q: "Which of the following is a correct way to start a constructor?", o: ["def init(self):", "def __init__(self):", "class init():", "init function:"], a: 1 },
+        { q: "What is the result of 'print(bool(''))'?", o: ["True", "False", "None", "Error"], a: 1 },
+        { q: "Which function finds the index of the first occurrence of a value in a list?", o: ["find()", "search()", "index()", "get()"], a: 2 },
+        { q: "What is the output of 'print(round(2.675, 2))'?", o: ["2.67", "2.68", "2.7", "2.6"], a: 0 },
+        { q: "Which keyword is used to define an exception?", o: ["raise", "throw", "error", "except"], a: 0 },
+        { q: "What is the output of 'print('Hello World'.split())'?", o: ["['Hello World']", "['Hello', 'World']", "('Hello', 'World')", "Error"], a: 1 },
+        { q: "Which module is used to work with regular expressions?", o: ["re", "regex", "search", "match"], a: 0 },
+        { q: "What is 'Recursion'?", o: ["A loop", "A function calling itself", "A type of class", "None"], a: 1 },
+        { q: "Which method removes whitespace from the beginning and end of a string?", o: ["clean()", "strip()", "trim()", "cut()"], a: 1 },
+        { q: "What is the output of 'print(2.0 + 3)'?", o: ["5", "5.0", "Error", "None"], a: 1 },
+        { q: "Which function is used to execute a string as a command?", o: ["exec()", "eval()", "run()", "string()"], a: 0 },
+        { q: "What is the output of 'print(pow(2, 3))'?", o: ["6", "8", "9", "Error"], a: 1 },
+        { q: "Which of the following is used for documentation strings?", o: ["//", "#", "docstrings (''')", "/* */"], a: 2 },
+        { q: "What is the result of 'print(type(range(5)))'?", o: ["list", "range", "tuple", "generator"], a: 1 },
+        { q: "Which method is used to clear a dictionary?", o: ["delete()", "clear()", "remove()", "empty()"], a: 1 },
+        { q: "What is the output of 'print('A' < 'a')'?", o: ["True", "False", "None", "Error"], a: 0 },
+        { q: "Which method adds all elements of one list to another?", o: ["add()", "append()", "extend()", "plus()"], a: 2 },
+        { q: "What is the purpose of 'pip list'?", o: ["Update pip", "Show installed packages", "Search for packages", "None"], a: 1 },
+        { q: "Which function is used to get the help about a specific module/function?", o: ["info()", "man()", "help()", "describe()"], a: 2 },
+        { q: "What is the result of 'print(int('101', 2))'?", o: ["101", "5", "Error", "10"], a: 1 }
+    ],
+    "5": [
+        { q: "What is the output of 'print(list(enumerate(['a', 'b'])))'?", o: ["[(0, 'a'), (1, 'b')]", "[('a', 0), ('b', 1)]", "['a', 'b']", "Error"], a: 0 },
+        { q: "Which function can convert a tuple to a list?", o: ["list()", "tuple()", "set()", "convert()"], a: 0 },
+        { q: "What is the output of 'print(3 * False)'?", o: ["0", "False", "Error", "3"], a: 0 },
+        { q: "Which library is used for scientific computing?", o: ["math", "numpy", "random", "os"], a: 1 },
+        { q: "What is the result of 'print(reversed('abc'))'?", o: ["cba", "['c', 'b', 'a']", "An iterator object", "Error"], a: 2 },
+        { q: "Which keyword is used to check for inheritance?", o: ["isinstance()", "issubclass()", "super()", "extends"], a: 1 },
+        { q: "What is the output of 'print(divmod(10, 3))'?", o: ["(3, 1)", "3", "1", "[3, 1]"], a: 0 },
+        { q: "Which function returns a list of all current local variables?", o: ["locals()", "globals()", "vars()", "dir()"], a: 0 },
+        { q: "What is the result of 'print('python'.capitalize())'?", o: ["PYTHON", "Python", "python", "PyThOn"], a: 1 },
+        { q: "Which function returns the number of times a value appears in a list?", o: ["len()", "count()", "sum()", "find()"], a: 1 },
+        { q: "What is the output of 'print(bool([]))'?", o: ["True", "False", "None", "Error"], a: 1 },
+        { q: "Which method is used to remove an item from a set?", o: ["remove()", "pop()", "discard()", "All of these"], a: 3 },
+        { q: "What is the purpose of 'sys.path'?", o: ["System files location", "Search path for modules", "Executable path", "None"], a: 1 },
+        { q: "What is the output of 'print(10.5 // 3)'?", o: ["3.5", "3.0", "3", "4.0"], a: 1 },
+        { q: "Which operator is used to concatenate two strings?", o: ["+", "*", "&", "."], a: 0 },
+        { q: "What is the result of 'print('apple' in 'pineapple')'?", o: ["True", "False", "None", "Error"], a: 0 },
+        { q: "Which function is used to create a file object for writing?", o: ["open('file.txt', 'r')", "open('file.txt', 'w')", "open('file.txt', 'a')", "open('file.txt', 'x')"], a: 1 },
+        { q: "What is the output of 'print(f'{2*3}')'?", o: ["2*3", "6", "Error", "None"], a: 1 },
+        { q: "Which function converts a decimal to octal string?", o: ["bin()", "hex()", "oct()", "str()"], a: 2 },
+        { q: "What is the output of 'print(max([1, 2, '3']))'?", o: ["3", "'3'", "Error", "1"], a: 2 },
+        { q: "Which of the following creates a new list from an existing list 'L'?", o: ["L2 = L", "L2 = L[:]", "L2 = L.copy()", "Both B and C"], a: 3 },
+        { q: "What is the output of 'print(chr(65))'?", o: ["A", "a", "65", "Error"], a: 0 },
+        { q: "Which keyword returns from a function with a value?", o: ["exit", "break", "return", "stop"], a: 2 },
+        { q: "What is the result of 'print(type(range(3)))'?", o: ["range", "list", "iterator", "None"], a: 0 },
+        { q: "Which method is used to swap the case of all characters?", o: ["swapcase()", "changeCase()", "reverseCase()", "None"], a: 0 },
+        { q: "What is the output of 'print(0.1 + 0.1 + 0.1 == 0.3)'?", o: ["True", "False", "None", "Error"], a: 1 },
+        { q: "Which module allows you to interact with the OS?", o: ["sys", "os", "platform", "None"], a: 1 },
+        { q: "What is the result of 'print(tuple('abc'))'?", o: ["('abc')", "('a', 'b', 'c')", "['a', 'b', 'c']", "Error"], a: 1 },
+        { q: "Which function creates a complex number?", o: ["complex()", "comp()", "imag()", "real()"], a: 0 },
+        { q: "What is the output of 'print('123'.isdigit())'?", o: ["True", "False", "None", "Error"], a: 0 },
+        { q: "Which function returns the absolute value?", o: ["abs()", "val()", "pos()", "None"], a: 0 },
+        { q: "What is the output of 'print('Python'.replace('P', 'J'))'?", o: ["Jython", "Python", "Error", "None"], a: 0 },
+        { q: "Which method is used to find the length of a dictionary?", o: ["len()", "count()", "size()", "None"], a: 0 },
+        { q: "What is the output of 'print(type({}))'?", o: ["set", "dict", "object", "None"], a: 1 },
+        { q: "Which operator is used to repeat a string?", o: ["+", "*", "^", "x"], a: 1 },
+        { q: "What is the result of 'print(list(zip([1,2], [3,4])))'?", o: ["[(1,3), (2,4)]", "[1,3,2,4]", "[(1,2), (3,4)]", "Error"], a: 0 },
+        { q: "Which keyword is used to check for an object's type?", o: ["is", "type()", "class", "instance"], a: 1 },
+        { q: "What is the output of 'print(3 > 2 > 1)'?", o: ["True", "False", "None", "Error"], a: 0 },
+        { q: "Which method is used to add an element to a list at the beginning?", o: ["append()", "insert(0, x)", "add()", "None"], a: 1 },
+        { q: "What is the default encoding in Python 3?", o: ["ASCII", "UTF-8", "Latin-1", "None"], a: 1 }
+    ]
+};
+
+const urlParams = new URLSearchParams(window.location.search);
+const setId = urlParams.get('set') || "1";
+document.getElementById('set-info').innerText = `CCE Practice Set: ${setId}`;
+
+const questionsArea = document.getElementById('questions-area');
+const activeQs = quizData[setId];
+
+if(activeQs) {
+    activeQs.forEach((item, idx) => {
+        let html = `<div class="question" id="q-block-${idx}">
+            <p class="q-text">${idx + 1}. ${item.q}</p>`;
+        item.o.forEach((opt, i) => {
+            html += `<label class="option">
+                <input type="radio" name="q${idx}" value="${i}" onclick="markAsAnswered(${idx})"> ${opt}
+            </label>`;
+        });
+        html += `</div>`;
+        questionsArea.innerHTML += html;
+    });
+}
+
+function markAsAnswered(idx) {
+    document.getElementById(`q-block-${idx}`).classList.remove('unanswered');
+}
+
+function checkSubmission() {
+    let unattemptedCount = 0;
+    activeQs.forEach((_, idx) => {
+        if (!document.querySelector(`input[name="q${idx}"]:checked`)) {
+            unattemptedCount++;
+            document.getElementById(`q-block-${idx}`).classList.add('unanswered');
+        }
+    });
+
+    if (unattemptedCount > 0) {
+        alert(`Incomplete: You have left ${unattemptedCount} questions unanswered.`);
+        const first = document.querySelector('.unanswered');
+        if (first) first.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    } else {
+        calculateScore();
+    }
+}
+
+function calculateScore() {
+    let score = 0, correct = 0, wrong = 0;
+    activeQs.forEach((item, idx) => {
+        const selected = document.querySelector(`input[name="q${idx}"]:checked`);
+        if (parseInt(selected.value) === item.a) { score += 3; correct++; } else { score -= 1; wrong++; }
+    });
+
+    const percentage = ((correct / activeQs.length) * 100).toFixed(2);
+    document.getElementById('perc-display').innerText = percentage + "%";
+    document.getElementById('stats-area').innerHTML = `
+        <div class="stat-line"><span>Total Questions:</span> <b>${activeQs.length}</b></div>
+        <div class="stat-line" style="color:green"><span>Correct:</span> <b>${correct}</b></div>
+        <div class="stat-line" style="color:red"><span>Wrong:</span> <b>${wrong}</b></div>
+        <div class="stat-line" style="font-weight:bold; font-size:1.3rem; margin-top:10px;">
+            <span>Final Score: ${score} / ${activeQs.length * 3}</span>
+        </div>`;
+    document.getElementById('result-modal').style.display = "flex";
+}
+
+function closeModal() {
+    document.getElementById('result-modal').style.display = "none";
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+</script>
+</body>
+</html>
