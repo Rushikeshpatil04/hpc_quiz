@@ -74,11 +74,11 @@ const quizData = {
         { q: "Compute nodes are also known as ____.", o: ["Master nodes", "Worker nodes", "Service nodes", "None"], a: 1 },
         { q: "Throughput in RM refers to ____.", o: ["Data speed", "Number of jobs completed per unit time", "Memory size", "Network latency"], a: 1 },
         { q: "What is 'Fair Share' in scheduling?", o: ["Randomly picking jobs", "Balancing resource usage among users based on priority", "Deleting long jobs", "None"], a: 1 },
-        { q: "Which prerequisite is listed for this module?", o: ["Advanced Biology", "Knowledge of Computer Fundamentals", "Mechanical Engineering", "None"], a: 1 },
-        { q: "How many classroom hours are assigned for this module?", o: ["10", "20", "40", "60"], a: 1 },
-        { q: "How many lab hours are assigned for this module?", o: ["20", "30", "40", "50"], a: 2 },
-        { q: "The CCEE Theory exam weightage is ____.", o: ["20%", "40%", "50%", "100%"], a: 1 },
-        { q: "Lab exams in this module are ____ based.", o: ["Multiple choice", "Case Study", "Viva only", "Theory only"], a: 1 },
+        { q: "Which Linux signal is sent by default when a job exceeds walltime?", o: ["SIGKILL", "SIGTERM followed by SIGKILL", "SIGSTOP", "SIGUSR1"], a: 1 },
+        { q: "In Slurm, what is a 'TRES'?", o: ["Time Resource", "Trackable REsource (CPU, Memory, GPU)", "Total RAM", "None"], a: 1 },
+        { q: "Which daemon is responsible for managing the job queue?", o: ["slurmd", "slurmctld", "slurmdbd", "munge"], a: 1 },
+        { q: "What is the role of the 'Backfill' scheduler?", o: ["Delete old jobs", "Start lower priority jobs if they don't delay higher ones", "Reboot nodes", "None"], a: 1 },
+        { q: "A cluster's 'Interconnect' typically refers to ____.", o: ["The power supply", "The high-speed network (Infiniband)", "The storage disk", "The keyboard"], a: 1 },
         { q: "Slurm official documentation can be found at ____.", o: ["slurm.schedmd.com", "google.com", "linux.org", "none"], a: 0 },
         { q: "The 'Queue' stores jobs that are ____.", o: ["Already finished", "Waiting for resources", "Running", "None"], a: 1 },
         { q: "Resource management prevents ____.", o: ["User conflicts over resources", "Fast execution", "Script writing", "None"], a: 0 },
@@ -87,10 +87,10 @@ const quizData = {
         { q: "Job 'Starvation' occurs when ____.", o: ["A job runs too fast", "Low priority jobs never get resources", "The disk is full", "None"], a: 1 },
         { q: "Preemption allows ____.", o: ["Higher priority jobs to interrupt lower ones", "Deleting the scheduler", "Users to skip login", "None"], a: 0 },
         { q: "Dynamic scheduling adjusts to ____.", o: ["Static files", "Current system state", "User's age", "None"], a: 1 },
-        { q: "Adaptive Computing is a reference for ____.", o: ["Resource Management", "Web design", "Physics", "None"], a: 0 },
-        { q: "Each session mentioned in the syllabus is for ____ hours theory.", o: ["1", "2", "3", "4"], a: 1 },
-        { q: "Each session mentioned has ____ hours lab.", o: ["2", "4", "6", "8"], a: 1 },
-        { q: "The internal exam weightage is ____.", o: ["10%", "20%", "30%", "40%"], a: 1 },
+        { q: "Which command is used to see the current state of nodes?", o: ["sinfo", "squeue", "srun", "sbatch"], a: 0 },
+        { q: "What is the purpose of 'slurmdbd'?", o: ["Job execution", "Database interface for accounting", "Node monitoring", "None"], a: 1 },
+        { q: "Which file defines the nodes and partitions?", o: ["node.conf", "slurm.conf", "cluster.conf", "none"], a: 1 },
+        { q: "HPC clusters use 'Parallel File Systems' like ____.", o: ["NTFS", "Lustre or GPFS", "FAT32", "None"], a: 1 },
         { q: "Who manages the job lifecycle in Slurm?", o: ["User", "Slurmctld", "Slurmd", "Accounting"], a: 1 },
         { q: "Slurm is an open-source tool.", o: ["True", "False"], a: 0 },
         { q: "Resource Managers manage ____.", o: ["CPUs", "Memory", "Licenses", "All of the above"], a: 3 },
@@ -98,7 +98,7 @@ const quizData = {
         { q: "A job script defines ____.", o: ["Required resources", "Commands to run", "Walltime", "All of the above"], a: 3 },
         { q: "Walltime is ____.", o: ["Current time on wall", "Maximum time a job is allowed to run", "Boot time", "None"], a: 1 },
         { q: "HPC stands for ____.", o: ["High Power Current", "High Performance Computing", "High Price Computer", "None"], a: 1 },
-        { q: "The primary focus of session 1 is ____.", o: ["Slurm install", "Foundations of RM", "Accounting", "None"], a: 1 },
+        { q: "The primary focus of cluster management is ____.", o: ["Gaming", "Maximizing resource utilization", "Browsing", "None"], a: 1 },
         { q: "Schedulers run as a ____ process.", o: ["Foreground", "Daemon/Background", "Web", "None"], a: 1 }
     ],
     "2": [
@@ -140,7 +140,7 @@ const quizData = {
         { q: "Slurm allows 'OverSubscribe' in partitions.", o: ["True", "False"], a: 0 },
         { q: "What does 'ReturnToService' do?", o: ["Reboots nodes", "Automatically returns failed nodes to IDLE after fix", "Deletes jobs", "None"], a: 1 },
         { q: "Which tool helps generate the slurm.conf file via web UI?", o: ["Slurm Configurator", "Notepad", "Excel", "None"], a: 0 },
-        { q: "Is the Slurm installation process covered in sessions 4 & 5?", o: ["Yes", "No", "Only theory", "None"], a: 0 },
+        { q: "The 'TopologyPlugin' is used to ____.", o: ["Map network layout", "Change node colors", "Delete users", "None"], a: 0 },
         { q: "Slurm is written primarily in ____.", o: ["Java", "C", "Python", "Ruby"], a: 1 }
     ],
     "3": [
@@ -183,7 +183,7 @@ const quizData = {
         { q: "Can a user change a job's partition after submission?", o: ["Yes (if allowed, via scontrol)", "No", "Only if it is finished", "None"], a: 0 },
         { q: "What does 'squeue -u $USER' show?", o: ["All jobs", "Only the current user's jobs", "System status", "None"], a: 1 },
         { q: "The batch script must be executable (chmod +x).", o: ["True (usually required)", "False", "None", "None"], a: 0 },
-        { q: "Is 'Writing batch scripts' covered in Session 2?", o: ["Yes", "No", "Only lab", "None"], a: 0 }
+        { q: "What is the 'Hold' state for a job?", o: ["Running fast", "Manual block by user/admin", "Resource error", "None"], a: 1 }
     ],
     "4": [
         { q: "How do you change a node state to DOWN manually?", o: ["sinfo down", "scontrol update NodeName=... State=DOWN", "kill node", "none"], a: 1 },
@@ -201,7 +201,7 @@ const quizData = {
         { q: "Can you limit the number of jobs a user can run?", o: ["Yes (via Associations/QoS)", "No", "Only via script", "None"], a: 0 },
         { q: "What is 'QoS' in Slurm?", o: ["Quality of Service", "Query of System", "Quick old slurm", "None"], a: 0 },
         { q: "How do you see the current QoS defined?", o: ["sacctmgr show qos", "sinfo -q", "squeue -q", "none"], a: 0 },
-        { q: "Setting server scheduling policies is covered in which sessions?", o: ["1", "3", "6 & 7", "9"], a: 2 },
+        { q: "Slurm 'Fairshare' calculation uses which mathematical model by default?", o: ["Exponential Decay", "Linear", "Square root", "None"], a: 0 },
         { q: "A 'GRES' (Generic Resource) is typically used for ____.", o: ["Hard drives", "GPUs or Licenses", "Usernames", "None"], a: 1 },
         { q: "Which command updates partition attributes?", o: ["scontrol update PartitionName=...", "sinfo update", "squeue update", "none"], a: 0 },
         { q: "What does 'MinNodes' in a partition definition do?", o: ["Sets speed", "Ensures jobs request at least X nodes", "None", "None"], a: 1 },
@@ -224,7 +224,7 @@ const quizData = {
         { q: "What does 'Epilog' do?", o: ["Start script", "Script run after a job finishes to clean up node", "None", "None"], a: 1 },
         { q: "What does 'Prolog' do?", o: ["Script run before a job starts", "After job", "None", "None"], a: 0 },
         { q: "How do you see all partitions and their limits?", o: ["sinfo", "scontrol show partitions", "squeue", "none"], a: 1 },
-        { q: "Is 'Managing nodes' part of the syllabus?", o: ["Yes", "No", "None", "None"], a: 0 },
+        { q: "What is 'Burst Buffer' in Slurm?", o: ["Fast storage tier for jobs", "Network buffer", "CPU cache", "None"], a: 0 },
         { q: "Slurm can manage 'topology' (rack layout).", o: ["True", "False"], a: 0 }
     ],
     "5": [
@@ -233,7 +233,7 @@ const quizData = {
         { q: "Which command shows historical data for finished jobs?", o: ["squeue", "sacct", "sinfo", "history"], a: 1 },
         { q: "How do you see the usage for a specific user?", o: ["sacct -u <user>", "squeue -u", "sinfo -u", "none"], a: 0 },
         { q: "What is an 'Association' in Slurm Accounting?", o: ["A club", "Combination of Cluster, Account, User, and Partition", "None", "None"], a: 1 },
-        { q: "What is the primary objective of Session 8?", o: ["Installation", "Scheduler Algorithms", "Security", "None"], a: 1 },
+        { q: "Slurm Federation allows ____.", o: ["Managing multiple clusters as one", "Playing music", "Web hosting", "None"], a: 0 },
         { q: "The 'First-In-First-Out' (FIFO) algorithm is ____.", o: ["Advanced", "Simplest (jobs run in order of submission)", "Best for HPC", "None"], a: 1 },
         { q: "Slurm Accounting info is typically stored in ____.", o: ["Text file", "Relational Database (MySQL)", "RAM only", "None"], a: 1 },
         { q: "Which daemon handles database communication?", o: ["slurmd", "slurmdbd", "slurmctld", "none"], a: 1 },
@@ -254,7 +254,7 @@ const quizData = {
         { q: "The 'DefaultAccount' for a user is set in ____.", o: ["bash_profile", "sacctmgr", "slurm.conf", "none"], a: 1 },
         { q: "Can Slurm record when a node goes down in the DB?", o: ["Yes", "No", "Only in logs", "None"], a: 0 },
         { q: "Which command lists all associations?", o: ["sacctmgr list assoc", "sacct -a", "sshare -a", "none"], a: 0 },
-        { q: "Is 'SLURM Accounting' covered in Sessions 9 & 10?", o: ["Yes", "No", "Only theory", "None"], a: 0 },
+        { q: "What is 'Cloud Bursting' in Slurm?", o: ["Scaling to public cloud when local nodes are full", "Cloud storage", "Weather monitoring", "None"], a: 0 },
         { q: "The 'sstat' command shows ____.", o: ["Status of finished jobs", "Status of RUNNING jobs (CPU/Mem usage)", "None", "None"], a: 1 },
         { q: "What is 'Bank' or 'Allocation' in accounting?", o: ["Money", "The amount of CPU time assigned to a project", "None", "None"], a: 1 },
         { q: "Can you prevent a job from running if an account is out of time?", o: ["Yes (using limits)", "No", "Only manually", "None"], a: 0 },
@@ -267,10 +267,10 @@ const quizData = {
         { q: "Can a user belong to multiple accounts?", o: ["Yes", "No", "Only one", "None"], a: 0 },
         { q: "The 'sreport' tool is used for ____.", o: ["Submitting jobs", "Generating utilization reports over time", "Error logs", "None"], a: 1 },
         { q: "To see cluster-wide usage for last month, use ____.", o: ["sreport cluster Utilization", "sacct -M", "sinfo -t", "none"], a: 0 },
-        { q: "Does the module cover Slurm installation assignments?", o: ["Yes", "No", "Optional", "None"], a: 0 }
+        { q: "Slurm can manage 'licenses' as a shared resource.", o: ["True", "False"], a: 0 }
     ]
 };
-
+    
 const urlParams = new URLSearchParams(window.location.search);
 const currentSet = urlParams.get('set') || "1";
 document.getElementById(`btn-${currentSet}`).classList.add('active');
@@ -328,4 +328,5 @@ function closeModal() {
 }
 </script>
 </body>
+
 </html>
