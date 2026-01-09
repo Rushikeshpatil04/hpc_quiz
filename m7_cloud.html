@@ -1,74 +1,70 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>M6: HPC System Administration - 200 Q Bank</title>
-    <style>
-        :root { --hpc-red: #d9534f; --hpc-blue: #0275d8; --hpc-dark: #1a1a1a; --bg: #f4f7f6; --success: #28a745; --wrong: #dc3545; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); margin: 0; padding: 20px; }
-        .quiz-container { max-width: 1100px; margin: auto; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
-        .header { border-bottom: 5px solid var(--hpc-red); padding-bottom: 15px; margin-bottom: 25px; display: flex; justify-content: space-between; align-items: center; }
-        
-        .set-nav { margin-bottom: 25px; display: flex; gap: 10px; flex-wrap: wrap; }
-        .set-btn { padding: 12px 20px; background: #e9ecef; border: none; border-radius: 6px; cursor: pointer; text-decoration: none; color: #495057; font-weight: bold; transition: 0.3s; }
-        .set-btn.active { background: var(--hpc-red); color: white; }
-        .set-btn:hover:not(.active) { background: #dee2e6; }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>M7: Cloud - 200 Q Bank</title>
 
-        .question { margin-bottom: 25px; padding: 20px; border: 1px solid #dee2e6; border-radius: 10px; background: #fff; }
-        .q-text { font-weight: bold; font-size: 1.15rem; display: block; margin-bottom: 15px; color: var(--hpc-dark); }
-        
-        .option { display: block; padding: 14px; background: #f8f9fa; border: 2px solid #f1f2f6; margin: 8px 0; border-radius: 8px; cursor: pointer; transition: 0.2s; }
-        .option:hover { background: #e9ecef; border-color: #dee2e6; }
-        
-        input[type="radio"] { margin-right: 10px; transform: scale(1.2); }
-
-        .opt-correct { background: #d4edda !important; border-color: #28a745 !important; color: #155724; font-weight: bold; }
-        .opt-wrong { background: #f8d7da !important; border-color: #dc3545 !important; color: #721c24; }
-        
-        .submit-btn { background: var(--hpc-dark); color: white; border: none; padding: 20px; width: 100%; border-radius: 10px; font-size: 1.25rem; cursor: pointer; font-weight: bold; text-transform: uppercase; }
-        
-        #result-modal { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:999; justify-content:center; align-items:center; }
-        .modal-box { background:white; padding:40px; border-radius:20px; text-align:center; max-width:500px; width: 90%; }
-        .score-val { font-size: 4.5rem; color: var(--hpc-red); font-weight: 900; margin: 10px 0; }
-    </style>
+<style>
+:root {
+    --hpc-red:#d9534f; --hpc-blue:#0275d8;
+    --hpc-dark:#1a1a1a; --bg:#f4f7f6;
+}
+body{font-family:Segoe UI;background:var(--bg);padding:20px}
+.quiz-container{max-width:1100px;margin:auto;background:#fff;padding:30px;border-radius:15px}
+.header{border-bottom:5px solid var(--hpc-red);margin-bottom:25px;display:flex;justify-content:space-between}
+.set-nav{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:25px}
+.set-btn{padding:12px 20px;border:none;border-radius:6px;background:#e9ecef;font-weight:bold;text-decoration:none;color:#000}
+.set-btn.active{background:var(--hpc-red);color:#fff}
+.question{border:1px solid #ddd;border-radius:10px;padding:20px;margin-bottom:20px}
+.q-text{font-weight:bold;font-size:1.1rem}
+.option{display:block;padding:12px;border-radius:8px;margin:8px 0;cursor:pointer;background:#f8f9fa}
+.opt-correct{background:#d4edda!important;border:2px solid #28a745}
+.opt-wrong{background:#f8d7da!important;border:2px solid #dc3545}
+.submit-btn{width:100%;padding:18px;font-size:1.2rem;background:#1a1a1a;color:#fff;border:none;border-radius:10px}
+#result-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);justify-content:center;align-items:center}
+.modal-box{background:#fff;padding:40px;border-radius:20px;text-align:center}
+.score-val{font-size:4rem;color:var(--hpc-red);font-weight:bold}
+</style>
 </head>
+
 <body>
 
 <div class="quiz-container">
-    <div class="header">
-        <div>
-            <h1 style="margin:0;">M6: HPC System Administration</h1>
-            <p style="margin:5px 0 0; color: #6c757d;">Data Centers & Supercomputing • 40 Questions Per Set</p>
-        </div>
-        <a href="index.html" style="text-decoration:none; color:var(--hpc-dark); font-weight:bold; border:2px solid var(--hpc-dark); padding:8px 15px; border-radius:5px;">← Home</a>
-    </div>
+<div class="header">
+<div>
+<h1>M7: Cloud</h1>
+<p>• 40 Questions</p>
+</div>
+</div>
 
-    <div class="set-nav">
-        <a href="?set=1" class="set-btn" id="btn-1">Set 1: Data Center Design</a>
-        <a href="?set=2" class="set-btn" id="btn-2">Set 2: Power & Cooling</a>
-        <a href="?set=3" class="set-btn" id="btn-3">Set 3: Cluster Architecture</a>
-        <a href="?set=4" class="set-btn" id="btn-4">Set 4: System Management</a>
-        <a href="?set=5" class="set-btn" id="btn-5">Set 5: Benchmarking & Trends</a>
-    </div>
+<div class="set-nav">
+<a href="?set=1" class="set-btn" id="btn-1">Set 1</a>
+<a href="?set=2" class="set-btn" id="btn-2">Set 2</a>
+<a href="?set=3" class="set-btn" id="btn-3">Set 3</a>
+<a href="?set=4" class="set-btn" id="btn-4">Set 4</a>
+<a href="?set=5" class="set-btn" id="btn-5">Set 5</a>
+</div>
 
-    <form id="quiz-form">
-        <div id="questions-area"></div>
-        <button type="button" class="submit-btn" id="main-submit" onclick="validateAndScore()">Submit Set Results</button>
-    </form>
+<form id="quiz-form">
+<div id="questions-area"></div>
+<button type="button" class="submit-btn" onclick="validateAndScore()">Submit</button>
+</form>
 </div>
 
 <div id="result-modal">
-    <div class="modal-box">
-        <h2 id="result-title">Set Complete!</h2>
-        <div class="score-val" id="score-display">0%</div>
-        <p id="stats-summary" style="font-size: 1.3rem; margin-bottom:25px;"></p>
-        <button onclick="location.reload()" style="padding:12px 25px; background:var(--hpc-red); color:white; border:none; border-radius:8px; cursor:pointer; font-weight:bold;">Retake Test</button>
-        <button onclick="closeModal()" style="padding:12px 25px; margin-left:10px; cursor:pointer; background: #eee; border: none; border-radius: 8px;">Review Answers</button>
-    </div>
+<div class="modal-box">
+<h2>Set Complete!</h2>
+<div class="score-val" id="score-display">0%</div>
+<p id="stats-summary"></p>
+<button onclick="location.reload()">Retake</button>
+<button onclick="closeModal()">Review</button>
+</div>
 </div>
 
 <script>
+/* ================== FIXED LOGIC ================== */
+
 const quizData = {
   // SET 1: Virtualization & Cloud Basics (Sessions 1-2)
   "set1": [
@@ -290,78 +286,51 @@ const quizData = {
     { q: "To check the version of kubectl, use:", o: ["kubectl version", "kubectl info", "kubectl check", "kubectl -v"], a: 0 }
   ]
 };
+
+/* ✅ FIX */
 const urlParams = new URLSearchParams(window.location.search);
-const currentSet = urlParams.get('set') || "1";
-const questions = quizData[currentSet] || quizData["1"];
+const currentSet = urlParams.get("set") || "1";
+const setKey = `set${currentSet}`;
+const questions = quizData[setKey];
 
-// Set active button
-document.getElementById(`btn-${currentSet}`).classList.add('active');
+document.getElementById(`btn-${currentSet}`).classList.add("active");
 
-// Render Questions
-const area = document.getElementById('questions-area');
-questions.forEach((q, i) => {
-    let qDiv = document.createElement('div');
-    qDiv.className = 'question';
-    qDiv.id = `q-block-${i}`;
-    
-    let optionsHtml = q.o.map((opt, optIdx) => `
-        <label class="option" id="opt-${i}-${optIdx}">
-            <input type="radio" name="q${i}" value="${optIdx}">
-            ${opt}
-        </label>
-    `).join('');
-
-    qDiv.innerHTML = `
-        <span class="q-text">${i + 1}. ${q.q}</span>
-        ${optionsHtml}
-    `;
-    area.appendChild(qDiv);
+/* Render questions */
+const area = document.getElementById("questions-area");
+questions.forEach((q,i)=>{
+  area.innerHTML += `
+  <div class="question">
+    <span class="q-text">${i+1}. ${q.q}</span>
+    ${q.o.map((op,j)=>`
+      <label class="option" id="opt-${i}-${j}">
+      <input type="radio" name="q${i}" value="${j}"> ${op}
+      </label>`).join("")}
+  </div>`;
 });
 
-function validateAndScore() {
-    let score = 0;
-    let unanswered = [];
-
-    questions.forEach((q, i) => {
-        const selected = document.querySelector(`input[name="q${i}"]:checked`);
-        if (!selected) {
-            unanswered.push(i + 1);
-        }
-    });
-
-    if (unanswered.length > 0) {
-        alert("Please answer all questions before submitting. Unanswered: " + unanswered.join(", "));
-        return;
-    }
-
-    questions.forEach((q, i) => {
-        const selected = parseInt(document.querySelector(`input[name="q${i}"]:checked`).value);
-        const correct = q.a;
-
-        const labels = document.querySelectorAll(`[id^="opt-${i}-"]`);
-        labels.forEach(l => l.classList.remove('opt-correct', 'opt-wrong'));
-
-        if (selected === correct) {
-            score++;
-            document.getElementById(`opt-${i}-${selected}`).classList.add('opt-correct');
-        } else {
-            document.getElementById(`opt-${i}-${selected}`).classList.add('opt-wrong');
-            document.getElementById(`opt-${i}-${correct}`).classList.add('opt-correct');
-        }
-    });
-
-    const finalScore = Math.round((score / questions.length) * 100);
-    document.getElementById('score-display').innerText = finalScore + "%";
-    document.getElementById('stats-summary').innerText = `You scored ${score} out of ${questions.length}`;
-    document.getElementById('result-modal').style.display = 'flex';
+function validateAndScore(){
+let score=0;
+questions.forEach((q,i)=>{
+let sel=document.querySelector(`input[name="q${i}"]:checked`);
+if(!sel){alert("Answer all questions");throw "";}
+let ans=parseInt(sel.value);
+if(ans===q.a){
+score++;
+document.getElementById(`opt-${i}-${ans}`).classList.add("opt-correct");
+}else{
+document.getElementById(`opt-${i}-${ans}`).classList.add("opt-wrong");
+document.getElementById(`opt-${i}-${q.a}`).classList.add("opt-correct");
+}
+});
+document.getElementById("score-display").innerText=Math.round(score/questions.length*100)+"%";
+document.getElementById("stats-summary").innerText=`Score: ${score}/${questions.length}`;
+document.getElementById("result-modal").style.display="flex";
 }
 
-function closeModal() {
-    document.getElementById('result-modal').style.display = 'none';
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+function closeModal(){
+document.getElementById("result-modal").style.display="none";
 }
 </script>
 
 </body>
-
 </html>
