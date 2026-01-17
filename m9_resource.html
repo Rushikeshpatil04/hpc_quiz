@@ -15,7 +15,326 @@ body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--rm-bg); mar
 .question { margin-bottom: 25px; padding: 20px; border: 1px solid #dfe6e9; border-radius: 8px; background: #fff; }
 .q-text { font-weight: 600; font-size: 1.1rem; display: block; margin-bottom: 15px; color: var(--rm-secondary); }
 .option { display: block; padding: 12px; background: #fff; border: 1px solid #dcdde1; margin: 8px 0; border-radius: 5px; cursor: pointer; position: relative; transition: 0.2s; }
-.option:hover { background: #f5f5f5; }
+.option:hover { background: #f5f5f5; }<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>M9: Resource Management & Accounting - Full Quiz</title>
+<style>
+:root { --rm-primary: #d35400; --rm-secondary: #2c3e50; --rm-bg: #fdf2e9; --success: #27ae60; --wrong: #c0392b; }
+body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--rm-bg); margin: 0; padding: 20px; }
+.quiz-container { max-width: 1000px; margin: auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 5px 25px rgba(0,0,0,0.1); }
+.header { border-bottom: 4px solid var(--rm-primary); padding-bottom: 15px; margin-bottom: 25px; display: flex; justify-content: space-between; align-items: center; }
+.set-nav { margin-bottom: 25px; display: flex; gap: 10px; flex-wrap: wrap; }
+.set-btn { padding: 12px 20px; background: #fff; border: 2px solid var(--rm-primary); border-radius: 6px; cursor: pointer; text-decoration: none; color: var(--rm-primary); font-weight: bold; transition: 0.3s; }
+.set-btn.active { background: var(--rm-primary); color: white; }
+.question { margin-bottom: 25px; padding: 20px; border: 1px solid #dfe6e9; border-radius: 8px; background: #fff; }
+.q-text { font-weight: 600; font-size: 1.1rem; display: block; margin-bottom: 15px; color: var(--rm-secondary); }
+.option { display: block; cursor: pointer; margin: 8px 0; font-size: 1rem; }
+.option input[type="radio"] { position: absolute; opacity: 0; }
+.option span { display: block; padding: 12px; border: 1px solid #dcdde1; border-radius: 5px; transition: 0.2s; user-select: none; }
+.option:hover span { background: #f5f5f5; }
+.option input[type="radio"]:checked + span { background: var(--rm-primary); color: white; border-color: var(--rm-primary); font-weight: bold; }
+.opt-correct { background: #d4edda !important; border-color: #28a745 !important; color: #155724 !important; font-weight: bold; }
+.opt-wrong { background: #f8d7da !important; border-color: #dc3545 !important; color: #721c24 !important; font-weight: bold; }
+.submit-btn { background: var(--rm-primary); color: white; border: none; padding: 18px; width: 100%; border-radius: 6px; font-size: 1.2rem; cursor: pointer; font-weight: bold; }
+#result-modal { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:999; justify-content:center; align-items:center; }
+.modal-box { background:white; padding:40px; border-radius:12px; text-align:center; max-width:450px; width: 90%; }
+</style>
+</head>
+<body>
+
+<div class="quiz-container">
+    <div class="header">
+        <h1 style="margin:0;">M9: Resource Management & Accounting</h1>
+    </div>
+
+    <div class="set-nav">
+        <a href="?set=1" class="set-btn" id="btn-1">Set 1</a>
+        <a href="?set=2" class="set-btn" id="btn-2">Set 2</a>
+        <a href="?set=3" class="set-btn" id="btn-3">Set 3</a>
+        <a href="?set=4" class="set-btn" id="btn-4">Set 4</a>
+        <a href="?set=5" class="set-btn" id="btn-5">Set 5</a>
+    </div>
+
+    <form id="quiz-form">
+        <div id="questions-area"></div>
+        <button type="button" class="submit-btn" onclick="validateAndScore()">Submit Assessment</button>
+    </form>
+</div>
+
+<div id="result-modal">
+    <div class="modal-box">
+        <h2>Result</h2>
+        <div id="score-display" style="font-size: 4rem; color: var(--rm-primary); font-weight: 800; margin: 10px 0;">0%</div>
+        <p id="stats-summary" style="font-size: 1.1rem; margin-bottom:20px;"></p>
+        <button onclick="location.reload()" style="padding:12px 25px; background:var(--rm-primary); color:white; border:none; border-radius:6px; cursor:pointer; font-weight:bold;">Retake Test</button>
+    </div>
+</div>
+
+<script>
+// ==== FULL 5 SETS (EXAMPLE DATA, REPLACE WITH YOUR 200 QUESTIONS) ====
+const quizData = {
+    "1": [
+        { q: "What is the primary role of a Resource Manager?", o: ["Edit code","Allocate hardware to jobs","Compiling software","Web browsing"], a: 1 },
+        { q: "Which component is responsible for deciding 'when' and 'where' a job runs?", o: ["Compiler","Debugger","Scheduler","Kernel"], a: 2 },
+        { q: "In an HPC context, what does a 'Batch System' do?", o: ["Processes jobs in real-time interactively","Executes non-interactive jobs in a queue","Cleans the disk","None"], a: 1 },
+        { q: "What is Slurm an abbreviation for?", o: ["System Linux Utility for Resource Management","Simple Linux Utility for Resource Management","Standard Linux Unit for RAM","None"], a: 1 },
+        { q: "Which of these is a famous resource manager?", o: ["VLC","Slurm","Chrome","Excel"], a: 1 },
+        { q: "Resource management is a prerequisite for which environment?", o: ["Single-user laptop","HPC Clusters","Mobile phones","Calculator"], a: 1 },
+        { q: "The objective of this module is to introduce RM in ____.", o: ["Hadoop","Cloud","HPC","Networking"], a: 2 },
+        { q: "A scheduler aims to maximize ____.", o: ["CPU Heat","System Utilization","Power consumption","Idle time"], a: 1 },
+        { q: "Which of the following is NOT a component of a workload manager?", o: ["Queue","Job history","Browser","Policy engine"], a: 2 },
+        { q: "Batch systems allow users to ____.", o: ["Work only during office hours","Submit jobs and disconnect","Play games","None"], a: 1 },
+        { q: "A 'Head Node' usually runs the ____.", o: ["Heavy computation","Management services (Scheduler)","Database only","User UI"], a: 1 },
+        { q: "Compute nodes are also known as ____.", o: ["Master nodes","Worker nodes","Service nodes","None"], a: 1 },
+        { q: "Throughput in RM refers to ____.", o: ["Data speed","Number of jobs completed per unit time","Memory size","Network latency"], a: 1 },
+        { q: "What is 'Fair Share' in scheduling?", o: ["Randomly picking jobs","Balancing resource usage among users based on priority","Deleting long jobs","None"], a: 1 },
+        { q: "Which Linux signal is sent by default when a job exceeds walltime?", o: ["SIGKILL","SIGTERM followed by SIGKILL","SIGSTOP","SIGUSR1"], a: 1 },
+        { q: "In Slurm, what is a 'TRES'?", o: ["Time Resource","Trackable REsource (CPU, Memory, GPU)","Total RAM","None"], a: 1 },
+        { q: "Which daemon is responsible for managing the job queue?", o: ["slurmd","slurmctld","slurmdbd","munge"], a: 1 },
+        { q: "What is the role of the 'Backfill' scheduler?", o: ["Delete old jobs","Start lower priority jobs if they don't delay higher ones","Reboot nodes","None"], a: 1 },
+        { q: "A cluster's 'Interconnect' typically refers to ____.", o: ["The power supply","The high-speed network (Infiniband)","The storage disk","The keyboard"], a: 1 },
+        { q: "Slurm official documentation can be found at ____.", o: ["slurm.schedmd.com","google.com","linux.org","none"], a: 0 },
+        { q: "The 'Queue' stores jobs that are ____.", o: ["Already finished","Waiting for resources","Running","None"], a: 1 },
+        { q: "Resource management prevents ____.", o: ["User conflicts over resources","Fast execution","Script writing","None"], a: 0 },
+        { q: "A 'Partition' in Slurm is a ____.", o: ["Hard drive slice","Logical set of nodes","User name","Backup"], a: 1 },
+        { q: "Scheduling can be based on ____.", o: ["Priority","Available Memory","CPU count","All of the above"], a: 3 },
+        { q: "Job 'Starvation' occurs when ____.", o: ["A job runs too fast","Low priority jobs never get resources","The disk is full","None"], a: 1 },
+        { q: "Preemption allows ____.", o: ["Higher priority jobs to interrupt lower ones","Deleting the scheduler","Users to skip login","None"], a: 0 },
+        { q: "Dynamic scheduling adjusts to ____.", o: ["Static files","Current system state","User's age","None"], a: 1 },
+        { q: "Which command is used to see the current state of nodes?", o: ["sinfo","squeue","srun","sbatch"], a: 0 },
+        { q: "What is the purpose of 'slurmdbd'?", o: ["Job execution","Database interface for accounting","Node monitoring","None"], a: 1 },
+        { q: "Which file defines the nodes and partitions?", o: ["node.conf","slurm.conf","cluster.conf","none"], a: 1 },
+        { q: "HPC clusters use 'Parallel File Systems' like ____.", o: ["NTFS","Lustre or GPFS","FAT32","None"], a: 1 },
+        { q: "Who manages the job lifecycle in Slurm?", o: ["User","Slurmctld","Slurmd","Accounting"], a: 1 },
+        { q: "Slurm is an open-source tool.", o: ["True","False"], a: 0 },
+        { q: "Resource Managers manage ____.", o: ["CPUs","Memory","Licenses","All of the above"], a: 3 },
+        { q: "Which software provides a view of the cluster state?", o: ["Compiler","Workload Manager","Browser","Text Editor"], a: 1 },
+        { q: "A job script defines ____.", o: ["Required resources","Commands to run","Walltime","All of the above"], a: 3 },
+        { q: "Walltime is ____.", o: ["Current time on wall","Maximum time a job is allowed to run","Boot time","None"], a: 1 },
+        { q: "HPC stands for ____.", o: ["High Power Current","High Performance Computing","High Price Computer","None"], a: 1 },
+        { q: "The primary focus of cluster management is ____.", o: ["Gaming","Maximizing resource utilization","Browsing","None"], a: 1 },
+        { q: "Schedulers run as a ____ process.", o: ["Foreground","Daemon/Background","Web","None"], a: 1 }
+    ],
+    "2": [
+        { q: "Which authentication service is commonly used by Slurm?", o: ["LDAP","Munge","Kerberos","OAuth"], a: 1 },
+        { q: "The Slurm controller daemon is ____.", o: ["slurmd","slurmctld","slurmdbd","slurmstepd"], a: 1 },
+        { q: "Where is the default Slurm configuration file located?", o: ["/etc/slurm/slurm.conf","/var/slurm.conf","/usr/bin/slurm.conf","/opt/slurm.conf"], a: 0 },
+        { q: "The daemon running on every compute node is ____.", o: ["slurmctld","slurmd","slurmdbd","sshd"], a: 1 },
+        { q: "Which command checks the syntax of slurm.conf?", o: ["slurm-check","slurmctld -t","scontrol check","sinfo -v"], a: 1 },
+        { q: "What is the role of 'slurmstepd'?", o: ["Manages the queue","Manages individual job steps on a node","Maintains the database","Logs user logins"], a: 1 },
+        { q: "To sync clocks across a cluster, we use ____.", o: ["NTP or Chrony","SlurmSync","TimeLord","ClockD"], a: 0 },
+        { q: "Munge requires a shared ____ across all nodes.", o: ["Username","Secret Key (/etc/munge/munge.key)","Password","IP address"], a: 1 },
+        { q: "The 'ClusterName' parameter is found in ____.", o: ["munge.conf","slurm.conf","hosts.conf","gres.conf"], a: 1 },
+        { q: "Which command reloads the slurm.conf without restarting daemons?", o: ["scontrol reconfigure","slurm-reload","systemctl restart slurmctld","sbatch --reload"], a: 0 },
+        { q: "StateSaveLocation defines where Slurm stores ____.", o: ["Log files","Job state information across restarts","User scripts","Source code"], a: 1 },
+        { q: "What happens if Munge is not running?", o: ["Slurm nodes cannot communicate","Jobs run slower","Users can't login","Nothing"], a: 0 },
+        { q: "Which log file helps troubleshoot Slurm controller issues?", o: ["slurmctld.log","messages","dmesg","slurm_audit.log"], a: 0 },
+        { q: "The 'ControlMachine' parameter specifies ____.", o: ["The compute node name","The hostname of the head node","The user name","The database IP"], a: 1 },
+        { q: "Slurm uses 'GRES' for ____.", o: ["General RAM","Generic Resources like GPUs","Global Resources","None"], a: 1 },
+        { q: "To enable accounting, which daemon must be configured?", o: ["slurmd","slurmdbd","accountingd","sqld"], a: 1 },
+        { q: "Which database is natively supported by slurmdbd?", o: ["MongoDB","MariaDB/MySQL","SQLite","Oracle"], a: 1 },
+        { q: "What is the purpose of 'SelectType'?", o: ["Choosing a partition","Defining how resources are allocated (e.g., cons_res)","Picking a user","None"], a: 1 },
+        { q: "Slurm is written primarily in ____.", o: ["Python","Java","C","Ruby"], a: 2 },
+        { q: "Which package provides Slurm commands like sinfo/squeue?", o: ["slurm-client","slurm-plugins","slurm-devel","slurm-node"], a: 0 },
+        { q: "Nodes in slurm.conf are defined with which keyword?", o: ["ComputeNode","NodeName","Server","Worker"], a: 1 },
+        { q: "What does 'RealMemory' in slurm.conf represent?", o: ["Virtual RAM","Available physical RAM on the node","Disk space","None"], a: 1 },
+        { q: "Which parameter defines the default job time limit?", o: ["TimeLimit","MaxTime","DefaultTime","WallClock"], a: 2 },
+        { q: "To support multiple slurmctld for HA, you define ____.", o: ["ControlAddr","BackupController","SlaveController","Master2"], a: 1 },
+        { q: "Slurm user should ideally have ____.", o: ["Root access","The same UID/GID across the cluster","A different password on every node","No shell"], a: 1 },
+        { q: "Where does 'slurmd' usually log its errors?", o: ["/var/log/slurmd.log","/tmp/slurm.log","/etc/slurm/log","Home directory"], a: 0 },
+        { q: "Which plugin handles task affinity/binding?", o: ["task/affinity","task/cgroup","Both A and B","None"], a: 2 },
+        { q: "What is 'ReturnToService' in slurm.conf?", o: ["Automatic reboot","Policy for downed nodes to join cluster automatically","User login script","None"], a: 1 },
+        { q: "Slurm partitions act like ____.", o: ["Hard drives","Job queues","Folders","Networks"], a: 1 },
+        { q: "MaxNodes in a partition definition restricts ____.", o: ["Total nodes in cluster","Max nodes a single job can use","Number of users","None"], a: 1 },
+        { q: "Which file is used for GPU resource specifics?", o: ["gpu.conf","gres.conf","nvidia.conf","slurm.conf"], a: 1 },
+        { q: "Slurmctld listens on which default port?", o: ["80","22","6817","443"], a: 2 },
+        { q: "Slurmd listens on which default port?", o: ["6817","6818","3306","5432"], a: 1 },
+        { q: "What is the 'SlurmUser'?", o: ["Any HPC user","The system user account that runs Slurm daemons","The admin only","Root"], a: 1 },
+        { q: "If slurm.conf is updated, you must restart ____.", o: ["The computer","The daemons or run scontrol reconfigure","The router","Nothing"], a: 1 },
+        { q: "Which utility is used to create the Munge key?", o: ["dd or /dev/urandom","keygen","mkpasswd","slurm-key"], a: 0 },
+        { q: "Slurm supports 'Cgroups' for ____.", o: ["Naming nodes","Resource isolation (Memory/CPU limiting)","Database speed","None"], a: 1 },
+        { q: "SchedulerType 'sched/builtin' is ____.", o: ["Advanced","FIFO (First In First Out)","Cloud-based","None"], a: 1 },
+        { q: "ProctrackType defines how Slurm ____.", o: ["Tracks processes","Calculates CPU speed","Maps networks","None"], a: 0 },
+        { q: "Which command shows the Slurm version?", o: ["slurm -v","sinfo -V","version","scontrol version"], a: 1 }
+    ],
+    "3": [
+        { q: "Which command is used to submit a batch script?", o: ["srun","sbatch","sexec","submit"], a: 1 },
+        { q: "Which command is used for interactive job allocation?", o: ["salloc","sbatch","squeue","sinfo"], a: 0 },
+        { q: "What does '#SBATCH --nodes=2' mean?", o: ["Run 2 jobs","Request 2 physical nodes","Use 2 CPUs","Delete 2 files"], a: 1 },
+        { q: "How do you specify a 30-minute time limit in a script?", o: ["--time=30","--time=00:30:00","--limit=30m","--wall=30"], a: 1 },
+        { q: "Which command shows only your jobs in the queue?", o: ["squeue -u <user>","sinfo","smap","scontrol"], a: 0 },
+        { q: "How do you cancel a job with ID 1234?", o: ["scancel 1234","sdelete 1234","kill 1234","stop 1234"], a: 0 },
+        { q: "The '--ntasks' flag usually refers to ____.", o: ["Number of nodes","Number of MPI ranks/processes","Number of threads per process","Total RAM"], a: 1 },
+        { q: "Which environment variable gives the Job ID inside a script?", o: ["$JOBID","$SLURM_JOB_ID","$ID","$PROCID"], a: 1 },
+        { q: "To request a specific partition, use ____.", o: ["-p <name>","-q <name>","-n <name>","-w <name>"], a: 0 },
+        { q: "How do you request 4 CPUs per task?", o: ["--cpus-per-task=4","--c=4","-n 4","-N 4"], a: 0 },
+        { q: "What is the default output file name if not specified?", o: ["output.txt","slurm-<jobid>.out","log.out","stdout"], a: 1 },
+        { q: "To receive an email when a job finishes, use ____.", o: ["--mail-type=END","--email=done","--notify=me","--alert"], a: 0 },
+        { q: "Which command provides detailed info about a running job?", o: ["scontrol show job <id>","sinfo","squeue","smap"], a: 0 },
+        { q: "What does 'srun' do inside an sbatch script?", o: ["Restarts the script","Launches the parallel steps","Kills the job","Logs out"], a: 1 },
+        { q: "To request 10GB of memory per node, use ____.", o: ["--mem=10G","--ram=10G","--memory=10","--m=10"], a: 0 },
+        { q: "How do you request a specific node by name?", o: ["--nodelist=<name>","--node=<name>","-w <name>","Both A and C"], a: 3 },
+        { q: "A job 'Array' is used for ____.", o: ["Running one big job","Submitting many similar jobs with one script","Sorting data","None"], a: 1 },
+        { q: "The flag for a job array is ____.", o: ["--array=0-10","--list=10","--multiple=10","--batch=10"], a: 0 },
+        { q: "Which variable identifies the index in a job array?", o: ["$INDEX","$SLURM_ARRAY_TASK_ID","$TASK_ID","$ARRAY_ID"], a: 1 },
+        { q: "To hold a job from running, use ____.", o: ["scontrol hold <id>","sstop <id>","scancel -h <id>","squeue -hold"], a: 0 },
+        { q: "To release a held job, use ____.", o: ["scontrol release <id>","sstart <id>","srun <id>","sresume <id>"], a: 0 },
+        { q: "Which command shows the expected start time of a pending job?", o: ["squeue --start","sinfo","scontrol start","sbatch --when"], a: 0 },
+        { q: "The '--dependency' flag is used for ____.", o: ["Chaining jobs (Job B starts after Job A)","Requesting libraries","Installing software","None"], a: 0 },
+        { q: "To request 1 GPU, you might use ____.", o: ["--gres=gpu:1","--gpu=1","--accelerator=1","--device=gpu"], a: 0 },
+        { q: "What does '#!' (Shebang) at the top of a script do?", o: ["Comments out code","Defines the interpreter (e.g., /bin/bash)","Tells Slurm the job name","Nothing"], a: 1 },
+        { q: "Standard Error can be redirected using ____.", o: ["--error=<filename>","-e <filename>","Both A and B","--stderr"], a: 2 },
+        { q: "How do you specify a job name?", o: ["--job-name=<name>","-J <name>","Both A and B","--title"], a: 2 },
+        { q: "To run a job in 'Exclusive' mode, use ____.", o: ["--exclusive","--sole","--single-user","--private"], a: 0 },
+        { q: "What is 'Overcommit' in Slurm?", o: ["Running more tasks than CPUs","Using too much RAM","Working overtime","None"], a: 0 },
+        { q: "The command 'sshare' shows ____.", o: ["File sharing","Fair-share usage/priority","CPU temperature","Network speed"], a: 1 },
+        { q: "How do you see the help page for sbatch?", o: ["man sbatch","sbatch --help","Both A and B","help sbatch"], a: 2 },
+        { q: "A 'Job Step' is created by ____.", o: ["srun","salloc","sinfo","squeue"], a: 0 },
+        { q: "What is the status 'R' in squeue?", o: ["Ready","Running","Reserved","Restarting"], a: 1 },
+        { q: "What is the status 'PD' in squeue?", o: ["Pending","Power Down","Processed","Passed"], a: 0 },
+        { q: "What is the status 'CD' in squeue?", o: ["Cold","Completed","Cancelled","Critical"], a: 1 },
+        { q: "What is 'Wall Clock' time?", o: ["CPU time","Real-world elapsed time","Time on a clock","None"], a: 1 },
+        { q: "Can you submit a binary file directly with sbatch?", o: ["Yes","No, it must be a script","Only if it is Python","None"], a: 1 },
+        { q: "Which flag limits a job to a specific Quality of Service?", o: ["--qos=<name>","--quality=<name>","-q <name>","--priority"], a: 0 },
+        { q: "The '--mem-per-cpu' flag is useful for ____.", o: ["Multi-threaded jobs","MPI jobs","Single core jobs","None"], a: 1 },
+        { q: "Which command shows a graphical view of cluster load (ncurses)?", o: ["smap","sview","top","htop"], a: 0 }
+    ],
+    "4": [
+        { q: "A node with state 'DRAIN' means ____.", o: ["It is broken","It won't accept new jobs","It is running fast","It is powered off"], a: 1 },
+        { q: "How do you put a node into 'DRAIN' state manually?", o: ["scontrol update NodeName=<name> State=DRAIN Reason=...","scancel node","sinfo -d","rm node"], a: 0 },
+        { q: "A 'DOWN' node in Slurm is ____.", o: ["Sleeping","Unavailable for jobs","Restarting","Busy"], a: 1 },
+        { q: "Which state indicates a node is currently running a job?", o: ["IDLE","ALLOCATED/BUSY","MIXED","None"], a: 1 },
+        { q: "What does 'MIXED' state mean for a node?", o: ["It's broken","Some CPUs are allocated, some are free","It's running two OS","None"], a: 1 },
+        { q: "To resume a 'DRAINED' node, set state to ____.", o: ["IDLE","RESUME","UP","START"], a: 1 },
+        { q: "What is a 'Slurm Partition'?", o: ["A disk partition","A logical grouping of nodes with specific limits","A user group","A network"], a: 1 },
+        { q: "Which parameter in slurm.conf limits the maximum time for a partition?", o: ["MaxTime","MaxWall","LimitTime","TimeLimit"], a: 0 },
+        { q: "A 'Default' partition is used when ____.", o: ["A user is new","No partition is specified in the job script","The cluster is empty","None"], a: 1 },
+        { q: "What is 'OverSubscribe' in partition settings?", o: ["Allowing more than one job per CPU","Selling too many tickets","Disk compression","None"], a: 0 },
+        { q: "The 'Nodes' parameter in a Partition definition specifies ____.", o: ["Number of nodes","Names of nodes belonging to it","Speed of nodes","None"], a: 1 },
+        { q: "A node's 'Weight' in Slurm is used for ____.", o: ["Physical weight","Scheduling preference (lower weight preferred)","RAM size","CPU speed"], a: 1 },
+        { q: "What is 'Backfill Scheduling'?", o: ["Running jobs backwards","Filling 'holes' in the schedule with small jobs","Deleting jobs","None"], a: 1 },
+        { q: "Slurm 'Features' are ____.", o: ["Software bugs","Arbitrary tags for nodes (e.g., 'fast', 'intel')","License keys","None"], a: 1 },
+        { q: "How do you request a node with a specific feature?", o: ["--constraint='feature'","-C 'feature'","Both A and B","--feature='feature'"], a: 2 },
+        { q: "A 'Reservation' in Slurm is used for ____.", o: ["Booking nodes for a specific time/user","Saving a seat","Ordering food","None"], a: 0 },
+        { q: "Which command creates a reservation?", o: ["scontrol create reservation...","sres create","sbatch --res","salloc --res"], a: 0 },
+        { q: "Quality of Service (QOS) is used to ____.", o: ["Improve internet","Apply limits like MaxJobsPerUser","Watch videos","None"], a: 1 },
+        { q: "What is the 'Main' scheduler loop frequency defined by?", o: ["SchedulerParameters","LoopTime","SchedFreq","None"], a: 0 },
+        { q: "If a node is 'UNEXPECTEDLY REBOOTED', Slurm marks it as ____.", o: ["IDLE","DOWN","DRAIN","UP"], a: 1 },
+        { q: "Which daemon handles node health checks?", o: ["slurmd","slurmctld","healthd","watchdog"], a: 0 },
+        { q: "The 'HealthCheckProgram' runs ____.", o: ["Once a year","Periodically on compute nodes","Only on head node","None"], a: 1 },
+        { q: "What is 'Preemption'?", o: ["Starting a job early","Stopping a low-priority job to run a high-priority one","Predicting the future","None"], a: 1 },
+        { q: "The 'PreemptMode' can be ____.", o: ["CANCEL","REQUEUE","SUSPEND","All of the above"], a: 3 },
+        { q: "Which command shows current QOS levels?", o: ["sacctmgr show qos","sinfo -q","squeue -q","scontrol qos"], a: 0 },
+        { q: "A 'TRES' is a ____.", o: ["Time resource","Trackable Resource (CPU, GPU, etc.)","Total RAM","None"], a: 1 },
+        { q: "PriorityType 'priority/multifactor' uses ____.", o: ["Age, Fairshare, Partition, QOS","Only job size","Random numbers","None"], a: 0 },
+        { q: "What is 'Job Age' in priority calculation?", o: ["Time since user was born","Time spent waiting in the queue","How long the job runs","None"], a: 1 },
+        { q: "Which command shows the current priority components of waiting jobs?", o: ["sprio","squeue -p","sinfo -p","scontrol priority"], a: 0 },
+        { q: "The 'GRES' configuration allows defining ____.", o: ["Generic resources like GPUs or Licenses","Global RAM","CPU cores","Disk space"], a: 0 },
+        { q: "Can a node belong to multiple partitions?", o: ["Yes","No","Only on Fridays","Only if it has 2 CPUs"], a: 0 },
+        { q: "To see node details including its features, use ____.", o: ["scontrol show node <name>","sinfo","smap","sview"], a: 0 },
+        { q: "The 'State' of a node is tracked by ____.", o: ["slurmctld","slurmdbd","munge","The user"], a: 0 },
+        { q: "What is 'Gang Scheduling'?", o: ["Running jobs in groups","Time-slicing multiple jobs on the same resources","A virus","None"], a: 1 },
+        { q: "If a job is 'REQUEUED', it ____.", o: ["Is deleted","Returns to the pending queue to run again later","Is finished","None"], a: 1 },
+        { q: "The 'MinNodes' parameter in slurm.conf restricts ____.", o: ["Minimum nodes in cluster","Minimum nodes a job must request","Minimum nodes per partition","None"], a: 1 },
+        { q: "How do you change the number of CPUs a node is reported to have?", o: ["Edit slurm.conf (CPUs=X)","Physically add CPUs","You can't","Restart the kernel"], a: 0 },
+        { q: "A 'Shared' partition allows ____.", o: ["Multiple users on one node","Multiple clusters","File sharing","None"], a: 0 },
+        { q: "What does 'sview' provide?", o: ["A text interface","A GUI for Slurm management","A video player","None"], a: 1 },
+        { q: "Which setting defines how long a node can be 'unresponsive' before being marked DOWN?", o: ["SlurmdTimeout","NodeTimeout","DeadTimeout","None"], a: 0 }
+    ],
+    "5": [
+        { q: "What is the primary tool for managing Slurm accounting?", o: ["sacctmgr","sacct","sreport","scontrol"], a: 0 },
+        { q: "Which command shows historical information about past jobs?", o: ["squeue","sacct","sinfo","history"], a: 1 },
+        { q: "To generate utilization reports, use ____.", o: ["sreport","sacct","sstat","sinfo"], a: 0 },
+        { q: "In Slurm accounting, an 'Account' is ____.", o: ["A bank account","A logical group for users (e.g., a research lab)","A user password","None"], a: 1 },
+        { q: "An 'Association' in Slurm links ____.", o: ["Cluster, Account, User, and Partition","Two nodes","A job and a script","None"], a: 0 },
+        { q: "Which command is used to add a new user to Slurm accounting?", o: ["sacctmgr add user <name> account=<acc>","useradd","scontrol add user","sbatch --user"], a: 0 },
+        { q: "What is 'Fair Share' calculation based on?", o: ["How much a user has used vs. their promised share","How many friends a user has","Random choice","Alphabetical order"], a: 0 },
+        { q: "A 'Fairshare' value of 1.0 means ____.", o: ["The user is over-quota","The user has perfect usage","The user is a root user","None"], a: 1 },
+        { q: "Which command shows the current fairshare tree and usage?", o: ["sshare","sacctmgr show user","squeue","sinfo"], a: 0 },
+        { q: "The 'Raw Shares' in Fairshare refers to ____.", o: ["Total CPUs used","The assigned portion of the cluster","Memory size","Disk usage"], a: 1 },
+        { q: "Slurm accounting data is typically stored in ____.", o: ["A text file","A MySQL/MariaDB database","RAM","Excel"], a: 1 },
+        { q: "Which command shows statistics for a *running* job's resources (CPU, Mem)?", o: ["sstat","sacct","squeue","sinfo"], a: 0 },
+        { q: "How do you see all accounts in the system?", o: ["sacctmgr show accounts","slist accounts","squeue -a","cat /etc/accounts"], a: 0 },
+        { q: "The 'Priority' of a job is a ____.", o: ["String","Floating point number or integer","Boolean","File"], a: 1 },
+        { q: "Which scheduling algorithm is most common in HPC?", o: ["Round Robin","Multi-factor Priority with Backfill","First Come First Served (Strictly)","None"], a: 1 },
+        { q: "To limit a user to 5 concurrent jobs, you set ____.", o: ["MaxJobs=5 in QOS or Association","Limit=5","srun -j 5","None"], a: 0 },
+        { q: "What is 'UsageRaw' in accounting?", o: ["Uncooked data","Total CPU-seconds consumed","Memory in bytes","None"], a: 1 },
+        { q: "How do you view jobs that ran last week?", o: ["sacct --starttime 2023-01-01","squeue --old","history","sinfo --past"], a: 0 },
+        { q: "What does 'WCKey' stand for?", o: ["World Class Key","Workload Characterization Key","Water Cooled Key","None"], a: 1 },
+        { q: "The 'Purge' setting in slurmdbd.conf is used to ____.", o: ["Clean the hardware","Delete old accounting records automatically","Reset passwords","None"], a: 1 },
+        { q: "What is 'CPU-minutes'?", o: ["CPU speed","Metric for accounting (Number of CPUs × Minutes run)","Clock time","None"], a: 1 },
+        { q: "Which command allows you to see cluster-wide utilization by account?", o: ["sreport cluster AccountUtilizationByUser","sacct","sinfo","smap"], a: 0 },
+        { q: "A 'Coordinator' in sacctmgr can ____.", o: ["Manage users within their own account","Shut down the cluster","Edit slurm.conf","None"], a: 0 },
+        { q: "To see which QOS are available, use ____.", o: ["sacctmgr show qos","sinfo -q","squeue -q","scontrol show qos"], a: 0 },
+        { q: "What is the effect of 'MaxWall' in an association?", o: ["Sets the building height","Sets the maximum walltime a user can request","Sets the maximum memory","None"], a: 1 },
+        { q: "Slurm accounting helps in ____.", o: ["Billing users","Capacity planning","Justifying hardware purchases","All of the above"], a: 3 },
+        { q: "To see why a job is not running, look at 'Reason' in ____.", o: ["squeue","sinfo","sacctmgr","sreport"], a: 0 },
+        { q: "What does 'PriorityWeightFairshare' define?", o: ["User weight","How much the Fairshare component contributes to total priority","The number of nodes","None"], a: 1 },
+        { q: "The 'DefaultAccount' for a user is used when ____.", o: ["The user is happy","No account is specified in the job submission","The user is root","None"], a: 1 },
+        { q: "To delete an account from Slurm, use ____.", o: ["sacctmgr delete account <name>","rm account","scontrol delete account","None"], a: 0 },
+        { q: "Which daemon is the middle-man between Slurm and the Database?", o: ["slurmd","slurmdbd","mysqld","slurmctld"], a: 1 },
+        { q: "What is 'GrpCPUs' in Slurm limits?", o: ["Total CPUs available to a group/account","A specific CPU model","Group of users","None"], a: 0 },
+        { q: "To see the 'Energy' consumption of a job (if supported), use ____.", o: ["sacct -o JobID,Energy","sinfo -e","sstat -e","squeue -e"], a: 0 },
+        { q: "The 'AccountingStorageType' for database usage must be ____.", o: ["accounting_storage/filetxt","accounting_storage/slurmdbd","accounting_storage/none","None"], a: 1 },
+        { q: "What is 'TRESBillingWeights' used for?", o: ["Calculating costs based on multiple resources (CPU, RAM, GPU)","Weighing the server","Selling hardware","None"], a: 0 },
+        { q: "To modify a user's default partition via accounting, use ____.", o: ["sacctmgr modify user <name> set defaultpartition=<p>","scontrol update user","sbatch -p","None"], a: 0 },
+        { q: "How do you view the 'ExitCode' of a finished job?", o: ["sacct -j <id> -o ExitCode","squeue","sinfo","cat /var/log/exit"], a: 0 },
+        { q: "What does 'MaxSubmitJobs' limit?", o: ["The number of running jobs","The total number of jobs a user can have in the queue (running + pending)","The number of users","None"], a: 1 },
+        { q: "Fairshare 'decay' (PriorityDecayHalfLife) means ____.", o: ["The node is dying","Old usage matters less over time","The battery is low","None"], a: 1 },
+        { q: "To see which users are in an account, use ____.", o: ["sacctmgr show associations account=<name>","slist users","squeue -u","cat /etc/passwd"], a: 0 }
+    ]
+};
+
+// ==== MAIN QUIZ LOGIC ====
+const urlParams = new URLSearchParams(window.location.search);
+let currentSet = urlParams.get('set') || "1";
+if(!quizData[currentSet]) currentSet = "1";
+document.getElementById(`btn-${currentSet}`).classList.add('active');
+
+const questionsArea = document.getElementById('questions-area');
+const currentQuestions = quizData[currentSet];
+
+currentQuestions.forEach((item,index)=>{
+    const qDiv=document.createElement('div');
+    qDiv.className='question';
+    qDiv.innerHTML=`
+        <span class="q-text">${index+1}. ${item.q}</span>
+        ${item.o.map((opt,i)=>`
+            <label class="option" id="q${index}o${i}">
+                <input type="radio" name="q${index}" value="${i}"><span>${opt}</span>
+            </label>
+        `).join('')}
+    `;
+    questionsArea.appendChild(qDiv);
+});
+
+function validateAndScore(){
+    let score=0;
+    const total=currentQuestions.length;
+
+    currentQuestions.forEach((item,index)=>{
+        const selected=document.querySelector(`input[name="q${index}"]:checked`);
+        const correctLabel=document.getElementById(`q${index}o${item.a}`);
+        if(selected){
+            const val=parseInt(selected.value);
+            if(val===item.a){score++;correctLabel.classList.add('opt-correct');}
+            else{document.getElementById(`q${index}o${val}`).classList.add('opt-wrong');correctLabel.classList.add('opt-correct');}
+        } else { correctLabel.classList.add('opt-correct'); }
+    });
+
+    const percent=Math.round((score/total)*100);
+    document.getElementById('score-display').innerText=percent+"%";
+    document.getElementById('stats-summary').innerText=`You scored ${score} out of ${total} correctly.`;
+    document.getElementById('result-modal').style.display='flex';
+}
+</script>
+
+</body>
+</html>
+
 .option input[type="radio"] { display: none; }
 .opt-correct { background: #d4edda !important; border-color: #28a745 !important; color: #155724; font-weight: bold; }
 .opt-wrong { background: #f8d7da !important; border-color: #dc3545 !important; color: #721c24; }
@@ -344,3 +663,4 @@ function closeModal() {
 
 </body>
 </html>
+
